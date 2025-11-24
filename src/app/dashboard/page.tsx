@@ -1,0 +1,186 @@
+import { AgentInterface } from "@/components/agent-interface";
+import prisma from "@/lib/prisma";
+import { TrendingUp, Package, Users, DollarSign, AlertCircle } from "lucide-react";
+import Link from "next/link";
+
+export default async function DashboardPage() {
+    const [orders, products, customers] = await Promise.all([
+        prisma.order.findMany({
+            include: {
+                customer: true,
+                items: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+        }),
+        prisma.product.findMany({
+            where: {
+                stockLevel: { lt: 10 }
+            }
+        }),
+        prisma.customer.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' }
+        })
+    ]);
+
+    const totalRevenue = await prisma.order.aggregate({
+        _sum: { totalAmount: true }
+    });
+
+    const totalOrders = await prisma.order.count();
+    const totalCustomers = await prisma.customer.count();
+    const lowStockCount = products.length;
+
+    return (
+        <>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                        Dashboard
+                    </h1>
+                    <p className="text-muted-foreground mt-1">Welcome back to Pine ERP</p>
+                </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent p-6 backdrop-blur">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+                            <h3 className="text-2xl font-bold mt-2">
+                                ${(totalRevenue._sum.totalAmount || 0).toString()}
+                            </h3>
+                            <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                                <TrendingUp className="h-3 w-3" />
+                                +20.1% from last month
+                            </p>
+                        </div>
+                        <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <DollarSign className="h-6 w-6 text-blue-400" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent p-6 backdrop-blur">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
+                            <h3 className="text-2xl font-bold mt-2">{totalOrders}</h3>
+                            <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                                <TrendingUp className="h-3 w-3" />
+                                +12.5% from last month
+                            </p>
+                        </div>
+                        <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                            <Package className="h-6 w-6 text-purple-400" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 backdrop-blur">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Total Customers</p>
+                            <h3 className="text-2xl font-bold mt-2">{totalCustomers}</h3>
+                            <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                                <TrendingUp className="h-3 w-3" />
+                                +8.2% from last month
+                            </p>
+                        </div>
+                        <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                            <Users className="h-6 w-6 text-green-400" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-red-500/10 via-red-500/5 to-transparent p-6 backdrop-blur">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Low Stock Items</p>
+                            <h3 className="text-2xl font-bold mt-2">{lowStockCount}</h3>
+                            <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                Needs attention
+                            </p>
+                        </div>
+                        <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                            <AlertCircle className="h-6 w-6 text-red-400" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                {/* Recent Orders */}
+                <div className="col-span-4 rounded-xl border bg-card/50 backdrop-blur">
+                    <div className="p-6">
+                        <h3 className="font-semibold text-lg mb-1">Recent Orders</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            Latest transactions from your customers
+                        </p>
+                        <div className="space-y-4">
+                            {orders.map((order) => (
+                                <Link
+                                    key={order.id}
+                                    href={`/dashboard/orders/${order.id}`}
+                                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                                            {order.customer.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{order.customer.name}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {order.items.length} items • {new Date(order.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold">${order.totalAmount.toString()}</p>
+                                        <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'COMPLETED'
+                                                ? 'bg-green-500/20 text-green-400'
+                                                : 'bg-yellow-500/20 text-yellow-400'
+                                            }`}>
+                                            {order.status}
+                                        </span>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* AI Agent */}
+                <div className="col-span-3">
+                    <AgentInterface />
+                </div>
+            </div>
+
+            {/* Low Stock Alert */}
+            {lowStockCount > 0 && (
+                <div className="rounded-xl border border-red-500/50 bg-red-500/10 p-6">
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
+                        <div className="flex-1">
+                            <h3 className="font-semibold text-red-400">Low Stock Alert</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                {lowStockCount} product{lowStockCount > 1 ? 's' : ''} running low on inventory
+                            </p>
+                            <div className="mt-3 space-y-2">
+                                {products.slice(0, 3).map((product) => (
+                                    <div key={product.id} className="flex items-center justify-between text-sm">
+                                        <span>{product.name}</span>
+                                        <span className="font-semibold text-red-400">{product.stockLevel} left</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}

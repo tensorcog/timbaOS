@@ -74,7 +74,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground">Total Amount</p>
-                            <p className="text-2xl font-bold">${order.totalAmount.toString()}</p>
+                            <p className="text-2xl font-bold">${Number(order.totalAmount).toFixed(2)}</p>
                         </div>
                     </div>
                 </div>
@@ -96,7 +96,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-semibold">${item.price.toString()} × {item.quantity}</p>
+                                    <p className="font-semibold">${Number(item.price).toFixed(2)} × {item.quantity}</p>
                                     <p className="text-sm text-muted-foreground">
                                         Total: ${(Number(item.price) * item.quantity).toFixed(2)}
                                     </p>

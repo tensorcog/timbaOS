@@ -35,7 +35,7 @@ export default async function ProductsPage() {
                                                 {product.category}
                                             </span>
                                         </td>
-                                        <td className="p-2">${product.price.toString()}</td>
+                                        <td className="p-2">${Number(product.price).toFixed(2)}</td>
                                         <td className="p-2">
                                             <span className={`font-semibold ${product.stockLevel < 10 ? 'text-red-600' : 'text-green-600'
                                                 }`}>

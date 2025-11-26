@@ -41,7 +41,7 @@ async function main() {
                 description: 'Naturally rot-resistant cedar fence post',
                 sku: 'CD-4X4-8',
                 price: 24.99,
-                stockLevel: 8, // Low stock!
+                stockLevel: 8,
                 category: 'Lumber',
             },
         }),
@@ -55,14 +55,14 @@ async function main() {
                 category: 'Lumber',
             },
         }),
-        // Plywood & Panels
+        // Plywood
         prisma.product.create({
             data: {
                 name: '4x8 1/2" CDX Plywood',
                 description: 'Construction grade plywood for sheathing',
                 sku: 'PLY-CDX-48',
                 price: 42.99,
-                stockLevel: 95,
+                stockLevel: 3,
                 category: 'Plywood',
             },
         }),
@@ -72,7 +72,7 @@ async function main() {
                 description: 'Hardwood veneer plywood for cabinetry',
                 sku: 'PLY-OAK-48',
                 price: 89.99,
-                stockLevel: 6, // Low stock!
+                stockLevel: 6,
                 category: 'Plywood',
             },
         }),
@@ -97,7 +97,7 @@ async function main() {
                 category: 'Hardware',
             },
         }),
-        // Concrete & Masonry
+        // Concrete
         prisma.product.create({
             data: {
                 name: '80lb Concrete Mix',
@@ -114,7 +114,7 @@ async function main() {
                 description: 'Grade 60 steel reinforcement bar',
                 sku: 'REB-12-10',
                 price: 8.50,
-                stockLevel: 5, // Low stock!
+                stockLevel: 5,
                 category: 'Concrete',
             },
         }),
@@ -161,77 +161,45 @@ async function main() {
     console.log(`✅ Created ${customers.length} customers`);
 
     // Create Orders
-    const order1 = await prisma.order.create({
+    await prisma.order.create({
         data: {
             customerId: customers[0].id,
             status: 'COMPLETED',
             totalAmount: 1247.83,
             items: {
                 create: [
-                    {
-                        productId: products[0].id,
-                        quantity: 50,
-                        price: 8.97,
-                    },
-                    {
-                        productId: products[4].id,
-                        quantity: 15,
-                        price: 42.99,
-                    },
-                    {
-                        productId: products[6].id,
-                        quantity: 3,
-                        price: 19.99,
-                    },
+                    { productId: products[0].id, quantity: 50, price: 8.97 },
+                    { productId: products[4].id, quantity: 15, price: 42.99 },
+                    { productId: products[6].id, quantity: 3, price: 19.99 },
                 ],
             },
         },
     });
 
-    const order2 = await prisma.order.create({
+    await prisma.order.create({
         data: {
             customerId: customers[1].id,
             status: 'PENDING',
-            totalAmount: 324.45,
+            totalAmount: 327.84,
             items: {
                 create: [
-                    {
-                        productId: products[2].id,
-                        quantity: 12,
-                        price: 24.99,
-                    },
-                    {
-                        productId: products[8].id,
-                        quantity: 4,
-                        price: 6.99,
-                    },
+                    { productId: products[2].id, quantity: 12, price: 24.99 },
+                    { productId: products[8].id, quantity: 4, price: 6.99 },
                 ],
             },
         },
     });
 
-    const order3 = await prisma.order.create({
+    await prisma.order.create({
         data: {
             customerId: customers[2].id,
             status: 'COMPLETED',
-            totalAmount: 2156.78,
+            totalAmount: 2204.90,
             items: {
                 create: [
-                    {
-                        productId: products[0].id,
-                        quantity: 100,
-                        price: 8.97,
-                    },
-                    {
-                        productId: products[1].id,
-                        quantity: 60,
-                        price: 18.45,
-                    },
-                    {
-                        productId: products[6].id,
-                        quantity: 10,
-                        price: 19.99,
-                    },
+                    { productId: products[0].id, quantity: 100, price: 8.97 },
+                    { productId: products[1].id, quantity: 60, price: 18.45 },
+                    { productId: products[6].id, quantity: 10, price: 19.99 },
                 ],
             },
         },

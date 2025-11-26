@@ -29,6 +29,7 @@ model Location {
   users       UserLocation[]
   agents      Agent[]
   locationPricing LocationPricing[]
+  quotes      Quote[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -49,6 +50,9 @@ model Product {
   orderItems  OrderItem[]
   transferItems TransferItem[]
   locationPricing LocationPricing[]
+  quoteItems  QuoteItem[]
+  recommendations ProductRecommendation[] @relation("ProductRecommendations")
+  recommendedFor  ProductRecommendation[] @relation("RecommendedProducts")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -176,6 +180,7 @@ model Order {
 
   items       OrderItem[]
   payments    Payment[]
+  quote       Quote?      @relation("QuoteToOrder")
 
   completedAt DateTime?
   createdAt   DateTime    @default(now())
@@ -213,6 +218,7 @@ model Customer {
   loyaltyPoints   Int      @default(0)
 
   orders          Order[]
+  quotes          Quote[]
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -228,10 +234,10 @@ model User {
 
   locations       UserLocation[]
   managedLocations Location[] @relation("LocationManager")
-
-  ordersCreated   Order[]    @relation("OrderSalesRep")
-  transfersRequested InventoryTransfer[] @relation("TransferRequester")
-  transfersApproved  InventoryTransfer[] @relation("TransferApprover")
+  orders      Order[]      @relation("OrderSalesRep")
+  requestedTransfers InventoryTransfer[] @relation("TransferRequester")
+  approvedTransfers  InventoryTransfer[] @relation("TransferApprover")
+  quotes      Quote[]      @relation("QuoteCreator")
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -287,4 +293,74 @@ model Payment {
   processedAt   DateTime @default(now())
   
   @@index([orderId])
+}
+
+model Quote {
+  id              String      @id @default(cuid())
+  quoteNumber     String      @unique
+  locationId      String
+  location        Location    @relation(fields: [locationId], references: [id])
+  customerId      String
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  
+  status          String      @default("PENDING")
+  validUntil      DateTime
+  
+  subtotal        Decimal
+  discountAmount  Decimal     @default(0)
+  taxAmount       Decimal
+  deliveryFee     Decimal     @default(0)
+  totalAmount     Decimal
+  
+  items           QuoteItem[]
+  
+  notes           String?
+  terms           String?
+  
+  createdById     String
+  createdBy       User        @relation("QuoteCreator", fields: [createdById], references: [id])
+  
+  convertedToOrderId String?  @unique
+  convertedToOrder   Order?   @relation("QuoteToOrder", fields: [convertedToOrderId], references: [id])
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  sentAt          DateTime?
+  acceptedAt      DateTime?
+  
+  @@index([locationId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  
+  quantity    Int
+  unitPrice   Decimal
+  discount    Decimal  @default(0)
+  subtotal    Decimal
+  
+  @@index([quoteId])
+}
+
+model ProductRecommendation {
+  id                   String   @id @default(cuid())
+  productId            String
+  product              Product  @relation("ProductRecommendations", fields: [productId], references: [id], onDelete: Cascade)
+  recommendedProductId String
+  recommendedProduct   Product  @relation("RecommendedProducts", fields: [recommendedProductId], references: [id], onDelete: Cascade)
+  
+  strength             Float
+  reason               String
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@unique([productId, recommendedProductId])
+  @@index([productId])
 }

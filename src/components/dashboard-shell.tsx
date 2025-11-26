@@ -14,6 +14,7 @@ import {
     Users,
     ArrowLeftRight,
     Settings,
+    FileText,
 } from "lucide-react"
 import { LocationSelector } from "./location-selector"
 import { LocationProvider, useLocation } from "@/lib/context/location-context"
@@ -57,6 +58,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                 >
                                     <ShoppingCart className="h-4 w-4" />
                                     Orders
+                                </Link>
+                                <Link
+                                    href="/dashboard/quotes"
+                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                >
+                                    <FileText className="h-4 w-4" />
+                                    Quotes
                                 </Link>
                                 <Link
                                     href="/dashboard/products"

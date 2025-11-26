@@ -4,6 +4,7 @@ import { useCart } from '@/lib/context/cart-context';
 import { useLocation } from '@/lib/context/location-context';
 import { CustomerLookup } from '@/components/pos/customer-lookup';
 import { PaymentPanel } from '@/components/pos/payment-panel';
+import { ProductRecommendations } from '@/components/product-recommendations';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
@@ -144,6 +145,11 @@ export default function CheckoutPage() {
                         </button>
                     </div>
                 </div>
+            </div>
+
+            {/* Product Recommendations */}
+            <div className="mt-6">
+                <ProductRecommendations />
             </div>
 
             {/* Payment Panel */}

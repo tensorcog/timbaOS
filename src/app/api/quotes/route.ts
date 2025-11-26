@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { logActivity } from '@/lib/audit-logger';
+import { createQuoteSchema } from '@/lib/validations/quote';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { currency } from '@/lib/currency';
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { customerId, locationId, items, deliveryAddress, notes, validityDays } = body;
+
+        // Validate input
+        const validationResult = createQuoteSchema.safeParse(body);
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validationResult.error.format() },
+                { status: 400 }
+            );
+        }
+
+        const { customerId, locationId, items, deliveryAddress, notes, validityDays } = validationResult.data;
 
         // Get location for tax rate
         const location = await prisma.location.findUnique({
@@ -12,36 +27,83 @@ export async function POST(request: NextRequest) {
             select: { taxRate: true },
         });
 
+        if (!location) {
+            return NextResponse.json({ error: 'Location not found' }, { status: 404 });
+        }
+
         // Get customer for tax exempt status
         const customer = await prisma.customer.findUnique({
             where: { id: customerId },
             select: { taxExempt: true },
         });
 
-        // Get first user as creator (in production, use authenticated user)
-        const user = await prisma.user.findFirst();
-        if (!user) {
-            return NextResponse.json({ error: 'No user found' }, { status: 400 });
+        if (!customer) {
+            return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
         }
 
-        const taxRate = parseFloat(location?.taxRate?.toString() || '0.0825');
+        // Get authenticated user
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-        // Calculate totals
-        const subtotal = items.reduce((sum: number, item: any) => {
-            return sum + (item.unitPrice * item.quantity - (item.discount || 0));
-        }, 0);
+        const userId = session.user.id;
 
-        const deliveryFee = deliveryAddress && subtotal < 1000 ? 100 : 0;
-        const taxAmount = customer?.taxExempt ? 0 : subtotal * taxRate;
-        const totalAmount = subtotal + deliveryFee + taxAmount;
-        const discountAmount = items.reduce((sum: number, item: any) => sum + (item.discount || 0), 0);
+        // Get System Configs
+        const [defaultTaxRateConfig, deliveryFeeThresholdConfig, deliveryFeeAmountConfig] = await Promise.all([
+            prisma.systemConfig.findUnique({ where: { key: 'DEFAULT_TAX_RATE' } }),
+            prisma.systemConfig.findUnique({ where: { key: 'DELIVERY_FEE_THRESHOLD' } }),
+            prisma.systemConfig.findUnique({ where: { key: 'DELIVERY_FEE_AMOUNT' } }),
+        ]);
 
-        // Generate quote number
-        const quoteNumber = `Q-${Date.now()}`;
+        const defaultTaxRate = defaultTaxRateConfig?.value ? Number(defaultTaxRateConfig.value) : 0.0825;
+        const deliveryFeeThreshold = deliveryFeeThresholdConfig?.value ? Number(deliveryFeeThresholdConfig.value) : 1000;
+        const deliveryFeeAmount = deliveryFeeAmountConfig?.value ? Number(deliveryFeeAmountConfig.value) : 100;
+
+        const taxRate = parseFloat(location.taxRate?.toString() || defaultTaxRate.toString());
+
+        // Calculate totals using Currency helper
+        let subtotal = currency(0);
+        let discountAmount = currency(0);
+
+        const processedItems = items.map(item => {
+            const unitPrice = currency(item.unitPrice);
+            const quantity = item.quantity;
+            const discount = currency(item.discount || 0);
+
+            const itemSubtotal = unitPrice.multiply(quantity).subtract(discount);
+
+            subtotal = subtotal.add(itemSubtotal);
+            discountAmount = discountAmount.add(discount);
+
+            return {
+                productId: item.productId,
+                quantity: item.quantity,
+                unitPrice: unitPrice.toNumber(),
+                discount: discount.toNumber(),
+                subtotal: itemSubtotal.toNumber(),
+            };
+        });
+
+        // Delivery Fee Logic
+        const deliveryFee = deliveryAddress && subtotal.toNumber() < deliveryFeeThreshold
+            ? currency(deliveryFeeAmount)
+            : currency(0);
+
+        // Tax Logic
+        const taxAmount = customer.taxExempt
+            ? currency(0)
+            : subtotal.multiply(taxRate);
+
+        const totalAmount = subtotal.add(deliveryFee).add(taxAmount);
+
+        // Generate Quote Number using Sequence
+        const sequence = await prisma.quoteSequence.create({ data: {} });
+        const quoteNumber = `Q-${1000 + sequence.id}`;
 
         // Calculate valid until date
         const validUntil = new Date();
-        validUntil.setDate(validUntil.getDate() + (validityDays || 30));
+        validUntil.setDate(validUntil.getDate() + validityDays);
 
         // Create quote
         const quote = await prisma.quote.create({
@@ -49,24 +111,18 @@ export async function POST(request: NextRequest) {
                 quoteNumber,
                 locationId,
                 customerId,
-                createdById: user.id,
+                createdById: userId,
                 status: 'PENDING',
                 validUntil,
-                subtotal,
-                discountAmount,
-                taxAmount,
-                deliveryFee,
-                totalAmount,
+                subtotal: subtotal.toNumber(),
+                discountAmount: discountAmount.toNumber(),
+                taxAmount: taxAmount.toNumber(),
+                deliveryFee: deliveryFee.toNumber(),
+                totalAmount: totalAmount.toNumber(),
                 notes: notes || null,
                 terms: 'Standard terms and conditions apply.',
                 items: {
-                    create: items.map((item: any) => ({
-                        productId: item.productId,
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        discount: item.discount || 0,
-                        subtotal: item.unitPrice * item.quantity - (item.discount || 0),
-                    })),
+                    create: processedItems,
                 },
             },
             include: {
@@ -78,6 +134,22 @@ export async function POST(request: NextRequest) {
                 customer: true,
                 location: true,
             },
+        });
+
+        // Log activity
+        await logActivity({
+            entityType: 'Quote',
+            entityId: quote.id,
+            action: 'CREATE',
+            userId: userId,
+            changes: {
+                quoteNumber: { new: quoteNumber },
+                totalAmount: { new: totalAmount.toNumber() },
+                customerId: { new: customerId },
+                itemsCount: { new: items.length },
+            },
+            ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+            userAgent: request.headers.get('user-agent') || 'unknown',
         });
 
         return NextResponse.json(quote);

@@ -7,77 +7,142 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Core Location Model
+model Account {
+  id                String  @id
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Agent {
+  id         String    @id
+  name       String
+  type       String
+  status     String
+  scope      String    @default("LOCATION")
+  locationId String?
+  config     Json?
+  lastRun    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime
+  Location   Location? @relation(fields: [locationId], references: [id])
+
+  @@index([locationId])
+  @@index([status])
+  @@index([type])
+}
+
+model AuditLog {
+  id         String   @id
+  entityType String
+  entityId   String
+  action     String
+  changes    Json
+  userId     String
+  timestamp  DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?
+  User       User     @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([timestamp])
+  @@index([userId])
+}
+
+model Customer {
+  id            String   @id
+  name          String
+  email         String   @unique
+  phone         String?
+  address       String?
+  customerType  String   @default("RETAIL")
+  accountNumber String?  @unique
+  creditLimit   Decimal  @default(0)
+  taxExempt     Boolean  @default(false)
+  taxId         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+  loyaltyPoints Int      @default(0)
+  Order         Order[]
+  Quote         Quote[]
+}
+
+model InventoryTransfer {
+  id                                                         String         @id
+  transferNumber                                             String         @unique
+  originLocationId                                           String
+  destinationLocationId                                      String
+  status                                                     String         @default("PENDING")
+  requestedBy                                                String
+  approvedBy                                                 String?
+  notes                                                      String?
+  requestedAt                                                DateTime       @default(now())
+  approvedAt                                                 DateTime?
+  shippedAt                                                  DateTime?
+  receivedAt                                                 DateTime?
+  User_InventoryTransfer_approvedByToUser                    User?          @relation("InventoryTransfer_approvedByToUser", fields: [approvedBy], references: [id])
+  Location_InventoryTransfer_destinationLocationIdToLocation Location       @relation("InventoryTransfer_destinationLocationIdToLocation", fields: [destinationLocationId], references: [id])
+  Location_InventoryTransfer_originLocationIdToLocation      Location       @relation("InventoryTransfer_originLocationIdToLocation", fields: [originLocationId], references: [id])
+  User_InventoryTransfer_requestedByToUser                   User           @relation("InventoryTransfer_requestedByToUser", fields: [requestedBy], references: [id])
+  TransferItem                                               TransferItem[]
+
+  @@index([destinationLocationId])
+  @@index([originLocationId])
+  @@index([status])
+}
+
 model Location {
-  id          String   @id @default(cuid())
-  code        String   @unique
-  name        String
-  address     String
-  phone       String?
-  email       String?
-  timezone    String   @default("America/New_York")
-  taxRate     Decimal  @default(0.0825)
-  isActive    Boolean  @default(true)
-  isWarehouse Boolean  @default(false)
-  managerId   String?
-  manager     User?    @relation("LocationManager", fields: [managerId], references: [id])
-
-  inventory   LocationInventory[]
-  orders      Order[]
-  transfers   InventoryTransfer[] @relation("OriginLocation")
-  receivedTransfers InventoryTransfer[] @relation("DestinationLocation")
-  users       UserLocation[]
-  agents      Agent[]
-  locationPricing LocationPricing[]
-  quotes      Quote[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                                                                  String              @id
+  code                                                                String              @unique
+  name                                                                String
+  address                                                             String
+  phone                                                               String?
+  email                                                               String?
+  timezone                                                            String              @default("America/New_York")
+  isActive                                                            Boolean             @default(true)
+  isWarehouse                                                         Boolean             @default(false)
+  managerId                                                           String?
+  createdAt                                                           DateTime            @default(now())
+  updatedAt                                                           DateTime
+  taxRate                                                             Decimal             @default(0.0825)
+  Agent                                                               Agent[]
+  InventoryTransfer_InventoryTransfer_destinationLocationIdToLocation InventoryTransfer[] @relation("InventoryTransfer_destinationLocationIdToLocation")
+  InventoryTransfer_InventoryTransfer_originLocationIdToLocation      InventoryTransfer[] @relation("InventoryTransfer_originLocationIdToLocation")
+  User                                                                User?               @relation(fields: [managerId], references: [id])
+  LocationInventory                                                   LocationInventory[]
+  LocationPricing                                                     LocationPricing[]
+  Order                                                               Order[]
+  Quote                                                               Quote[]
+  UserLocation                                                        UserLocation[]
 }
 
-// Product becomes a master catalog
-model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  sku         String   @unique
-  basePrice   Decimal
-  category    String
-  uom         String   @default("EA")
-  isActive    Boolean  @default(true)
-
-  inventory   LocationInventory[]
-  orderItems  OrderItem[]
-  transferItems TransferItem[]
-  locationPricing LocationPricing[]
-  quoteItems  QuoteItem[]
-  recommendations ProductRecommendation[] @relation("ProductRecommendations")
-  recommendedFor  ProductRecommendation[] @relation("RecommendedProducts")
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-// Location-specific inventory
 model LocationInventory {
-  id              String   @id @default(cuid())
+  id              String    @id
   locationId      String
-  location        Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
   productId       String
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  stockLevel      Int      @default(0)
-  reorderPoint    Int      @default(10)
-  reorderQuantity Int      @default(50)
+  stockLevel      Int       @default(0)
+  reorderPoint    Int       @default(10)
+  reorderQuantity Int       @default(50)
   maxStock        Int?
   aisle           String?
   bin             String?
-
   lastCounted     DateTime?
   lastRestocked   DateTime?
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime
+  Location        Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  Product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([locationId, productId])
   @@index([locationId])
@@ -85,282 +150,232 @@ model LocationInventory {
   @@index([stockLevel])
 }
 
-// Location-specific pricing
 model LocationPricing {
-  id         String   @id @default(cuid())
-  locationId String
-  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  price      Decimal
-  cost       Decimal?
-  effectiveFrom DateTime @default(now())
+  id            String    @id
+  locationId    String
+  productId     String
+  price         Decimal
+  cost          Decimal?
+  effectiveFrom DateTime  @default(now())
   effectiveTo   DateTime?
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  Location      Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  Product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([locationId, productId])
   @@index([locationId])
   @@index([productId])
 }
 
-// Inventory Transfers between locations
-model InventoryTransfer {
-  id                  String   @id @default(cuid())
-  transferNumber      String   @unique
-
-  originLocationId    String
-  originLocation      Location @relation("OriginLocation", fields: [originLocationId], references: [id])
-
-  destinationLocationId String
-  destinationLocation Location @relation("DestinationLocation", fields: [destinationLocationId], references: [id])
-
-  status              String   @default("PENDING")
-  requestedBy         String
-  requestedByUser     User     @relation("TransferRequester", fields: [requestedBy], references: [id])
-  approvedBy          String?
-  approvedByUser      User?    @relation("TransferApprover", fields: [approvedBy], references: [id])
-
-  items               TransferItem[]
-  notes               String?
-
-  requestedAt         DateTime @default(now())
-  approvedAt          DateTime?
-  shippedAt           DateTime?
-  receivedAt          DateTime?
-
-  @@index([originLocationId])
-  @@index([destinationLocationId])
-  @@index([status])
-}
-
-model TransferItem {
-  id         String   @id @default(cuid())
-  transferId String
-  transfer   InventoryTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id])
-
-  requestedQty Int
-  shippedQty   Int?
-  receivedQty  Int?
-
-  @@index([transferId])
-}
-
-// Orders now tied to specific location
 model Order {
-  id          String      @id @default(cuid())
-  orderNumber String      @unique @default(cuid())
-
-  locationId  String
-  location    Location    @relation(fields: [locationId], references: [id])
-
-  customerId  String
-  customer    Customer    @relation(fields: [customerId], references: [id])
-
-  orderType   String      @default("STANDARD")
-  status      String      @default("PENDING")
-  paymentStatus String    @default("PENDING")
-  
-  subtotal    Decimal
-  taxAmount   Decimal     @default(0)
-  discountAmount Decimal  @default(0)
-  totalAmount Decimal
-
-  fulfillmentType String  @default("PICKUP")
+  id              String      @id
+  orderNumber     String      @unique
+  locationId      String
+  customerId      String
+  status          String      @default("PENDING")
+  totalAmount     Decimal
+  fulfillmentType String      @default("PICKUP")
   deliveryAddress String?
   deliveryDate    DateTime?
-  deliveryFee     Decimal  @default(0)
+  deliveryFee     Decimal     @default(0)
+  salesRepId      String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime
+  completedAt     DateTime?
+  discountAmount  Decimal     @default(0)
+  orderType       String      @default("STANDARD")
+  paymentStatus   String      @default("PENDING")
+  subtotal        Decimal
+  taxAmount       Decimal     @default(0)
+  Customer        Customer    @relation(fields: [customerId], references: [id])
+  Location        Location    @relation(fields: [locationId], references: [id])
+  User            User?       @relation(fields: [salesRepId], references: [id])
+  OrderItem       OrderItem[]
+  Payment         Payment[]
+  Quote           Quote?
 
-  salesRepId  String?
-  salesRep    User?       @relation("OrderSalesRep", fields: [salesRepId], references: [id])
-
-  items       OrderItem[]
-  payments    Payment[]
-  quote       Quote?      @relation("QuoteToOrder")
-
-  completedAt DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  @@index([locationId])
-  @@index([customerId])
-  @@index([status])
   @@index([createdAt])
+  @@index([customerId])
+  @@index([locationId])
+  @@index([status])
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String  @id
   orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
-  product   Product @relation(fields: [productId], references: [id])
   quantity  Int
   price     Decimal
   discount  Decimal @default(0)
-}
-
-model Customer {
-  id              String   @id @default(cuid())
-  name            String
-  email           String   @unique
-  phone           String?
-  address         String?
-
-  customerType    String   @default("RETAIL")
-  accountNumber   String?  @unique
-  creditLimit     Decimal  @default(0)
-  taxExempt       Boolean  @default(false)
-  taxId           String?
-  loyaltyPoints   Int      @default(0)
-
-  orders          Order[]
-  quotes          Quote[]
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model User {
-  id              String   @id @default(cuid())
-  email           String   @unique
-  name            String
-  password        String
-  role            String
-  isActive        Boolean  @default(true)
-
-  locations       UserLocation[]
-  managedLocations Location[] @relation("LocationManager")
-  orders      Order[]      @relation("OrderSalesRep")
-  requestedTransfers InventoryTransfer[] @relation("TransferRequester")
-  approvedTransfers  InventoryTransfer[] @relation("TransferApprover")
-  quotes      Quote[]      @relation("QuoteCreator")
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model UserLocation {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  locationId String
-  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-
-  canManage  Boolean  @default(false)
-
-  createdAt  DateTime @default(now())
-
-  @@unique([userId, locationId])
-  @@index([userId])
-  @@index([locationId])
-}
-
-model Agent {
-  id         String    @id @default(cuid())
-  name       String
-  type       String
-  status     String
-  scope      String    @default("LOCATION")
-
-  locationId String?
-  location   Location? @relation(fields: [locationId], references: [id])
-
-  config     Json?
-  lastRun    DateTime?
-
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  @@index([locationId])
-  @@index([type])
-  @@index([status])
+  Order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product   Product @relation(fields: [productId], references: [id])
 }
 
 model Payment {
-  id            String   @id @default(cuid())
+  id            String   @id
   orderId       String
-  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
   paymentMethod String
   amount        Decimal
   transactionId String?
   status        String   @default("COMPLETED")
-  
   processedAt   DateTime @default(now())
-  
+  Order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
   @@index([orderId])
 }
 
+model Product {
+  id                                                                        String                  @id
+  name                                                                      String
+  description                                                               String?
+  sku                                                                       String                  @unique
+  basePrice                                                                 Decimal
+  category                                                                  String
+  uom                                                                       String                  @default("EA")
+  isActive                                                                  Boolean                 @default(true)
+  createdAt                                                                 DateTime                @default(now())
+  updatedAt                                                                 DateTime
+  LocationInventory                                                         LocationInventory[]
+  LocationPricing                                                           LocationPricing[]
+  OrderItem                                                                 OrderItem[]
+  ProductRecommendation_ProductRecommendation_productIdToProduct            ProductRecommendation[] @relation("ProductRecommendation_productIdToProduct")
+  ProductRecommendation_ProductRecommendation_recommendedProductIdToProduct ProductRecommendation[] @relation("ProductRecommendation_recommendedProductIdToProduct")
+  QuoteItem                                                                 QuoteItem[]
+  TransferItem                                                              TransferItem[]
+}
+
+model ProductRecommendation {
+  id                                                          String   @id
+  productId                                                   String
+  recommendedProductId                                        String
+  strength                                                    Float
+  reason                                                      String
+  createdAt                                                   DateTime @default(now())
+  updatedAt                                                   DateTime
+  Product_ProductRecommendation_productIdToProduct            Product  @relation("ProductRecommendation_productIdToProduct", fields: [productId], references: [id], onDelete: Cascade)
+  Product_ProductRecommendation_recommendedProductIdToProduct Product  @relation("ProductRecommendation_recommendedProductIdToProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, recommendedProductId])
+  @@index([productId])
+}
+
 model Quote {
-  id              String      @id @default(cuid())
-  quoteNumber     String      @unique
-  locationId      String
-  location        Location    @relation(fields: [locationId], references: [id])
-  customerId      String
-  customer        Customer    @relation(fields: [customerId], references: [id])
-  
-  status          String      @default("PENDING")
-  validUntil      DateTime
-  
-  subtotal        Decimal
-  discountAmount  Decimal     @default(0)
-  taxAmount       Decimal
-  deliveryFee     Decimal     @default(0)
-  totalAmount     Decimal
-  
-  items           QuoteItem[]
-  
-  notes           String?
-  terms           String?
-  
-  createdById     String
-  createdBy       User        @relation("QuoteCreator", fields: [createdById], references: [id])
-  
-  convertedToOrderId String?  @unique
-  convertedToOrder   Order?   @relation("QuoteToOrder", fields: [convertedToOrderId], references: [id])
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  sentAt          DateTime?
-  acceptedAt      DateTime?
-  
-  @@index([locationId])
+  id                 String      @id
+  quoteNumber        String      @unique
+  locationId         String
+  customerId         String
+  status             String      @default("PENDING")
+  validUntil         DateTime
+  subtotal           Decimal
+  discountAmount     Decimal     @default(0)
+  taxAmount          Decimal
+  deliveryFee        Decimal     @default(0)
+  totalAmount        Decimal
+  notes              String?
+  terms              String?
+  createdById        String
+  convertedToOrderId String?     @unique
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime
+  sentAt             DateTime?
+  acceptedAt         DateTime?
+  Order              Order?      @relation(fields: [convertedToOrderId], references: [id])
+  User               User        @relation(fields: [createdById], references: [id])
+  Customer           Customer    @relation(fields: [customerId], references: [id])
+  Location           Location    @relation(fields: [locationId], references: [id])
+  QuoteItem          QuoteItem[]
+
   @@index([customerId])
+  @@index([locationId])
   @@index([status])
 }
 
 model QuoteItem {
-  id          String   @id @default(cuid())
-  quoteId     String
-  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id])
-  
-  quantity    Int
-  unitPrice   Decimal
-  discount    Decimal  @default(0)
-  subtotal    Decimal
-  
+  id        String  @id
+  quoteId   String
+  productId String
+  quantity  Int
+  unitPrice Decimal
+  discount  Decimal @default(0)
+  subtotal  Decimal
+  Product   Product @relation(fields: [productId], references: [id])
+  Quote     Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
   @@index([quoteId])
 }
 
-model ProductRecommendation {
-  id                   String   @id @default(cuid())
-  productId            String
-  product              Product  @relation("ProductRecommendations", fields: [productId], references: [id], onDelete: Cascade)
-  recommendedProductId String
-  recommendedProduct   Product  @relation("RecommendedProducts", fields: [recommendedProductId], references: [id], onDelete: Cascade)
-  
-  strength             Float
-  reason               String
-  
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  
-  @@unique([productId, recommendedProductId])
-  @@index([productId])
+model QuoteSequence {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SystemConfig {
+  key         String   @id
+  value       Json
+  description String?
+  updatedAt   DateTime
+}
+
+model TransferItem {
+  id                String            @id
+  transferId        String
+  productId         String
+  requestedQty      Int
+  shippedQty        Int?
+  receivedQty       Int?
+  Product           Product           @relation(fields: [productId], references: [id])
+  InventoryTransfer InventoryTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  @@index([transferId])
+}
+
+model User {
+  id                                                    String              @id
+  email                                                 String              @unique
+  name                                                  String
+  password                                              String
+  role                                                  String
+  isActive                                              Boolean             @default(true)
+  createdAt                                             DateTime            @default(now())
+  updatedAt                                             DateTime
+  Account                                               Account[]
+  AuditLog                                              AuditLog[]
+  InventoryTransfer_InventoryTransfer_approvedByToUser  InventoryTransfer[] @relation("InventoryTransfer_approvedByToUser")
+  InventoryTransfer_InventoryTransfer_requestedByToUser InventoryTransfer[] @relation("InventoryTransfer_requestedByToUser")
+  Location                                              Location[]
+  Order                                                 Order[]
+  Quote                                                 Quote[]
+  Session                                               Session[]
+  UserLocation                                          UserLocation[]
+}
+
+model UserLocation {
+  id         String   @id
+  userId     String
+  locationId String
+  canManage  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  Location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, locationId])
+  @@index([locationId])
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }

@@ -149,8 +149,7 @@ export function QuoteForm({ customers, products, locations }: QuoteFormProps) {
             });
 
             if (response.ok) {
-                const quote = await response.json();
-                router.push(`/dashboard/quotes/${quote.id}`);
+                router.push('/dashboard/quotes');
             } else {
                 alert('Failed to create quote');
             }

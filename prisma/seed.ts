@@ -25,7 +25,7 @@ async function main() {
             data: {
                 email: 'admin@pine.com',
                 name: 'Admin User',
-                password: 'hashed_password_here', // In production, use bcrypt
+                password: 'password', // In production, use bcrypt
                 role: 'SUPER_ADMIN',
             },
         }),
@@ -356,6 +356,7 @@ async function main() {
                     { productId: products[6].id, quantity: 3, price: 19.99 },
                 ],
             },
+            subtotal: 1172.83,
         },
     });
 
@@ -373,6 +374,7 @@ async function main() {
                     { productId: products[8].id, quantity: 4, price: 6.99 },
                 ],
             },
+            subtotal: 327.84,
         },
     });
 
@@ -393,6 +395,7 @@ async function main() {
                     { productId: products[6].id, quantity: 10, price: 19.99 },
                 ],
             },
+            subtotal: 2119.90,
         },
     });
 
@@ -412,6 +415,7 @@ async function main() {
                     { productId: products[8].id, quantity: 100, price: 6.99 },
                 ],
             },
+            subtotal: 5432.10,
         },
     });
 

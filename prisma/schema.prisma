@@ -7,54 +7,259 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Core Location Model
+model Location {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  address     String
+  phone       String?
+  email       String?
+  timezone    String   @default("America/New_York")
+  isActive    Boolean  @default(true)
+  isWarehouse Boolean  @default(false)
+  managerId   String?
+  manager     User?    @relation("LocationManager", fields: [managerId], references: [id])
+
+  inventory   LocationInventory[]
+  orders      Order[]
+  transfers   InventoryTransfer[] @relation("OriginLocation")
+  receivedTransfers InventoryTransfer[] @relation("DestinationLocation")
+  users       UserLocation[]
+  agents      Agent[]
+  locationPricing LocationPricing[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Product becomes a master catalog
 model Product {
   id          String   @id @default(cuid())
   name        String
   description String?
   sku         String   @unique
-  price       Decimal
-  stockLevel  Int
+  basePrice   Decimal
   category    String
+  uom         String   @default("EA")
+  isActive    Boolean  @default(true)
+
+  inventory   LocationInventory[]
+  orderItems  OrderItem[]
+  transferItems TransferItem[]
+  locationPricing LocationPricing[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  orderItems  OrderItem[]
 }
 
-model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  phone     String?
-  address   String?
-  createdAt DateTime @default(now())
-  orders    Order[]
+// Location-specific inventory
+model LocationInventory {
+  id              String   @id @default(cuid())
+  locationId      String
+  location        Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  stockLevel      Int      @default(0)
+  reorderPoint    Int      @default(10)
+  reorderQuantity Int      @default(50)
+  maxStock        Int?
+  aisle           String?
+  bin             String?
+
+  lastCounted     DateTime?
+  lastRestocked   DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([locationId, productId])
+  @@index([locationId])
+  @@index([productId])
+  @@index([stockLevel])
 }
 
+// Location-specific pricing
+model LocationPricing {
+  id         String   @id @default(cuid())
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  price      Decimal
+  cost       Decimal?
+  effectiveFrom DateTime @default(now())
+  effectiveTo   DateTime?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([locationId, productId])
+  @@index([locationId])
+  @@index([productId])
+}
+
+// Inventory Transfers between locations
+model InventoryTransfer {
+  id                  String   @id @default(cuid())
+  transferNumber      String   @unique
+
+  originLocationId    String
+  originLocation      Location @relation("OriginLocation", fields: [originLocationId], references: [id])
+
+  destinationLocationId String
+  destinationLocation Location @relation("DestinationLocation", fields: [destinationLocationId], references: [id])
+
+  status              String   @default("PENDING")
+  requestedBy         String
+  requestedByUser     User     @relation("TransferRequester", fields: [requestedBy], references: [id])
+  approvedBy          String?
+  approvedByUser      User?    @relation("TransferApprover", fields: [approvedBy], references: [id])
+
+  items               TransferItem[]
+  notes               String?
+
+  requestedAt         DateTime @default(now())
+  approvedAt          DateTime?
+  shippedAt           DateTime?
+  receivedAt          DateTime?
+
+  @@index([originLocationId])
+  @@index([destinationLocationId])
+  @@index([status])
+}
+
+model TransferItem {
+  id         String   @id @default(cuid())
+  transferId String
+  transfer   InventoryTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+
+  requestedQty Int
+  shippedQty   Int?
+  receivedQty  Int?
+
+  @@index([transferId])
+}
+
+// Orders now tied to specific location
 model Order {
   id          String      @id @default(cuid())
+  orderNumber String      @unique @default(cuid())
+
+  locationId  String
+  location    Location    @relation(fields: [locationId], references: [id])
+
   customerId  String
   customer    Customer    @relation(fields: [customerId], references: [id])
-  status      String      @default("PENDING") // PENDING, COMPLETED, CANCELLED
+
+  status      String      @default("PENDING")
   totalAmount Decimal
-  createdAt   DateTime    @default(now())
+
+  fulfillmentType String  @default("PICKUP")
+  deliveryAddress String?
+  deliveryDate    DateTime?
+  deliveryFee     Decimal  @default(0)
+
+  salesRepId  String?
+  salesRep    User?       @relation("OrderSalesRep", fields: [salesRepId], references: [id])
+
   items       OrderItem[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([locationId])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model OrderItem {
   id        String  @id @default(cuid())
   orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
   product   Product @relation(fields: [productId], references: [id])
   quantity  Int
   price     Decimal
+  discount  Decimal @default(0)
+}
+
+model Customer {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  phone           String?
+  address         String?
+
+  customerType    String   @default("RETAIL")
+  accountNumber   String?  @unique
+  creditLimit     Decimal  @default(0)
+  taxExempt       Boolean  @default(false)
+  taxId           String?
+
+  orders          Order[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String
+  password        String
+  role            String
+  isActive        Boolean  @default(true)
+
+  locations       UserLocation[]
+  managedLocations Location[] @relation("LocationManager")
+
+  ordersCreated   Order[]    @relation("OrderSalesRep")
+  transfersRequested InventoryTransfer[] @relation("TransferRequester")
+  transfersApproved  InventoryTransfer[] @relation("TransferApprover")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model UserLocation {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  canManage  Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, locationId])
+  @@index([userId])
+  @@index([locationId])
 }
 
 model Agent {
-  id        String   @id @default(cuid())
-  name      String
-  type      String   // INVENTORY_WATCHER, SALES_ANALYST
-  status    String   // ACTIVE, IDLE
-  lastRun   DateTime?
-  config    Json?
+  id         String    @id @default(cuid())
+  name       String
+  type       String
+  status     String
+  scope      String    @default("LOCATION")
+
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id])
+
+  config     Json?
+  lastRun    DateTime?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([locationId])
+  @@index([type])
+  @@index([status])
 }

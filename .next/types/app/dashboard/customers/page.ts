@@ -1,4 +1,4 @@
-// File: /mnt/c/dev/anti-grav/spruce-killer/src/app/dashboard/customers/page.tsx
+// File: /home/monty/spruce-killer/src/app/dashboard/customers/page.tsx
 import * as entry from '../../../../../src/app/dashboard/customers/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

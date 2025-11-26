@@ -2,37 +2,73 @@ import { BaseAgent, AgentResult } from '../agent-core';
 import prisma from '../prisma';
 
 export class InventoryAgent extends BaseAgent {
-    constructor() {
+    private locationId?: string;
+
+    constructor(locationId?: string) {
         super('StockWatcher', 'INVENTORY_WATCHER');
+        this.locationId = locationId;
     }
 
     async run(): Promise<AgentResult> {
-        this.log('Checking inventory levels...');
+        this.log(`Checking inventory levels${this.locationId ? ' for location' : ' across all locations'}...`);
 
         try {
-            // Find products with low stock (e.g., less than 10)
-            const lowStockProducts = await prisma.product.findMany({
+            // Find location inventory with low stock (below reorder point)
+            const lowStockItems = await prisma.locationInventory.findMany({
                 where: {
+                    ...(this.locationId && { locationId: this.locationId }),
                     stockLevel: {
-                        lt: 10
+                        lt: prisma.locationInventory.fields.reorderPoint
                     }
+                },
+                include: {
+                    product: {
+                        select: {
+                            id: true,
+                            name: true,
+                            sku: true,
+                            category: true,
+                        }
+                    },
+                    location: {
+                        select: {
+                            id: true,
+                            code: true,
+                            name: true,
+                        }
+                    }
+                },
+                orderBy: {
+                    stockLevel: 'asc'
                 }
             });
 
-            if (lowStockProducts.length === 0) {
+            if (lowStockItems.length === 0) {
                 this.log('All stock levels are healthy.');
-                return { success: true, message: 'Inventory healthy', data: [] };
+                return {
+                    success: true,
+                    message: 'Inventory healthy',
+                    data: []
+                };
             }
 
-            this.log(`Found ${lowStockProducts.length} products with low stock.`);
+            this.log(`Found ${lowStockItems.length} items with low stock.`);
 
-            // In a real app, this would trigger a PO creation or notification
+            // In a real app, this would trigger transfer requests or PO creation
             // For now, we just return the data
 
             return {
                 success: true,
-                message: `Found ${lowStockProducts.length} low stock items`,
-                data: lowStockProducts
+                message: `Found ${lowStockItems.length} low stock items`,
+                data: lowStockItems.map(item => ({
+                    location: item.location.name,
+                    locationCode: item.location.code,
+                    product: item.product.name,
+                    sku: item.product.sku,
+                    stockLevel: item.stockLevel,
+                    reorderPoint: item.reorderPoint,
+                    needsRestock: item.reorderPoint - item.stockLevel,
+                }))
             };
 
         } catch (error: any) {

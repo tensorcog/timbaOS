@@ -4,7 +4,7 @@ import { TrendingUp, Package, Users, DollarSign, AlertCircle } from "lucide-reac
 import Link from "next/link";
 
 export default async function DashboardPage() {
-    const [orders, products, customers] = await Promise.all([
+    const [orders, lowStockItems, customers] = await Promise.all([
         prisma.order.findMany({
             include: {
                 customer: true,
@@ -13,10 +13,15 @@ export default async function DashboardPage() {
             orderBy: { createdAt: 'desc' },
             take: 5,
         }),
-        prisma.product.findMany({
+        prisma.locationInventory.findMany({
             where: {
                 stockLevel: { lt: 10 }
-            }
+            },
+            include: {
+                product: true,
+                location: true,
+            },
+            take: 10,
         }),
         prisma.customer.findMany({
             take: 5,
@@ -30,7 +35,7 @@ export default async function DashboardPage() {
 
     const totalOrders = await prisma.order.count();
     const totalCustomers = await prisma.customer.count();
-    const lowStockCount = products.length;
+    const lowStockCount = lowStockItems.length;
 
     return (
         <>
@@ -167,13 +172,16 @@ export default async function DashboardPage() {
                         <div className="flex-1">
                             <h3 className="font-semibold text-red-400">Low Stock Alert</h3>
                             <p className="text-sm text-muted-foreground mt-1">
-                                {lowStockCount} product{lowStockCount > 1 ? 's' : ''} running low on inventory
+                                {lowStockCount} item{lowStockCount > 1 ? 's' : ''} running low on inventory across all locations
                             </p>
                             <div className="mt-3 space-y-2">
-                                {products.slice(0, 3).map((product) => (
-                                    <div key={product.id} className="flex items-center justify-between text-sm">
-                                        <span>{product.name}</span>
-                                        <span className="font-semibold text-red-400">{product.stockLevel} left</span>
+                                {lowStockItems.slice(0, 3).map((item) => (
+                                    <div key={item.id} className="flex items-center justify-between text-sm">
+                                        <div className="flex-1">
+                                            <span className="font-medium">{item.product.name}</span>
+                                            <span className="text-xs text-muted-foreground ml-2">@ {item.location.name}</span>
+                                        </div>
+                                        <span className="font-semibold text-red-400">{item.stockLevel} left</span>
                                     </div>
                                 ))}
                             </div>

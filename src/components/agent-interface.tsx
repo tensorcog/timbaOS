@@ -2,15 +2,21 @@
 
 import { useState } from "react";
 import { Bot, Loader2, Sparkles } from "lucide-react";
+import { useLocation } from "@/lib/context/location-context";
 
 export function AgentInterface() {
+    const { currentLocation } = useLocation();
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
 
     const runAgent = async () => {
         setLoading(true);
         try {
-            const res = await fetch("/api/agent/run", { method: "POST" });
+            const res = await fetch("/api/agent/run", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ locationId: currentLocation?.id }),
+            });
             const data = await res.json();
             setResult(data);
         } catch (error) {
@@ -71,9 +77,15 @@ export function AgentInterface() {
                                 <div className="space-y-2">
                                     <p className="text-xs font-semibold text-purple-400">Low Stock Items:</p>
                                     {result.data.map((item: any, i: number) => (
-                                        <div key={i} className="flex justify-between text-xs bg-background/50 p-2 rounded">
-                                            <span>{item.name}</span>
-                                            <span className="text-red-400 font-semibold">{item.stockLevel} left</span>
+                                        <div key={i} className="flex flex-col gap-1 text-xs bg-background/50 p-2 rounded">
+                                            <div className="flex justify-between">
+                                                <span className="font-medium">{item.product}</span>
+                                                <span className="text-red-400 font-semibold">{item.stockLevel} left</span>
+                                            </div>
+                                            <div className="flex justify-between text-muted-foreground">
+                                                <span>{item.location} • {item.sku}</span>
+                                                <span>Reorder: {item.needsRestock}</span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

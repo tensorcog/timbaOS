@@ -1,11 +1,8 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/page": "app/page.js",
-  "/api/agent/run/route": "app/api/agent/run/route.js",
-  "/dashboard/analytics/page": "app/dashboard/analytics/page.js",
-  "/dashboard/customers/page": "app/dashboard/customers/page.js",
+  "/api/locations/route": "app/api/locations/route.js",
   "/dashboard/products/page": "app/dashboard/products/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/analytics/page": "app/dashboard/analytics/page.js",
   "/dashboard/orders/page": "app/dashboard/orders/page.js",
-  "/dashboard/orders/[id]/page": "app/dashboard/orders/[id]/page.js"
+  "/dashboard/transfers/page": "app/dashboard/transfers/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }

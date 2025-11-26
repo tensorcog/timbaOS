@@ -1,8 +1,9 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
   "/api/locations/route": "app/api/locations/route.js",
-  "/dashboard/products/page": "app/dashboard/products/page.js",
-  "/dashboard/analytics/page": "app/dashboard/analytics/page.js",
-  "/dashboard/orders/page": "app/dashboard/orders/page.js",
-  "/dashboard/transfers/page": "app/dashboard/transfers/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/api/pos/customers/walk-in/route": "app/api/pos/customers/walk-in/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/checkout/page": "app/dashboard/checkout/page.js",
+  "/dashboard/products/page": "app/dashboard/products/page.js"
 }

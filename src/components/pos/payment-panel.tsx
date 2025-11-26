@@ -1,0 +1,227 @@
+'use client';
+
+import { useState } from 'react';
+import { CreditCard, DollarSign, Check, Wallet, X } from 'lucide-react';
+
+interface CartItem {
+    productId: string;
+    price: number;
+    quantity: number;
+    discount: number;
+}
+
+interface PaymentPanelProps {
+    cart: CartItem[];
+    customer: { id: string; name: string; taxExempt: boolean };
+    locationId: string;
+    onComplete: () => void;
+    onCancel: () => void;
+}
+
+const PAYMENT_METHODS = [
+    { id: 'CASH', label: 'Cash', icon: DollarSign },
+    { id: 'CREDIT_CARD', label: 'Credit Card', icon: CreditCard },
+    { id: 'DEBIT_CARD', label: 'Debit Card', icon: CreditCard },
+    { id: 'CHECK', label: 'Check', icon: Check },
+    { id: 'STORE_CREDIT', label: 'Store Credit', icon: Wallet },
+];
+
+export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel }: PaymentPanelProps) {
+    const [payments, setPayments] = useState<Array<{ method: string; amount: number }>>([]);
+    const [selectedMethod, setSelectedMethod] = useState('CASH');
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [cashTendered, setCashTendered] = useState('');
+    const [processing, setProcessing] = useState(false);
+
+    // Calculate totals (simplified - should match cart calculation)
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity - item.discount), 0);
+    const total = subtotal; // Tax calculation would be added here
+    const paidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+    const remaining = total - paidAmount;
+
+    const addPayment = () => {
+        const amount = parseFloat(paymentAmount);
+        if (amount > 0 && amount <= remaining) {
+            setPayments([...payments, { method: selectedMethod, amount }]);
+            setPaymentAmount('');
+        }
+    };
+
+    const removePayment = (index: number) => {
+        setPayments(payments.filter((_, i) => i !== index));
+    };
+
+    const completeTransaction = async () => {
+        if (remaining > 0.01) {
+            alert('Payment incomplete');
+            return;
+        }
+
+        setProcessing(true);
+        try {
+            const response = await fetch('/api/pos/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    customerId: customer.id,
+                    locationId,
+                    items: cart.map(item => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        price: item.price,
+                        discount: item.discount,
+                    })),
+                    payments,
+                }),
+            });
+
+            if (response.ok) {
+                const order = await response.json();
+                // Show receipt or success message
+                alert(`Order ${order.orderNumber} completed!`);
+                onComplete();
+            } else {
+                alert('Failed to process order');
+            }
+        } catch (error) {
+            console.error('Checkout error:', error);
+            alert('Failed to process order');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const change = selectedMethod === 'CASH' && cashTendered
+        ? parseFloat(cashTendered) - remaining
+        : 0;
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-card rounded-xl border max-w-2xl w-full max-h-[90vh] overflow-auto">
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold">Payment</h2>
+                        <button onClick={onCancel} className="p-2 hover:bg-muted rounded-full">
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    {/* Total Due */}
+                    <div className="mb-6 p-6 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border">
+                        <div className="text-sm text-muted-foreground mb-1">Amount Due</div>
+                        <div className="text-4xl font-bold">${remaining.toFixed(2)}</div>
+                        {paidAmount > 0 && (
+                            <div className="text-sm text-muted-foreground mt-2">
+                                Paid: ${paidAmount.toFixed(2)} of ${total.toFixed(2)}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Payment Methods */}
+                    <div className="mb-6">
+                        <label className="text-sm font-medium mb-2 block">Payment Method</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {PAYMENT_METHODS.map((method) => {
+                                const Icon = method.icon;
+                                return (
+                                    <button
+                                        key={method.id}
+                                        onClick={() => setSelectedMethod(method.id)}
+                                        className={`p-3 rounded-lg border flex flex-col items-center gap-2 transition-colors ${selectedMethod === method.id
+                                                ? 'bg-purple-500/20 border-purple-500'
+                                                : 'hover:bg-muted'
+                                            }`}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                        <span className="text-sm">{method.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Cash Tendered */}
+                    {selectedMethod === 'CASH' && remaining > 0 && (
+                        <div className="mb-6">
+                            <label className="text-sm font-medium mb-2 block">Cash Tendered</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={cashTendered}
+                                onChange={(e) => setCashTendered(e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg border bg-background text-lg"
+                                placeholder="0.00"
+                            />
+                            {change > 0 && (
+                                <div className="mt-2 text-lg font-semibold text-green-600">
+                                    Change: ${change.toFixed(2)}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Payment Amount (for split payments) */}
+                    {remaining > 0 && (
+                        <div className="mb-6">
+                            <label className="text-sm font-medium mb-2 block">Amount</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={paymentAmount}
+                                    onChange={(e) => setPaymentAmount(e.target.value)}
+                                    className="flex-1 px-4 py-3 rounded-lg border bg-background"
+                                    placeholder={remaining.toFixed(2)}
+                                />
+                                <button
+                                    onClick={() => setPaymentAmount(remaining.toFixed(2))}
+                                    className="px-4 py-2 rounded-lg border hover:bg-muted"
+                                >
+                                    Exact
+                                </button>
+                                <button
+                                    onClick={addPayment}
+                                    className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Applied Payments */}
+                    {payments.length > 0 && (
+                        <div className="mb-6">
+                            <label className="text-sm font-medium mb-2 block">Applied Payments</label>
+                            <div className="space-y-2">
+                                {payments.map((payment, index) => (
+                                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+                                        <span>{payment.method.replace('_', ' ')}</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold">${payment.amount.toFixed(2)}</span>
+                                            <button
+                                                onClick={() => removePayment(index)}
+                                                className="text-red-500 hover:text-red-700"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Complete Button */}
+                    <button
+                        onClick={completeTransaction}
+                        disabled={remaining > 0.01 || processing}
+                        className="w-full py-4 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-bold text-lg hover:from-purple-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {processing ? 'Processing...' : remaining > 0.01 ? `$${remaining.toFixed(2)} Remaining` : 'Complete Transaction'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}

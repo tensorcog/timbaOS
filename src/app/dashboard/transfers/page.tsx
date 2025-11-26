@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { ArrowRight, Clock, CheckCircle, XCircle } from "lucide-react";
+import Link from "next/link";
 
 export default async function TransfersPage() {
     const transfers = await prisma.inventoryTransfer.findMany({
@@ -53,9 +54,11 @@ export default async function TransfersPage() {
         <>
             <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold md:text-2xl">Inventory Transfers</h1>
-                <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold hover:from-purple-600 hover:to-blue-700 transition-all">
-                    New Transfer
-                </button>
+                <Link href="/dashboard/transfers/new">
+                    <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold hover:from-purple-600 hover:to-blue-700 transition-all">
+                        New Transfer
+                    </button>
+                </Link>
             </div>
 
             <div className="rounded-xl border bg-card text-card-foreground shadow">
@@ -107,7 +110,7 @@ export default async function TransfersPage() {
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <span className="font-semibold">
-                                                        {item.quantity} units
+                                                        {item.requestedQty} units
                                                     </span>
                                                 </div>
                                             </div>

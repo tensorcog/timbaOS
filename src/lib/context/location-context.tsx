@@ -15,6 +15,7 @@ export interface Location {
 
 interface LocationContextType {
     currentLocation: Location | null;
+    selectedLocation: string | null;
     availableLocations: Location[];
     setCurrentLocation: (location: Location) => void;
     isLoading: boolean;
@@ -70,6 +71,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         <LocationContext.Provider
             value={{
                 currentLocation,
+                selectedLocation: currentLocation?.id || null,
                 availableLocations,
                 setCurrentLocation,
                 isLoading,

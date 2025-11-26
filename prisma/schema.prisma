@@ -16,6 +16,7 @@ model Location {
   phone       String?
   email       String?
   timezone    String   @default("America/New_York")
+  taxRate     Decimal  @default(0.0825)
   isActive    Boolean  @default(true)
   isWarehouse Boolean  @default(false)
   managerId   String?
@@ -156,7 +157,13 @@ model Order {
   customerId  String
   customer    Customer    @relation(fields: [customerId], references: [id])
 
+  orderType   String      @default("STANDARD")
   status      String      @default("PENDING")
+  paymentStatus String    @default("PENDING")
+  
+  subtotal    Decimal
+  taxAmount   Decimal     @default(0)
+  discountAmount Decimal  @default(0)
   totalAmount Decimal
 
   fulfillmentType String  @default("PICKUP")
@@ -168,7 +175,9 @@ model Order {
   salesRep    User?       @relation("OrderSalesRep", fields: [salesRepId], references: [id])
 
   items       OrderItem[]
+  payments    Payment[]
 
+  completedAt DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -201,6 +210,7 @@ model Customer {
   creditLimit     Decimal  @default(0)
   taxExempt       Boolean  @default(false)
   taxId           String?
+  loyaltyPoints   Int      @default(0)
 
   orders          Order[]
 
@@ -262,4 +272,19 @@ model Agent {
   @@index([locationId])
   @@index([type])
   @@index([status])
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  paymentMethod String
+  amount        Decimal
+  transactionId String?
+  status        String   @default("COMPLETED")
+  
+  processedAt   DateTime @default(now())
+  
+  @@index([orderId])
 }

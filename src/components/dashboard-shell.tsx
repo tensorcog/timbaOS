@@ -16,11 +16,17 @@ import {
     Settings,
 } from "lucide-react"
 import { LocationSelector } from "./location-selector"
-import { LocationProvider } from "@/lib/context/location-context"
+import { LocationProvider, useLocation } from "@/lib/context/location-context"
+import { CartProvider } from "@/lib/context/cart-context"
+import { CartButton } from "./cart-button"
+import { CartSidebar } from "./cart-sidebar"
+import { useState } from "react"
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
+    const [isCartOpen, setIsCartOpen] = useState(false);
+
     return (
-        <LocationProvider>
+        <>
             <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
                 <div className="hidden border-r border-border bg-card md:block">
                     <div className="flex h-full max-h-screen flex-col gap-2">
@@ -109,6 +115,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                             </form>
                         </div>
                         <LocationSelector />
+                        <CartButton onClick={() => setIsCartOpen(true)} />
                         <button className="rounded-full border border-border w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors">
                             <CircleUser className="h-5 w-5" />
                             <span className="sr-only">Toggle user menu</span>
@@ -119,6 +126,21 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     </main>
                 </div>
             </div>
+
+            <CartSidebar
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+            />
+        </>
+    );
+}
+
+export function DashboardShell({ children }: { children: React.ReactNode }) {
+    return (
+        <LocationProvider>
+            <CartProvider>
+                <DashboardContent>{children}</DashboardContent>
+            </CartProvider>
         </LocationProvider>
-    )
+    );
 }

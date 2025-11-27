@@ -15,8 +15,10 @@ import {
     ArrowLeftRight,
     Settings,
     FileText,
+    MapPin,
 } from "lucide-react"
 import { LocationSelector } from "./location-selector"
+import { UserMenu } from "./user-menu"
 import { LocationProvider, useLocation } from "@/lib/context/location-context"
 import { CartProvider } from "@/lib/context/cart-context"
 import { CartButton } from "./cart-button"
@@ -88,6 +90,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                     Transfers
                                 </Link>
                                 <Link
+                                    href="/dashboard/locations"
+                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                >
+                                    <MapPin className="h-4 w-4" />
+                                    Locations
+                                </Link>
+                                <Link
                                     href="/dashboard/analytics"
                                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
                                 >
@@ -124,10 +133,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                         </div>
                         <LocationSelector />
                         <CartButton onClick={() => setIsCartOpen(true)} />
-                        <button className="rounded-full border border-border w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors">
-                            <CircleUser className="h-5 w-5" />
-                            <span className="sr-only">Toggle user menu</span>
-                        </button>
+                        <UserMenu />
                     </header>
                     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                         {children}

@@ -3,18 +3,35 @@ import {
     UserRole,
     CustomerType,
     OrderStatus,
+    PaymentStatus,
     FulfillmentType,
     TransferStatus,
     AgentStatus,
-    AgentScope
+    AgentScope,
+    OrderType
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-async function main() {
-    console.log('🌲 Seeding timbaOS Lumber Yard (Multi-Location)...');
+// Helper to generate random date within range
+function randomDate(start: Date, end: Date): Date {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
 
-    // Clear existing data (in correct order for foreign keys)
+// Helper to get random item from array
+function randomItem<T>(array: T[]): T {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+// Helper to get random int
+function randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+async function main() {
+    console.log('🏪 Seeding Bills Supplies - Upstate NY...');
+
+    // Clear existing data
     await prisma.transferItem.deleteMany();
     await prisma.inventoryTransfer.deleteMany();
     await prisma.orderItem.deleteMany();
@@ -28,37 +45,71 @@ async function main() {
     await prisma.location.deleteMany();
     await prisma.user.deleteMany();
 
+    console.log('✅ Cleared existing data');
+
     // Create Users
     const users = await Promise.all([
         prisma.user.create({
             data: {
-                email: 'admin@timbaos.com',
-                name: 'Admin User',
-                password: 'password', // In production, use bcrypt
+                email: 'admin@billssupplies.com',
+                name: 'Bill Thompson',
+                password: 'password',
                 role: UserRole.SUPER_ADMIN,
             },
         }),
         prisma.user.create({
             data: {
-                email: 'main.manager@timbaos.com',
-                name: 'Sarah Johnson',
-                password: 'hashed_password_here',
+                email: 'amherst.manager@billssupplies.com',
+                name: 'Sarah Martinez',
+                password: 'password',
                 role: UserRole.LOCATION_ADMIN,
             },
         }),
         prisma.user.create({
             data: {
-                email: 'west.manager@timbaos.com',
-                name: 'Mike Chen',
-                password: 'hashed_password_here',
+                email: 'buffalo.manager@billssupplies.com',
+                name: 'Mike O\'Connor',
+                password: 'password',
                 role: UserRole.LOCATION_ADMIN,
             },
         }),
         prisma.user.create({
             data: {
-                email: 'sales@timbaos.com',
-                name: 'Tom Wilson',
-                password: 'hashed_password_here',
+                email: 'westchester.manager@billssupplies.com',
+                name: 'Jennifer Wu',
+                password: 'password',
+                role: UserRole.LOCATION_ADMIN,
+            },
+        }),
+        prisma.user.create({
+            data: {
+                email: 'orchardpark.manager@billssupplies.com',
+                name: 'Tom Kowalski',
+                password: 'password',
+                role: UserRole.LOCATION_ADMIN,
+            },
+        }),
+        prisma.user.create({
+            data: {
+                email: 'niagara.manager@billssupplies.com',
+                name: 'Lisa Chen',
+                password: 'password',
+                role: UserRole.LOCATION_ADMIN,
+            },
+        }),
+        prisma.user.create({
+            data: {
+                email: 'sales1@billssupplies.com',
+                name: 'Robert Johnson',
+                password: 'password',
+                role: UserRole.SALES,
+            },
+        }),
+        prisma.user.create({
+            data: {
+                email: 'sales2@billssupplies.com',
+                name: 'Amanda Rodriguez',
+                password: 'password',
                 role: UserRole.SALES,
             },
         }),
@@ -66,15 +117,15 @@ async function main() {
 
     console.log(`✅ Created ${users.length} users`);
 
-    // Create Locations
+    // Create 5 Locations in Upstate NY
     const locations = await Promise.all([
         prisma.location.create({
             data: {
-                code: 'MAIN',
-                name: 'Main Yard',
-                address: '100 Pine Street, Lumber City, ST 12345',
-                phone: '555-0100',
-                email: 'main@timbaos.com',
+                code: 'AMHERST',
+                name: 'Bills Supplies - Amherst',
+                address: '4250 Maple Road, Amherst, NY 14226',
+                phone: '716-555-0100',
+                email: 'amherst@billssupplies.com',
                 isActive: true,
                 isWarehouse: false,
                 managerId: users[1].id,
@@ -82,11 +133,11 @@ async function main() {
         }),
         prisma.location.create({
             data: {
-                code: 'WEST',
-                name: 'Westside Branch',
-                address: '450 West Avenue, Lumber City, ST 12346',
-                phone: '555-0200',
-                email: 'west@timbaos.com',
+                code: 'BUFFALO',
+                name: 'Bills Supplies - Buffalo',
+                address: '1875 Main Street, Buffalo, NY 14208',
+                phone: '716-555-0200',
+                email: 'buffalo@billssupplies.com',
                 isActive: true,
                 isWarehouse: false,
                 managerId: users[2].id,
@@ -94,445 +145,406 @@ async function main() {
         }),
         prisma.location.create({
             data: {
-                code: 'WARE',
-                name: 'Distribution Warehouse',
-                address: '1000 Industrial Parkway, Lumber City, ST 12347',
-                phone: '555-0300',
-                email: 'warehouse@timbaos.com',
+                code: 'WESTCHESTER',
+                name: 'Bills Supplies - Westchester',
+                address: '328 Central Avenue, White Plains, NY 10606',
+                phone: '914-555-0300',
+                email: 'westchester@billssupplies.com',
+                isActive: true,
+                isWarehouse: false,
+                managerId: users[3].id,
+            },
+        }),
+        prisma.location.create({
+            data: {
+                code: 'ORCHARDPARK',
+                name: 'Bills Supplies - Orchard Park',
+                address: '5680 Abbott Road, Orchard Park, NY 14127',
+                phone: '716-555-0400',
+                email: 'orchardpark@billssupplies.com',
+                isActive: true,
+                isWarehouse: false,
+                managerId: users[4].id,
+            },
+        }),
+        prisma.location.create({
+            data: {
+                code: 'NIAGARA',
+                name: 'Bills Supplies - Niagara Falls',
+                address: '2450 Military Road, Niagara Falls, NY 14304',
+                phone: '716-555-0500',
+                email: 'niagara@billssupplies.com',
                 isActive: true,
                 isWarehouse: true,
+                managerId: users[5].id,
             },
         }),
     ]);
 
     console.log(`✅ Created ${locations.length} locations`);
 
-    // Create User-Location Access
-    await prisma.userLocation.createMany({
-        data: [
-            // Admin has access to all locations
-            { userId: users[0].id, locationId: locations[0].id, canManage: true },
-            { userId: users[0].id, locationId: locations[1].id, canManage: true },
-            { userId: users[0].id, locationId: locations[2].id, canManage: true },
-            // Main manager
-            { userId: users[1].id, locationId: locations[0].id, canManage: true },
-            // West manager
-            { userId: users[2].id, locationId: locations[1].id, canManage: true },
-            // Sales can access retail locations
-            { userId: users[3].id, locationId: locations[0].id, canManage: false },
-            { userId: users[3].id, locationId: locations[1].id, canManage: false },
-        ],
-    });
+    // Create 200 Products across various categories
+    const productCategories = [
+        'Lumber', 'Plywood', 'Hardware', 'Tools', 'Paint', 'Electrical',
+        'Plumbing', 'Concrete', 'Insulation', 'Roofing', 'Doors', 'Windows'
+    ];
 
-    console.log(`✅ Created user-location access`);
+    const products = [];
+    let skuCounter = 1000;
 
-    // Create Products (Master Catalog)
-    const products = await Promise.all([
-        // Lumber
-        prisma.product.create({
+    // Lumber products (30)
+    const lumberTypes = ['Pine', 'Oak', 'Cedar', 'Pressure Treated', 'Douglas Fir', 'Spruce'];
+    const lumberSizes = ['2x4x8', '2x4x10', '2x6x8', '2x6x10', '2x8x10', '4x4x8', '1x6x8', '2x10x12'];
+    for (let i = 0; i < 30; i++) {
+        const type = randomItem(lumberTypes);
+        const size = randomItem(lumberSizes);
+        products.push(await prisma.product.create({
             data: {
-                name: '2x4x8 Pressure Treated Pine',
-                description: 'Standard framing lumber, pressure treated for outdoor use',
-                sku: 'PT-2X4-8',
-                basePrice: 8.97,
+                name: `${size} ${type}`,
+                description: `${type} lumber for framing and construction`,
+                sku: `LMB-${skuCounter++}`,
+                basePrice: randomInt(5, 35) + 0.99,
                 category: 'Lumber',
                 uom: 'EA',
             },
-        }),
-        prisma.product.create({
+        }));
+    }
+
+    // Plywood & Sheet Goods (25)
+    const plywoodTypes = ['CDX', 'OSB', 'Oak', 'Birch', 'MDF', 'Particle Board'];
+    const thicknesses = ['1/4"', '1/2"', '3/4"', '5/8"'];
+    for (let i = 0; i < 25; i++) {
+        const type = randomItem(plywoodTypes);
+        const thickness = randomItem(thicknesses);
+        products.push(await prisma.product.create({
             data: {
-                name: '2x6x10 Douglas Fir',
-                description: 'Premium grade Douglas Fir for structural applications',
-                sku: 'DF-2X6-10',
-                basePrice: 18.45,
-                category: 'Lumber',
-                uom: 'EA',
-            },
-        }),
-        prisma.product.create({
-            data: {
-                name: '4x4x8 Cedar Post',
-                description: 'Naturally rot-resistant cedar fence post',
-                sku: 'CD-4X4-8',
-                basePrice: 24.99,
-                category: 'Lumber',
-                uom: 'EA',
-            },
-        }),
-        prisma.product.create({
-            data: {
-                name: '1x6x8 Pine Board',
-                description: 'Smooth finish pine board for trim and shelving',
-                sku: 'PN-1X6-8',
-                basePrice: 12.50,
-                category: 'Lumber',
-                uom: 'EA',
-            },
-        }),
-        // Plywood
-        prisma.product.create({
-            data: {
-                name: '4x8 1/2" CDX Plywood',
-                description: 'Construction grade plywood for sheathing',
-                sku: 'PLY-CDX-48',
-                basePrice: 42.99,
+                name: `4x8 ${thickness} ${type}`,
+                description: `${thickness} ${type} sheet goods`,
+                sku: `PLY-${skuCounter++}`,
+                basePrice: randomInt(25, 95) + 0.99,
                 category: 'Plywood',
                 uom: 'SHEET',
             },
-        }),
-        prisma.product.create({
+        }));
+    }
+
+    // Hardware (35)
+    const hardwareItems = [
+        'Deck Screws', 'Drywall Screws', 'Framing Nails', 'Finish Nails', 'Roofing Nails',
+        'Bolts', 'Lag Screws', 'Wood Screws', 'Brad Nails', 'Staples'
+    ];
+    for (let i = 0; i < 35; i++) {
+        const item = randomItem(hardwareItems);
+        products.push(await prisma.product.create({
             data: {
-                name: '4x8 3/4" Oak Plywood',
-                description: 'Hardwood veneer plywood for cabinetry',
-                sku: 'PLY-OAK-48',
-                basePrice: 89.99,
-                category: 'Plywood',
-                uom: 'SHEET',
-            },
-        }),
-        // Hardware
-        prisma.product.create({
-            data: {
-                name: 'Deck Screws 3" (5lb box)',
-                description: 'Exterior grade coated deck screws',
-                sku: 'HW-SCREW-3',
-                basePrice: 19.99,
+                name: `${item} ${randomItem(['1"', '2"', '3"', '16d', '8d'])} (${randomItem(['1lb', '5lb', '25lb', '50lb'])})`,
+                description: `Quality ${item.toLowerCase()} for construction`,
+                sku: `HW-${skuCounter++}`,
+                basePrice: randomInt(8, 95) + 0.99,
                 category: 'Hardware',
                 uom: 'BOX',
             },
-        }),
-        prisma.product.create({
+        }));
+    }
+
+    // Tools (30)
+    const tools = [
+        'Hammer', 'Circular Saw', 'Drill', 'Impact Driver', 'Level', 'Square',
+        'Tape Measure', 'Utility Knife', 'Chisel Set', 'Wrench Set', 'Pliers'
+    ];
+    for (let i = 0; i < 30; i++) {
+        const tool = randomItem(tools);
+        products.push(await prisma.product.create({
             data: {
-                name: 'Framing Nails 16d (50lb box)',
-                description: 'Hot-dipped galvanized framing nails',
-                sku: 'HW-NAIL-16D',
-                basePrice: 89.99,
-                category: 'Hardware',
-                uom: 'BOX',
-            },
-        }),
-        // Concrete
-        prisma.product.create({
-            data: {
-                name: '80lb Concrete Mix',
-                description: 'Fast-setting concrete for posts and footings',
-                sku: 'CON-MIX-80',
-                basePrice: 6.99,
-                category: 'Concrete',
-                uom: 'BAG',
-            },
-        }),
-        prisma.product.create({
-            data: {
-                name: 'Rebar 1/2" x 10ft',
-                description: 'Grade 60 steel reinforcement bar',
-                sku: 'REB-12-10',
-                basePrice: 8.50,
-                category: 'Concrete',
+                name: `${randomItem(['Pro', 'Professional', 'Heavy Duty', 'Standard'])} ${tool}`,
+                description: `Reliable ${tool.toLowerCase()} for professionals`,
+                sku: `TOOL-${skuCounter++}`,
+                basePrice: randomInt(15, 299) + 0.99,
+                category: 'Tools',
                 uom: 'EA',
             },
-        }),
-    ]);
+        }));
+    }
 
-    console.log(`✅ Created ${products.length} products in master catalog`);
-
-    // Create Location Inventory - Main Yard
-    await prisma.locationInventory.createMany({
-        data: [
-            { locationId: locations[0].id, productId: products[0].id, stockLevel: 450, reorderPoint: 100, aisle: 'A1' },
-            { locationId: locations[0].id, productId: products[1].id, stockLevel: 220, reorderPoint: 50, aisle: 'A2' },
-            { locationId: locations[0].id, productId: products[2].id, stockLevel: 8, reorderPoint: 20, aisle: 'A3' }, // Low stock
-            { locationId: locations[0].id, productId: products[3].id, stockLevel: 180, reorderPoint: 40, aisle: 'A1' },
-            { locationId: locations[0].id, productId: products[4].id, stockLevel: 3, reorderPoint: 10, aisle: 'B1' }, // Low stock
-            { locationId: locations[0].id, productId: products[5].id, stockLevel: 6, reorderPoint: 5, aisle: 'B2' }, // Low stock
-            { locationId: locations[0].id, productId: products[6].id, stockLevel: 145, reorderPoint: 30, aisle: 'C1' },
-            { locationId: locations[0].id, productId: products[7].id, stockLevel: 32, reorderPoint: 10, aisle: 'C2' },
-            { locationId: locations[0].id, productId: products[8].id, stockLevel: 280, reorderPoint: 100, aisle: 'D1' },
-            { locationId: locations[0].id, productId: products[9].id, stockLevel: 5, reorderPoint: 15, aisle: 'D2' }, // Low stock
-        ],
-    });
-
-    // Create Location Inventory - Westside Branch
-    await prisma.locationInventory.createMany({
-        data: [
-            { locationId: locations[1].id, productId: products[0].id, stockLevel: 320, reorderPoint: 100, aisle: '1A' },
-            { locationId: locations[1].id, productId: products[1].id, stockLevel: 150, reorderPoint: 50, aisle: '1B' },
-            { locationId: locations[1].id, productId: products[2].id, stockLevel: 45, reorderPoint: 20, aisle: '2A' },
-            { locationId: locations[1].id, productId: products[3].id, stockLevel: 90, reorderPoint: 40, aisle: '1A' },
-            { locationId: locations[1].id, productId: products[4].id, stockLevel: 25, reorderPoint: 10, aisle: '3A' },
-            { locationId: locations[1].id, productId: products[5].id, stockLevel: 12, reorderPoint: 5, aisle: '3B' },
-            { locationId: locations[1].id, productId: products[6].id, stockLevel: 88, reorderPoint: 30, aisle: '4A' },
-            { locationId: locations[1].id, productId: products[7].id, stockLevel: 18, reorderPoint: 10, aisle: '4B' },
-            { locationId: locations[1].id, productId: products[8].id, stockLevel: 195, reorderPoint: 100, aisle: '5A' },
-            { locationId: locations[1].id, productId: products[9].id, stockLevel: 28, reorderPoint: 15, aisle: '5B' },
-        ],
-    });
-
-    // Create Location Inventory - Warehouse (higher quantities)
-    await prisma.locationInventory.createMany({
-        data: [
-            { locationId: locations[2].id, productId: products[0].id, stockLevel: 2500, reorderPoint: 500 },
-            { locationId: locations[2].id, productId: products[1].id, stockLevel: 1800, reorderPoint: 300 },
-            { locationId: locations[2].id, productId: products[2].id, stockLevel: 600, reorderPoint: 150 },
-            { locationId: locations[2].id, productId: products[3].id, stockLevel: 1200, reorderPoint: 250 },
-            { locationId: locations[2].id, productId: products[4].id, stockLevel: 400, reorderPoint: 80 },
-            { locationId: locations[2].id, productId: products[5].id, stockLevel: 250, reorderPoint: 50 },
-            { locationId: locations[2].id, productId: products[6].id, stockLevel: 800, reorderPoint: 200 },
-            { locationId: locations[2].id, productId: products[7].id, stockLevel: 350, reorderPoint: 75 },
-            { locationId: locations[2].id, productId: products[8].id, stockLevel: 5000, reorderPoint: 1000 },
-            { locationId: locations[2].id, productId: products[9].id, stockLevel: 900, reorderPoint: 200 },
-        ],
-    });
-
-    console.log(`✅ Created location inventory for all locations`);
-
-    // Create Location-Specific Pricing (West branch has slightly higher prices)
-    await prisma.locationPricing.createMany({
-        data: [
-            { locationId: locations[1].id, productId: products[0].id, price: 9.47, cost: 6.50 },
-            { locationId: locations[1].id, productId: products[1].id, price: 19.95, cost: 13.00 },
-            { locationId: locations[1].id, productId: products[2].id, price: 26.99, cost: 18.00 },
-        ],
-    });
-
-    console.log(`✅ Created location-specific pricing`);
-
-    // Create Customers
-    const customers = await Promise.all([
-        prisma.customer.create({
+    // Paint (20)
+    const paintTypes = ['Interior', 'Exterior', 'Primer', 'Stain', 'Varnish'];
+    const finishes = ['Flat', 'Eggshell', 'Satin', 'Semi-Gloss', 'Gloss'];
+    for (let i = 0; i < 20; i++) {
+        products.push(await prisma.product.create({
             data: {
-                name: 'ABC Construction LLC',
-                email: 'orders@abcconstruction.com',
-                phone: '555-0101',
-                address: '123 Builder Ave, Construction City, ST 12345',
-                customerType: CustomerType.CONTRACTOR,
-                accountNumber: 'ACC-001',
-                creditLimit: 50000,
+                name: `${randomItem(paintTypes)} Paint - ${randomItem(finishes)} (Gallon)`,
+                description: 'Premium quality paint',
+                sku: `PNT-${skuCounter++}`,
+                basePrice: randomInt(25, 75) + 0.99,
+                category: 'Paint',
+                uom: 'GAL',
             },
-        }),
-        prisma.customer.create({
+        }));
+    }
+
+    // Electrical (20)
+    const electricalItems = [
+        'Romex Wire 14/2', 'Romex Wire 12/2', 'Junction Box', 'Outlet', 'Switch',
+        'Breaker 15A', 'Breaker 20A', 'Conduit', 'Wire Nuts', 'Electrical Tape'
+    ];
+    for (let i = 0; i < 20; i++) {
+        products.push(await prisma.product.create({
             data: {
-                name: 'HomeOwner Joe',
-                email: 'joe.homeowner@email.com',
-                phone: '555-0202',
-                address: '456 Residential St, Suburbia, ST 67890',
-                customerType: CustomerType.RETAIL,
+                name: randomItem(electricalItems),
+                description: 'Electrical supplies',
+                sku: `ELEC-${skuCounter++}`,
+                basePrice: randomInt(2, 85) + 0.99,
+                category: 'Electrical',
+                uom: randomItem(['EA', 'BOX', 'FT']),
             },
-        }),
-        prisma.customer.create({
+        }));
+    }
+
+    // Plumbing (20)
+    const plumbingItems = [
+        'PVC Pipe 1/2"', 'PVC Pipe 3/4"', 'Copper Pipe', 'PEX Tubing', 'Shut-off Valve',
+        'Faucet', 'Toilet', 'Drain Trap', 'PVC Cement', 'Teflon Tape'
+    ];
+    for (let i = 0; i < 20; i++) {
+        products.push(await prisma.product.create({
             data: {
-                name: 'Premier Decks & Fencing',
-                email: 'info@premierdecks.com',
-                phone: '555-0303',
-                address: '789 Contractor Blvd, Tradesville, ST 11223',
-                customerType: CustomerType.CONTRACTOR,
-                accountNumber: 'ACC-002',
-                creditLimit: 75000,
+                name: randomItem(plumbingItems),
+                description: 'Plumbing supplies',
+                sku: `PLUMB-${skuCounter++}`,
+                basePrice: randomInt(3, 299) + 0.99,
+                category: 'Plumbing',
+                uom: randomItem(['EA', 'FT']),
             },
-        }),
-        prisma.customer.create({
+        }));
+    }
+
+    // Concrete & Masonry (10)
+    for (let i = 0; i < 10; i++) {
+        const item = randomItem(['Concrete Mix', 'Mortar Mix', 'Grout', 'Rebar', 'Concrete Block']);
+        products.push(await prisma.product.create({
             data: {
-                name: 'City School District',
-                email: 'facilities@cityschools.edu',
-                phone: '555-0404',
-                address: '321 Education Way, Schooltown, ST 44556',
-                customerType: CustomerType.WHOLESALE,
-                accountNumber: 'ACC-003',
-                creditLimit: 100000,
-                taxExempt: true,
-                taxId: 'TAX-EXEMPT-001',
+                name: `${item} ${randomItem(['60lb', '80lb', '1/2"x10ft', '8x8x16'])}`,
+                description: 'Concrete and masonry products',
+                sku: `CONC-${skuCounter++}`,
+                basePrice: randomInt(4, 45) + 0.99,
+                category: 'Concrete',
+                uom: randomItem(['BAG', 'EA']),
             },
-        }),
-    ]);
+        }));
+    }
+
+    // Insulation (10)
+    for (let i = 0; i < 10; i++) {
+        products.push(await prisma.product.create({
+            data: {
+                name: `Insulation R-${randomItem([13, 15, 19, 21, 30])} ${randomItem(['Batts', 'Rolls', 'Foam Board'])}`,
+                description: 'Insulation products',
+                sku: `INSUL-${skuCounter++}`,
+                basePrice: randomInt(15, 89) + 0.99,
+                category: 'Insulation',
+                uom: 'EA',
+            },
+        }));
+    }
+
+    console.log(`✅ Created ${products.length} products`);
+
+    // Create inventory for each location
+    for (const location of locations) {
+        const isWarehouse = location.isWarehouse;
+        const inventoryData = products.map(product => ({
+            locationId: location.id,
+            productId: product.id,
+            stockLevel: isWarehouse ? randomInt(500, 5000) : randomInt(10, 300),
+            reorderPoint: isWarehouse ? randomInt(200, 1000) : randomInt(5, 50),
+            aisle: `${randomItem(['A', 'B', 'C', 'D', 'E'])}${randomInt(1, 20)}`,
+        }));
+
+        await prisma.locationInventory.createMany({ data: inventoryData });
+    }
+
+    console.log(`✅ Created inventory for all locations`);
+
+    // Create 250 Customers
+    const customerFirstNames = ['John', 'Mary', 'James', 'Patricia', 'Robert', 'Jennifer', 'Michael', 'Linda', 'William', 'Barbara', 'David', 'Elizabeth', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen'];
+    const customerLastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
+    const companyTypes = ['Construction', 'Contracting', 'Remodeling', 'Roofing', 'Plumbing', 'Electrical', 'Carpentry', 'Landscaping'];
+    const streets = ['Main St', 'Oak Ave', 'Maple Rd', 'Pine St', 'Elm Dr', 'Cedar Ln', 'Broadway', 'Park Ave', 'Washington St', 'Lake Rd'];
+    const nyCities = ['Buffalo', 'Amherst', 'Cheektowaga', 'West Seneca', 'Tonawanda', 'Niagara Falls', 'Lockport', 'Hamburg', 'Lancaster', 'Orchard Park'];
+
+    const customers = [];
+    for (let i = 0; i < 250; i++) {
+        const isCompany = i < 100; // First 100 are contractors/wholesale
+        const customerType = isCompany
+            ? randomItem([CustomerType.CONTRACTOR, CustomerType.WHOLESALE])
+            : CustomerType.RETAIL;
+
+        let name, email;
+        if (isCompany) {
+            const companyName = `${randomItem(customerLastNames)} ${randomItem(companyTypes)}`;
+            name = companyName;
+            email = `${companyName.toLowerCase().replace(/\s+/g, '')}@example.com`;
+        } else {
+            const firstName = randomItem(customerFirstNames);
+            const lastName = randomItem(customerLastNames);
+            name = `${firstName} ${lastName}`;
+            email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`;
+        }
+
+        customers.push(await prisma.customer.create({
+            data: {
+                name,
+                email: `customer${i}_${email}`,
+                phone: `716-555-${String(i).padStart(4, '0')}`,
+                address: `${randomInt(100, 9999)} ${randomItem(streets)}, ${randomItem(nyCities)}, NY ${14200 + randomInt(0, 99)}`,
+                customerType,
+                accountNumber: isCompany ? `ACC-${String(i + 1).padStart(4, '0')}` : null,
+                creditLimit: isCompany ? randomInt(10000, 100000) : 0,
+                taxExempt: customerType === CustomerType.WHOLESALE && Math.random() > 0.7,
+                taxId: (customerType === CustomerType.WHOLESALE && Math.random() > 0.7) ? `TAX-${String(i).padStart(6, '0')}` : null,
+                loyaltyPoints: customerType === CustomerType.RETAIL ? randomInt(0, 5000) : 0,
+            },
+        }));
+    }
 
     console.log(`✅ Created ${customers.length} customers`);
 
-    // Create Orders for Main Location
-    await prisma.order.create({
-        data: {
-            orderNumber: 'ORD-001',
-            locationId: locations[0].id,
-            customerId: customers[0].id,
-            status: OrderStatus.COMPLETED,
-            totalAmount: 1247.83,
-            fulfillmentType: FulfillmentType.DELIVERY,
-            deliveryAddress: customers[0].address!,
-            deliveryFee: 75.00,
-            salesRepId: users[3].id,
-            items: {
-                create: [
-                    { productId: products[0].id, quantity: 50, price: 8.97 },
-                    { productId: products[4].id, quantity: 15, price: 42.99 },
-                    { productId: products[6].id, quantity: 3, price: 19.99 },
-                ],
+    // Create 3,000 Orders
+    const statuses = [OrderStatus.COMPLETED, OrderStatus.COMPLETED, OrderStatus.COMPLETED, OrderStatus.PENDING, OrderStatus.CONFIRMED];
+    const paymentStatuses = [PaymentStatus.PAID, PaymentStatus.PAID, PaymentStatus.PAID, PaymentStatus.PENDING];
+    const fulfillmentTypes = [FulfillmentType.PICKUP, FulfillmentType.PICKUP, FulfillmentType.DELIVERY];
+    const orderTypes = [OrderType.SALE, OrderType.SALE, OrderType.SALE, OrderType.QUOTE];
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setFullYear(endDate.getFullYear() - 1);
+
+    console.log('Creating 3,000 orders (this may take a minute)...');
+
+    for (let i = 0; i < 3000; i++) {
+        const location = randomItem(locations.filter(l => !l.isWarehouse));
+        const customer = randomItem(customers);
+        const salesRep = randomItem([users[6], users[7]]);
+        const status = randomItem(statuses);
+        const orderType = randomItem(orderTypes);
+        const fulfillmentType = randomItem(fulfillmentTypes);
+
+        // Create 1-8 order items
+        const itemCount = randomInt(1, 8);
+        const orderItems = [];
+        let subtotal = 0;
+
+        for (let j = 0; j < itemCount; j++) {
+            const product = randomItem(products);
+            const quantity = randomInt(1, 25);
+            const price = product.basePrice * (1 + (Math.random() * 0.2 - 0.1)); // ±10% variation
+
+            orderItems.push({
+                productId: product.id,
+                quantity,
+                price: Math.round(price * 100) / 100,
+            });
+
+            subtotal += quantity * price;
+        }
+
+        const taxRate = customer.taxExempt ? 0 : 0.08; // 8% sales tax
+        const taxAmount = subtotal * taxRate;
+        const deliveryFee = fulfillmentType === FulfillmentType.DELIVERY ? randomInt(0, 150) : 0;
+        const discountAmount = customer.customerType === CustomerType.CONTRACTOR ? subtotal * 0.05 : 0; // 5% contractor discount
+        const totalAmount = subtotal + taxAmount + deliveryFee - discountAmount;
+
+        await prisma.order.create({
+            data: {
+                orderNumber: `ORD-${String(i + 1).padStart(6, '0')}`,
+                locationId: location.id,
+                customerId: customer.id,
+                salesRepId: salesRep.id,
+                status,
+                orderType,
+                paymentStatus: randomItem(paymentStatuses),
+                fulfillmentType,
+                subtotal: Math.round(subtotal * 100) / 100,
+                taxAmount: Math.round(taxAmount * 100) / 100,
+                deliveryFee: Math.round(deliveryFee * 100) / 100,
+                discountAmount: Math.round(discountAmount * 100) / 100,
+                totalAmount: Math.round(totalAmount * 100) / 100,
+                deliveryAddress: fulfillmentType === FulfillmentType.DELIVERY ? customer.address : null,
+                deliveryDate: fulfillmentType === FulfillmentType.DELIVERY ? randomDate(startDate, endDate) : null,
+                createdAt: randomDate(startDate, endDate),
+                items: {
+                    create: orderItems,
+                },
             },
-            subtotal: 1172.83,
-        },
-    });
+        });
 
-    await prisma.order.create({
-        data: {
-            orderNumber: 'ORD-002',
-            locationId: locations[0].id,
-            customerId: customers[1].id,
-            status: OrderStatus.PENDING,
-            totalAmount: 327.84,
-            fulfillmentType: FulfillmentType.PICKUP,
-            salesRepId: users[3].id,
-            items: {
-                create: [
-                    { productId: products[2].id, quantity: 12, price: 24.99 },
-                    { productId: products[8].id, quantity: 4, price: 6.99 },
-                ],
+        if ((i + 1) % 500 === 0) {
+            console.log(`  Created ${i + 1} orders...`);
+        }
+    }
+
+    console.log(`✅ Created 3,000 orders`);
+
+    // Create some inventory transfers
+    for (let i = 0; i < 20; i++) {
+        const originLocation = locations[4]; // Warehouse
+        const destLocation = randomItem(locations.filter(l => !l.isWarehouse));
+        const requestor = users.find(u => u.id === destLocation.managerId);
+        const status = randomItem([TransferStatus.PENDING, TransferStatus.APPROVED, TransferStatus.IN_TRANSIT, TransferStatus.RECEIVED]);
+
+        const transferItems = [];
+        for (let j = 0; j < randomInt(2, 6); j++) {
+            const product = randomItem(products);
+            const qty = randomInt(10, 100);
+            transferItems.push({
+                productId: product.id,
+                requestedQty: qty,
+                shippedQty: status !== TransferStatus.PENDING ? qty : null,
+                receivedQty: status === TransferStatus.RECEIVED ? qty : null,
+            });
+        }
+
+        await prisma.inventoryTransfer.create({
+            data: {
+                transferNumber: `TRF-${String(i + 1).padStart(5, '0')}`,
+                originLocationId: originLocation.id,
+                destinationLocationId: destLocation.id,
+                status,
+                requestedById: requestor!.id,
+                approvedById: status !== TransferStatus.PENDING ? users[0].id : null,
+                requestedAt: randomDate(startDate, endDate),
+                approvedAt: status !== TransferStatus.PENDING ? randomDate(startDate, endDate) : null,
+                shippedAt: status === TransferStatus.IN_TRANSIT || status === TransferStatus.RECEIVED ? randomDate(startDate, endDate) : null,
+                receivedAt: status === TransferStatus.RECEIVED ? randomDate(startDate, endDate) : null,
+                notes: randomItem(['Regular restock', 'Low inventory alert', 'Seasonal restock', 'Customer special order', null]),
+                items: {
+                    create: transferItems,
+                },
             },
-            subtotal: 327.84,
-        },
-    });
+        });
+    }
 
-    // Create Orders for West Location
-    await prisma.order.create({
-        data: {
-            orderNumber: 'ORD-003',
-            locationId: locations[1].id,
-            customerId: customers[2].id,
-            status: OrderStatus.COMPLETED,
-            totalAmount: 2204.90,
-            fulfillmentType: FulfillmentType.DELIVERY,
-            deliveryAddress: customers[2].address!,
-            deliveryFee: 85.00,
-            items: {
-                create: [
-                    { productId: products[0].id, quantity: 100, price: 9.47 }, // Location-specific price
-                    { productId: products[1].id, quantity: 60, price: 19.95 },
-                    { productId: products[6].id, quantity: 10, price: 19.99 },
-                ],
-            },
-            subtotal: 2119.90,
-        },
-    });
+    console.log('✅ Created inventory transfers');
 
-    await prisma.order.create({
-        data: {
-            orderNumber: 'ORD-004',
-            locationId: locations[1].id,
-            customerId: customers[3].id,
-            status: OrderStatus.PENDING,
-            totalAmount: 5432.10,
-            fulfillmentType: FulfillmentType.DELIVERY,
-            deliveryAddress: customers[3].address!,
-            deliveryFee: 0, // Tax exempt customer, no delivery fee
-            items: {
-                create: [
-                    { productId: products[0].id, quantity: 200, price: 9.47 },
-                    { productId: products[1].id, quantity: 150, price: 19.95 },
-                    { productId: products[8].id, quantity: 100, price: 6.99 },
-                ],
-            },
-            subtotal: 5432.10,
-        },
-    });
-
-    console.log(`✅ Created 4 orders across locations`);
-
-    // Create Inventory Transfer
-    await prisma.inventoryTransfer.create({
-        data: {
-            transferNumber: 'TXF-001',
-            originLocationId: locations[2].id, // From warehouse
-            destinationLocationId: locations[0].id, // To main yard
-            status: TransferStatus.RECEIVED,
-            requestedById: users[1].id,
-            approvedById: users[0].id,
-            requestedAt: new Date('2024-01-15'),
-            approvedAt: new Date('2024-01-15'),
-            shippedAt: new Date('2024-01-16'),
-            receivedAt: new Date('2024-01-17'),
-            notes: 'Restocking main yard for busy season',
-            items: {
-                create: [
-                    { productId: products[2].id, requestedQty: 50, shippedQty: 50, receivedQty: 50 },
-                    { productId: products[4].id, requestedQty: 30, shippedQty: 30, receivedQty: 30 },
-                ],
-            },
-        },
-    });
-
-    await prisma.inventoryTransfer.create({
-        data: {
-            transferNumber: 'TXF-002',
-            originLocationId: locations[2].id, // From warehouse
-            destinationLocationId: locations[0].id, // To main yard
-            status: TransferStatus.PENDING,
-            requestedById: users[1].id,
-            notes: 'Low stock emergency restock - Cedar posts and plywood',
-            items: {
-                create: [
-                    { productId: products[2].id, requestedQty: 25 },
-                    { productId: products[4].id, requestedQty: 20 },
-                    { productId: products[9].id, requestedQty: 30 },
-                ],
-            },
-        },
-    });
-
-    console.log(`✅ Created inventory transfers`);
-
-    // Create Agents per location
-    await prisma.agent.create({
-        data: {
-            name: 'StockWatcher - Main',
-            type: 'INVENTORY_WATCHER',
-            status: AgentStatus.ACTIVE,
-            scope: AgentScope.LOCATION,
-            locationId: locations[0].id,
-            lastRun: new Date(),
-            config: {
-                threshold: 10,
-                checkInterval: 3600,
-            },
-        },
-    });
-
-    await prisma.agent.create({
-        data: {
-            name: 'StockWatcher - West',
-            type: 'INVENTORY_WATCHER',
-            status: AgentStatus.ACTIVE,
-            scope: AgentScope.LOCATION,
-            locationId: locations[1].id,
-            lastRun: new Date(),
-            config: {
-                threshold: 10,
-                checkInterval: 3600,
-            },
-        },
-    });
-
-    await prisma.agent.create({
-        data: {
-            name: 'Global Analytics Agent',
-            type: 'SALES_ANALYST',
-            status: AgentStatus.ACTIVE,
-            scope: AgentScope.GLOBAL,
-            config: {
-                analysisInterval: 86400, // Daily
-            },
-        },
-    });
-
-    console.log('✅ Created AI agents');
-    console.log('🎉 Multi-location seed complete!');
+    console.log('');
+    console.log('🎉 Bills Supplies seed complete!');
+    console.log('');
+    console.log('📊 Summary:');
+    console.log(`  - ${locations.length} locations in Upstate NY`);
+    console.log(`  - ${products.length} products across ${productCategories.length} categories`);
+    console.log(`  - ${customers.length} customers`);
+    console.log(`  - 3,000 transactions`);
+    console.log(`  - ${users.length} users`);
     console.log('');
     console.log('📍 Locations:');
-    console.log('  - MAIN: Main Yard (Manager: Sarah Johnson)');
-    console.log('  - WEST: Westside Branch (Manager: Mike Chen)');
-    console.log('  - WARE: Distribution Warehouse');
+    console.log('  - AMHERST: 4250 Maple Road, Amherst, NY');
+    console.log('  - BUFFALO: 1875 Main Street, Buffalo, NY');
+    console.log('  - WESTCHESTER: 328 Central Avenue, White Plains, NY');
+    console.log('  - ORCHARDPARK: 5680 Abbott Road, Orchard Park, NY');
+    console.log('  - NIAGARA: 2450 Military Road, Niagara Falls, NY (Warehouse)');
     console.log('');
-    console.log('👥 Users:');
-    console.log('  - admin@timbaos.com (SUPER_ADMIN)');
-    console.log('  - main.manager@timbaos.com (LOCATION_ADMIN)');
-    console.log('  - west.manager@timbaos.com (LOCATION_ADMIN)');
-    console.log('  - sales@timbaos.com (SALES)');
+    console.log('👤 Login:');
+    console.log('  - admin@billssupplies.com (password: password)');
 }
 
 main()

@@ -129,7 +129,7 @@ model Location {
   Agent                                                               Agent[]
   InventoryTransfer_InventoryTransfer_destinationLocationIdToLocation InventoryTransfer[] @relation("InventoryTransfer_destinationLocationIdToLocation")
   InventoryTransfer_InventoryTransfer_originLocationIdToLocation      InventoryTransfer[] @relation("InventoryTransfer_originLocationIdToLocation")
-  User                                                                User?               @relation(fields: [managerId], references: [id])
+  manager                                                             User?               @relation(fields: [managerId], references: [id])
   LocationInventory                                                   LocationInventory[]
   LocationPricing                                                     LocationPricing[]
   Order                                                               Order[]

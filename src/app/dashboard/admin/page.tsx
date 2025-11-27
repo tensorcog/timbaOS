@@ -13,72 +13,72 @@ export default function AdminPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {/* Import Data Card */}
+            <div className="grid gap-4 md:grid-cols-2">
+                {/* Locations - Top Left */}
                 <Link
-                    href="/dashboard/admin/import"
-                    className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent p-6 backdrop-blur hover:from-blue-500/20 hover:via-blue-500/10 transition-all"
+                    href="/dashboard/locations"
+                    className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent p-6 backdrop-blur hover:from-purple-500/20 hover:via-purple-500/10 transition-all block h-full"
                 >
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
-                                <Upload className="h-6 w-6 text-blue-400" />
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2">Import Data</h3>
-                            <p className="text-sm text-muted-foreground">
-                                Import products, customers, and orders from ECI Spruce or CSV files
-                            </p>
-                        </div>
-                    </div>
-                </Link>
-
-                {/* Location Management Card */}
-                <Link
-                    href="/dashboard/admin/locations"
-                    className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent p-6 backdrop-blur hover:from-purple-500/20 hover:via-purple-500/10 transition-all"
-                >
-                    <div className="flex items-start justify-between">
-                        <div>
+                    <div className="flex items-start justify-between h-full">
+                        <div className="flex flex-col h-full">
                             <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
                                 <MapPin className="h-6 w-6 text-purple-400" />
                             </div>
                             <h3 className="text-lg font-semibold mb-2">Locations</h3>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground flex-1">
                                 Manage store locations, warehouses, and distribution centers
                             </p>
                         </div>
                     </div>
                 </Link>
 
-                {/* Database Tools Card */}
-                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 backdrop-blur opacity-50">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
-                                <Database className="h-6 w-6 text-green-400" />
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2">Database Tools</h3>
-                            <p className="text-sm text-muted-foreground">
-                                Backup, restore, and manage database operations
-                            </p>
-                            <span className="mt-2 inline-block text-xs px-2 py-1 rounded bg-muted">Coming Soon</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Export Data Card */}
+                {/* Export Data - Top Right */}
                 <Link
                     href="/dashboard/admin/export"
-                    className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 backdrop-blur hover:from-green-500/20 hover:via-green-500/10 transition-all"
+                    className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 backdrop-blur hover:from-green-500/20 hover:via-green-500/10 transition-all block h-full"
                 >
-                    <div className="flex items-start justify-between">
-                        <div>
+                    <div className="flex items-start justify-between h-full">
+                        <div className="flex flex-col h-full">
                             <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
                                 <Download className="h-6 w-6 text-green-400" />
                             </div>
                             <h3 className="text-lg font-semibold mb-2">Export Data</h3>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground flex-1">
                                 Export products, customers, and orders to CSV or Excel files
+                            </p>
+                        </div>
+                    </div>
+                </Link>
+
+                {/* Database Tools - Bottom Left */}
+                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 backdrop-blur opacity-50 h-full">
+                    <div className="flex items-start justify-between h-full">
+                        <div className="flex flex-col h-full">
+                            <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+                                <Database className="h-6 w-6 text-green-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold mb-2">Database Tools</h3>
+                            <p className="text-sm text-muted-foreground flex-1">
+                                Backup, restore, and manage database operations
+                            </p>
+                            <span className="mt-2 inline-block text-xs px-2 py-1 rounded bg-muted w-fit">Coming Soon</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Import Data - Bottom Right */}
+                <Link
+                    href="/dashboard/admin/import"
+                    className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent p-6 backdrop-blur hover:from-blue-500/20 hover:via-blue-500/10 transition-all block h-full"
+                >
+                    <div className="flex items-start justify-between h-full">
+                        <div className="flex flex-col h-full">
+                            <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
+                                <Upload className="h-6 w-6 text-blue-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold mb-2">Import Data</h3>
+                            <p className="text-sm text-muted-foreground flex-1">
+                                Import products, customers, and orders from ECI Spruce or CSV files
                             </p>
                         </div>
                     </div>

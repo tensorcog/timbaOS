@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, User, MapPin, FileText, DollarSign, Edit, History } from 'lucide-react';
 import { AuditHistory } from '@/components/audit-history';
 import { ConvertQuoteButton } from '@/components/quotes/convert-quote-button';
+import { SendQuoteButton } from '@/components/quotes/send-quote-button';
 
 interface QuotePageProps {
     params: {
@@ -200,7 +201,7 @@ export default async function QuotePage({ params }: QuotePageProps) {
                     </div>
 
                     {/* Actions */}
-                    {quote.status === 'PENDING' && !isExpired && (
+                    {(quote.status === 'PENDING' || quote.status === 'SENT') && !isExpired && (
                         <div className="rounded-xl border bg-card p-6">
                             <h2 className="text-lg font-semibold mb-4">Actions</h2>
                             <div className="space-y-2">
@@ -211,9 +212,11 @@ export default async function QuotePage({ params }: QuotePageProps) {
                                     <Edit className="h-4 w-4" />
                                     Edit Quote
                                 </Link>
-                                <button className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors">
-                                    Send Quote
-                                </button>
+                                <SendQuoteButton
+                                    quoteId={quote.id}
+                                    quoteNumber={quote.quoteNumber}
+                                    status={quote.status}
+                                />
                                 <ConvertQuoteButton
                                     quoteId={quote.id}
                                     quoteNumber={quote.quoteNumber}

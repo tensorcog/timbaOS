@@ -1,7 +1,9 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { ArrowLeft, Package, User, Calendar, DollarSign } from "lucide-react";
+import { ArrowLeft, Package, User, Calendar, DollarSign, Edit } from "lucide-react";
 import { notFound } from "next/navigation";
+import { ConfirmOrderButton } from "@/components/orders/confirm-order-button";
+import { CancelOrderButton } from "@/components/orders/cancel-order-button";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const order = await prisma.order.findUnique({
@@ -106,6 +108,32 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     </div>
                 </div>
             </div>
+
+            {/* Actions Panel for PENDING orders */}
+            {order.status === 'PENDING' && (
+                <div className="rounded-xl border bg-card p-6">
+                    <h2 className="text-lg font-semibold mb-4">Actions</h2>
+                    <div className="space-y-2">
+                        <ConfirmOrderButton
+                            orderId={order.id}
+                            orderNumber={order.orderNumber}
+                            status={order.status}
+                        />
+                        <Link
+                            href={`/dashboard/orders/${order.id}/edit`}
+                            className="w-full py-2 px-4 rounded-lg border border-blue-600 text-blue-600 font-medium hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Edit className="h-4 w-4" />
+                            Edit Order
+                        </Link>
+                        <CancelOrderButton
+                            orderId={order.id}
+                            orderNumber={order.orderNumber}
+                            status={order.status}
+                        />
+                    </div>
+                </div>
+            )}
         </>
     );
 }

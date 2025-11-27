@@ -43,7 +43,7 @@ export async function POST(
             );
         }
 
-        if (quote.status === 'REJECTED' || quote.status === 'EXPIRED') {
+        if (quote.status === 'REJECTED' || quote.status === 'EXPIRED' || quote.status === 'DRAFT') {
             return NextResponse.json(
                 { error: `Cannot convert ${quote.status.toLowerCase()} quote to order` },
                 { status: 400 }
@@ -148,8 +148,16 @@ export async function POST(
 
     } catch (error) {
         console.error('Quote conversion error:', error);
+        console.error('Error details:', {
+            name: error instanceof Error ? error.name : 'Unknown',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined
+        });
         return NextResponse.json(
-            { error: 'Failed to convert quote to order' },
+            {
+                error: 'Failed to convert quote to order',
+                details: error instanceof Error ? error.message : 'Unknown error'
+            },
             { status: 500 }
         );
     }

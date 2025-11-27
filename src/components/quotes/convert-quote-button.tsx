@@ -24,6 +24,7 @@ export function ConvertQuoteButton({
         setIsConverting(true);
 
         try {
+            console.log('Converting quote:', quoteId);
             const response = await fetch(`/api/quotes/${quoteId}/convert`, {
                 method: 'POST',
                 headers: {
@@ -31,20 +32,31 @@ export function ConvertQuoteButton({
                 },
             });
 
+            console.log('Response status:', response.status);
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (!response.ok) {
-                throw new Error(data.error || 'Failed to convert quote');
+                const errorMsg = data.details || data.error || 'Failed to convert quote';
+                console.error('Conversion failed:', errorMsg);
+                throw new Error(errorMsg);
             }
 
             toast.success(data.message || 'Quote converted to order successfully!');
 
             // Redirect to the new order page
-            router.push(`/dashboard/orders/${data.order.id}`);
-            router.refresh();
+            if (data.order && data.order.id) {
+                console.log('Redirecting to order:', data.order.id);
+                router.push(`/dashboard/orders/${data.order.id}`);
+                router.refresh();
+            } else {
+                console.error('No order ID in response');
+                throw new Error('Order created but no ID returned');
+            }
         } catch (error) {
             console.error('Conversion error:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to convert quote to order');
+            const errorMessage = error instanceof Error ? error.message : 'Failed to convert quote to order';
+            toast.error(errorMessage);
             setIsConverting(false);
         }
     };

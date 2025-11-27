@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE';
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'CONVERT_TO_ORDER' | 'CREATE_FROM_QUOTE';
 export type EntityType = 'Quote' | 'Order' | 'Product' | 'Customer' | 'Inventory';
 
 interface AuditLogParams {

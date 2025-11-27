@@ -7,9 +7,9 @@ export async function GET(request: NextRequest) {
     // Fetch all orders with related data
     const orders = await prisma.order.findMany({
       include: {
-        items: {
+        OrderItem: {
           include: {
-            product: true,
+            Product: true,
           },
         },
       },
@@ -31,10 +31,10 @@ export async function GET(request: NextRequest) {
     const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {}
 
     orders.forEach(order => {
-      order.items.forEach(item => {
+      order.OrderItem.forEach(item => {
         if (!productSales[item.productId]) {
           productSales[item.productId] = {
-            name: item.product.name,
+            name: item.Product.name,
             quantity: 0,
             revenue: 0,
           }
@@ -95,8 +95,8 @@ export async function GET(request: NextRequest) {
     const categoryData: Record<string, { revenue: number; count: number }> = {}
 
     orders.forEach(order => {
-      order.items.forEach(item => {
-        const category = item.product.category || 'Uncategorized'
+      order.OrderItem.forEach(item => {
+        const category = item.Product.category || 'Uncategorized'
         if (!categoryData[category]) {
           categoryData[category] = { revenue: 0, count: 0 }
         }

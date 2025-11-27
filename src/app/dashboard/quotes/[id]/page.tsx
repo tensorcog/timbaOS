@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, User, MapPin, FileText, DollarSign, Edit, History } from 'lucide-react';
 import { AuditHistory } from '@/components/audit-history';
+import { ConvertQuoteButton } from '@/components/quotes/convert-quote-button';
 
 interface QuotePageProps {
     params: {
@@ -213,9 +214,12 @@ export default async function QuotePage({ params }: QuotePageProps) {
                                 <button className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors">
                                     Send Quote
                                 </button>
-                                <button className="w-full py-2 px-4 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-colors">
-                                    Convert to Order
-                                </button>
+                                <ConvertQuoteButton
+                                    quoteId={quote.id}
+                                    quoteNumber={quote.quoteNumber}
+                                    status={quote.status}
+                                    isExpired={isExpired}
+                                />
                             </div>
                         </div>
                     )}

@@ -73,6 +73,7 @@ export const authOptions: NextAuthOptions = {
             if (token) {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
+                session.user.locationIds = (token.locationIds as string[]) || [];
             }
             return session;
         },
@@ -80,6 +81,14 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
+
+                // Fetch user's assigned locations
+                const userLocations = await prisma.userLocation.findMany({
+                    where: { userId: user.id },
+                    select: { locationId: true },
+                });
+
+                token.locationIds = userLocations.map(ul => ul.locationId);
             }
             return token;
         },

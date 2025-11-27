@@ -5,7 +5,8 @@ import { createQuoteSchema } from '@/lib/validations/quote';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { currency } from '@/lib/currency';
-import { QuoteStatus } from '@prisma/client';
+import { QuoteStatus, UserRole } from '@prisma/client';
+import { checkLocationAccess } from '@/lib/permissions';
 
 export async function POST(request: NextRequest) {
     try {
@@ -58,6 +59,25 @@ export async function POST(request: NextRequest) {
 
         if (!userExists) {
             return NextResponse.json({ error: 'User account not found. Please log out and log back in.' }, { status: 401 });
+        }
+
+        const userRole = session.user.role as UserRole;
+
+        // Only sales, managers, and admins can create quotes - warehouse cannot
+        if (userRole === UserRole.WAREHOUSE) {
+            return NextResponse.json(
+                { error: 'Forbidden - Warehouse users cannot create quotes' },
+                { status: 403 }
+            );
+        }
+
+        // Check if user has access to the selected location
+        const hasLocationAccess = await checkLocationAccess(userId, locationId);
+        if (!hasLocationAccess && userRole !== UserRole.SUPER_ADMIN && userRole !== UserRole.LOCATION_ADMIN) {
+            return NextResponse.json(
+                { error: 'Forbidden - No access to this location' },
+                { status: 403 }
+            );
         }
 
         // Get System Configs
@@ -172,12 +192,35 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
     try {
+        // Get authenticated user
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const userRole = session.user.role as UserRole;
+        const userLocationIds = session.user.locationIds || [];
+
         const searchParams = request.nextUrl.searchParams;
         const statusParam = searchParams.get('status');
         const status = statusParam ? (statusParam as QuoteStatus) : undefined;
 
+        // Build location filter based on role
+        const locationFilter = (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN)
+            ? {} // Admins see all
+            : { locationId: { in: userLocationIds } }; // Others see only their locations
+
+        // Sales users only see their own quotes
+        const ownershipFilter = userRole === UserRole.SALES
+            ? { createdById: session.user.id }
+            : {};
+
         const quotes = await prisma.quote.findMany({
-            where: status ? { status } : undefined,
+            where: {
+                ...(status ? { status } : {}),
+                ...locationFilter,
+                ...ownershipFilter,
+            },
             include: {
                 Customer: true,
                 Location: true,

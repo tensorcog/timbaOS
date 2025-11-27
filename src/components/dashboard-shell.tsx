@@ -26,8 +26,9 @@ import { CartButton } from "./cart-button"
 import { CartSidebar } from "./cart-sidebar"
 import { useState } from "react"
 
-function DashboardContent({ children }: { children: React.ReactNode }) {
+function DashboardContent({ children, session }: { children: React.ReactNode; session: any }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const userRole = session?.user?.role || 'SALES';
 
     return (
         <>
@@ -97,23 +98,29 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                     <MapPin className="h-4 w-4" />
                                     Locations
                                 </Link>
-                                <Link
-                                    href="/dashboard/analytics"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
-                                >
-                                    <LineChart className="h-4 w-4" />
-                                    Analytics
-                                </Link>
+                                {/* Analytics - Only for admins and managers */}
+                                {(userRole === 'SUPER_ADMIN' || userRole === 'LOCATION_ADMIN' || userRole === 'MANAGER') && (
+                                    <Link
+                                        href="/dashboard/analytics"
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    >
+                                        <LineChart className="h-4 w-4" />
+                                        Analytics
+                                    </Link>
+                                )}
 
                                 <div className="my-2 border-t border-border" />
 
-                                <Link
-                                    href="/dashboard/admin"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
-                                >
-                                    <Settings className="h-4 w-4" />
-                                    Admin
-                                </Link>
+                                {/* Admin - Only for admins */}
+                                {(userRole === 'SUPER_ADMIN' || userRole === 'LOCATION_ADMIN') && (
+                                    <Link
+                                        href="/dashboard/admin"
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    >
+                                        <Settings className="h-4 w-4" />
+                                        Admin
+                                    </Link>
+                                )}
                             </nav>
                         </div>
                     </div>
@@ -139,11 +146,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     );
 }
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({ children, session }: { children: React.ReactNode; session: any }) {
     return (
         <LocationProvider>
             <CartProvider>
-                <DashboardContent>{children}</DashboardContent>
+                <DashboardContent session={session}>{children}</DashboardContent>
             </CartProvider>
         </LocationProvider>
     );

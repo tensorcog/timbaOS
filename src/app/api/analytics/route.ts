@@ -1,11 +1,37 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { startOfMonth, subMonths, format } from "date-fns"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { UserRole } from "@prisma/client"
 
 export async function GET(request: NextRequest) {
   try {
-    // Fetch all orders with related data
+    // Require authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userRole = session.user.role as UserRole;
+    const userLocationIds = session.user.locationIds || [];
+
+    // Only admins and managers can access analytics
+    if (userRole === UserRole.SALES || userRole === UserRole.WAREHOUSE) {
+      return NextResponse.json(
+        { error: 'Forbidden - Only admins and managers can access analytics' },
+        { status: 403 }
+      );
+    }
+
+    // Build location filter
+    const locationFilter = (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN)
+      ? {} // Admins see all
+      : { locationId: { in: userLocationIds } }; // Managers see only their locations
+
+    // Fetch all orders with related data (filtered by location)
     const orders = await prisma.order.findMany({
+      where: locationFilter,
       include: {
         OrderItem: {
           include: {

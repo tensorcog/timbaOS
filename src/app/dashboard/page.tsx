@@ -2,12 +2,39 @@ import { AgentInterface } from "@/components/agent-interface";
 import prisma from "@/lib/prisma";
 import { TrendingUp, Package, Users, DollarSign, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
+    // Get authenticated user
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        redirect('/login');
+    }
+
+    const userRole = session.user.role as UserRole;
+    const userLocationIds = session.user.locationIds || [];
+
+    // Build location filter based on role
+    const locationFilter = (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN)
+        ? {} // Admins see all locations
+        : { locationId: { in: userLocationIds } }; // Others see only assigned locations
+
+    // Sales users only see their own quotes and orders
+    const ownershipFilter = userRole === UserRole.SALES
+        ? { createdById: session.user.id }
+        : {};
+
     const [orders, lowStockItems, customers, quotes] = await Promise.all([
         prisma.order.findMany({
+            where: {
+                ...locationFilter,
+                ...(userRole === UserRole.SALES ? { salesRepId: session.user.id } : {}),
+            },
             include: {
                 Customer: true,
                 OrderItem: true,
@@ -17,7 +44,8 @@ export default async function DashboardPage() {
         }),
         prisma.locationInventory.findMany({
             where: {
-                stockLevel: { lt: 10 }
+                stockLevel: { lt: 10 },
+                ...(userLocationIds.length > 0 ? { locationId: { in: userLocationIds } } : {}),
             },
             include: {
                 Product: true,
@@ -30,6 +58,10 @@ export default async function DashboardPage() {
             orderBy: { createdAt: 'desc' }
         }),
         prisma.quote.findMany({
+            where: {
+                ...locationFilter,
+                ...ownershipFilter,
+            },
             include: {
                 Customer: true,
                 QuoteItem: true,
@@ -40,10 +72,13 @@ export default async function DashboardPage() {
     ]);
 
     const totalRevenue = await prisma.order.aggregate({
+        where: locationFilter,
         _sum: { totalAmount: true }
     });
 
-    const totalOrders = await prisma.order.count();
+    const totalOrders = await prisma.order.count({
+        where: locationFilter,
+    });
     const totalCustomers = await prisma.customer.count();
     const lowStockCount = lowStockItems.length;
 

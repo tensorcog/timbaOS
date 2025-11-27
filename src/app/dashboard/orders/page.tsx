@@ -1,22 +1,49 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { redirect } from "next/navigation";
 
 export default async function OrdersPage({
     searchParams,
 }: {
     searchParams: { q?: string };
 }) {
+    // Get authenticated user
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        redirect('/login');
+    }
+
+    const userRole = session.user.role as UserRole;
+    const userLocationIds = session.user.locationIds || [];
+
     const query = searchParams.q;
 
+    // Build location filter
+    const locationFilter = (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN)
+        ? {} // Admins see all
+        : { locationId: { in: userLocationIds } };
+
+    // Sales users only see their own orders
+    const ownershipFilter = userRole === UserRole.SALES
+        ? { salesRepId: session.user.id }
+        : {};
+
     const orders = await prisma.order.findMany({
-        where: query
-            ? {
-                OR: [
-                    { orderNumber: { contains: query, mode: "insensitive" } },
-                    { Customer: { name: { contains: query, mode: "insensitive" } } },
-                ],
-            }
-            : undefined,
+        where: {
+            ...locationFilter,
+            ...ownershipFilter,
+            ...(query
+                ? {
+                    OR: [
+                        { orderNumber: { contains: query, mode: "insensitive" } },
+                        { Customer: { name: { contains: query, mode: "insensitive" } } },
+                    ],
+                }
+                : {}),
+        },
         include: {
             Customer: true,
             OrderItem: {

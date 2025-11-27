@@ -1,11 +1,38 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { Plus, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { UserRole } from '@prisma/client';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function QuotesPage() {
+    // Get authenticated user
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        redirect('/login');
+    }
+
+    const userRole = session.user.role as UserRole;
+    const userLocationIds = session.user.locationIds || [];
+
+    // Build location filter
+    const locationFilter = (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN)
+        ? {} // Admins see all
+        : { locationId: { in: userLocationIds } };
+
+    // Sales users only see their own quotes
+    const ownershipFilter = userRole === UserRole.SALES
+        ? { createdById: session.user.id }
+        : {};
+
     const quotes = await prisma.quote.findMany({
+        where: {
+            ...locationFilter,
+            ...ownershipFilter,
+        },
         include: {
             Customer: true,
             Location: true,

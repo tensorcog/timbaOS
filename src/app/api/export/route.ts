@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import ExcelJS from "exceljs"
 
 type ExportType = "products" | "customers" | "orders"
 type ExportFormat = "csv" | "xlsx"
@@ -33,6 +34,54 @@ function convertToCSV(data: any[], headers: string[]): string {
     }).join(",")
   })
   return [headerRow, ...rows].join("\n")
+}
+
+// Helper function to generate Excel file
+async function generateExcelFile(data: any[], headers: string[], filename: string): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet('Data')
+
+  // Add header row with styling
+  const headerRow = worksheet.addRow(headers)
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF4472C4' }
+  }
+  headerRow.alignment = { vertical: 'middle', horizontal: 'left' }
+
+  // Add data rows
+  data.forEach(row => {
+    const rowData = headers.map(header => row[header])
+    worksheet.addRow(rowData)
+  })
+
+  // Auto-fit columns
+  worksheet.columns.forEach(column => {
+    if (!column) return
+    let maxLength = 0
+    column.eachCell?.({ includeEmpty: true }, cell => {
+      const cellValue = cell.value ? cell.value.toString() : ''
+      maxLength = Math.max(maxLength, cellValue.length)
+    })
+    column.width = Math.min(maxLength + 2, 50) // Max width of 50
+  })
+
+  // Add filters to header row
+  worksheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: headers.length }
+  }
+
+  // Freeze header row
+  worksheet.views = [
+    { state: 'frozen', ySplit: 1 }
+  ]
+
+  // Generate buffer
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
 }
 
 // Helper function to get date range filter
@@ -226,11 +275,10 @@ export async function POST(request: NextRequest) {
         }
       })
     } else if (format === "xlsx") {
-      // For now, return CSV with xlsx extension
-      // In production, you'd use a library like 'exceljs' or 'xlsx' to generate proper Excel files
-      const csvContent = convertToCSV(data, headers)
+      // Generate proper Excel file with styling
+      const excelBuffer = await generateExcelFile(data, headers, filename)
 
-      return new NextResponse(csvContent, {
+      return new NextResponse(excelBuffer as any, {
         headers: {
           "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           "Content-Disposition": `attachment; filename="${filename}.xlsx"`

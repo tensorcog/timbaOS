@@ -1,117 +1,271 @@
-import prisma from "@/lib/prisma";
+"use client"
 
-export default async function AnalyticsPage() {
-    const orders = await prisma.order.findMany({
-        include: {
-            items: {
-                include: {
-                    product: true,
-                },
-            },
-        },
-    });
+import { useEffect, useState } from "react"
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package } from "lucide-react"
 
-    const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
-    const completedOrders = orders.filter(o => o.status === 'COMPLETED').length;
-    const pendingOrders = orders.filter(o => o.status === 'PENDING').length;
+interface AnalyticsData {
+  totalRevenue: number
+  completedOrders: number
+  pendingOrders: number
+  totalOrders: number
+  topProducts: Array<{ name: string; quantity: number; revenue: number }>
+  revenueByMonth: Array<{ month: string; revenue: number; orders: number }>
+  ordersByStatus: Array<{ status: string; count: number; color: string }>
+  categoryBreakdown: Array<{ category: string; revenue: number; count: number }>
+  previousMonthRevenue: number
+  previousMonthOrders: number
+}
 
-    // Top selling products
-    const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
+export default function AnalyticsPage() {
+  const [data, setData] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
 
-    orders.forEach(order => {
-        order.items.forEach(item => {
-            if (!productSales[item.productId]) {
-                productSales[item.productId] = {
-                    name: item.product.name,
-                    quantity: 0,
-                    revenue: 0,
-                };
-            }
-            productSales[item.productId].quantity += item.quantity;
-            productSales[item.productId].revenue += Number(item.price) * item.quantity;
-        });
-    });
+  useEffect(() => {
+    async function fetchAnalytics() {
+      try {
+        const response = await fetch("/api/analytics")
+        const analyticsData = await response.json()
+        setData(analyticsData)
+      } catch (error) {
+        console.error("Failed to fetch analytics:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAnalytics()
+  }, [])
 
-    const topProducts = Object.values(productSales)
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 5);
-
+  if (loading) {
     return (
-        <>
-            <div className="flex items-center">
-                <h1 className="text-lg font-semibold md:text-2xl">Analytics</h1>
-            </div>
+      <div className="flex items-center justify-center h-96">
+        <div className="text-muted-foreground">Loading analytics...</div>
+      </div>
+    )
+  }
 
-            {/* KPI Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
-                    <div className="text-sm font-medium text-muted-foreground">Total Revenue</div>
-                    <div className="text-3xl font-bold mt-2">${totalRevenue.toFixed(2)}</div>
-                </div>
-                <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
-                    <div className="text-sm font-medium text-muted-foreground">Completed Orders</div>
-                    <div className="text-3xl font-bold mt-2">{completedOrders}</div>
-                </div>
-                <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
-                    <div className="text-sm font-medium text-muted-foreground">Pending Orders</div>
-                    <div className="text-3xl font-bold mt-2">{pendingOrders}</div>
-                </div>
-            </div>
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-muted-foreground">Failed to load analytics</div>
+      </div>
+    )
+  }
 
-            {/* Top Products */}
-            <div className="rounded-xl border bg-card text-card-foreground shadow">
-                <div className="p-6">
-                    <h3 className="font-semibold mb-4">Top Selling Products</h3>
-                    <div className="space-y-4">
-                        {topProducts.map((product, index) => (
-                            <div key={index} className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <div className="font-medium">{product.name}</div>
-                                    <div className="text-sm text-muted-foreground">
-                                        {product.quantity} units sold
-                                    </div>
-                                </div>
-                                <div className="text-lg font-semibold">
-                                    ${product.revenue.toFixed(2)}
-                                </div>
-                            </div>
-                        ))}
+  const revenueGrowth = data.previousMonthRevenue > 0
+    ? ((data.totalRevenue - data.previousMonthRevenue) / data.previousMonthRevenue) * 100
+    : 0
+
+  const ordersGrowth = data.previousMonthOrders > 0
+    ? ((data.totalOrders - data.previousMonthOrders) / data.previousMonthOrders) * 100
+    : 0
+
+  const CHART_COLORS = {
+    primary: "#3b82f6",
+    success: "#22c55e",
+    warning: "#eab308",
+    danger: "#ef4444",
+    purple: "#a855f7",
+    orange: "#f97316",
+  }
+
+  return (
+    <>
+      <div className="flex items-center">
+        <h1 className="text-lg font-semibold md:text-2xl">Analytics</h1>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium text-muted-foreground">Total Revenue</div>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="text-3xl font-bold mt-2">${data.totalRevenue.toFixed(2)}</div>
+          <div className="flex items-center mt-2 text-sm">
+            {revenueGrowth >= 0 ? (
+              <>
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-green-500">+{revenueGrowth.toFixed(1)}%</span>
+              </>
+            ) : (
+              <>
+                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                <span className="text-red-500">{revenueGrowth.toFixed(1)}%</span>
+              </>
+            )}
+            <span className="text-muted-foreground ml-1">from last month</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium text-muted-foreground">Completed Orders</div>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="text-3xl font-bold mt-2">{data.completedOrders}</div>
+          <div className="flex items-center mt-2 text-sm">
+            {ordersGrowth >= 0 ? (
+              <>
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                <span className="text-green-500">+{ordersGrowth.toFixed(1)}%</span>
+              </>
+            ) : (
+              <>
+                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                <span className="text-red-500">{ordersGrowth.toFixed(1)}%</span>
+              </>
+            )}
+            <span className="text-muted-foreground ml-1">from last month</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium text-muted-foreground">Pending Orders</div>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="text-3xl font-bold mt-2">{data.pendingOrders}</div>
+          <div className="text-sm text-muted-foreground mt-2">
+            {data.totalOrders > 0 ? ((data.pendingOrders / data.totalOrders) * 100).toFixed(1) : 0}% of total orders
+          </div>
+        </div>
+      </div>
+
+      {/* Revenue Trend Chart */}
+      <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+        <h3 className="font-semibold mb-4">Revenue Trend</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data.revenueByMonth}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+            <YAxis stroke="hsl(var(--muted-foreground))" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+              labelStyle={{ color: "hsl(var(--card-foreground))" }}
+            />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="revenue"
+              stroke={CHART_COLORS.primary}
+              strokeWidth={2}
+              dot={{ fill: CHART_COLORS.primary }}
+              name="Revenue ($)"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Order Status and Category Breakdown */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Order Status Pie Chart */}
+        <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+          <h3 className="font-semibold mb-4">Order Status Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={data.ordersByStatus}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={(entry: any) => `${entry.status}: ${entry.count}`}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="count"
+              >
+                {data.ordersByStatus.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Category Breakdown Bar Chart */}
+        <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+          <h3 className="font-semibold mb-4">Revenue by Category</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data.categoryBreakdown}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Bar dataKey="revenue" fill={CHART_COLORS.success} name="Revenue ($)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Top Products */}
+      <div className="rounded-xl border bg-card text-card-foreground shadow">
+        <div className="p-6">
+          <h3 className="font-semibold mb-4">Top Selling Products</h3>
+          <div className="space-y-4">
+            {data.topProducts.map((product, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium">{product.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {product.quantity} units sold
                     </div>
+                  </div>
                 </div>
-            </div>
+                <div className="text-lg font-semibold">
+                  ${product.revenue.toFixed(2)}
+                </div>
+              </div>
+            ))}
+            {data.topProducts.length === 0 && (
+              <div className="text-center text-muted-foreground py-8">
+                No product sales data available
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-            {/* Order Status Breakdown */}
-            <div className="rounded-xl border bg-card text-card-foreground shadow">
-                <div className="p-6">
-                    <h3 className="font-semibold mb-4">Order Status Distribution</h3>
-                    <div className="space-y-3">
-                        <div>
-                            <div className="flex justify-between mb-1">
-                                <span className="text-sm">Completed</span>
-                                <span className="text-sm font-medium">{completedOrders}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                    className="bg-green-500 h-2 rounded-full"
-                                    style={{ width: `${(completedOrders / orders.length) * 100}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div className="flex justify-between mb-1">
-                                <span className="text-sm">Pending</span>
-                                <span className="text-sm font-medium">{pendingOrders}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                    className="bg-yellow-500 h-2 rounded-full"
-                                    style={{ width: `${(pendingOrders / orders.length) * 100}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
+      {/* Orders by Month Bar Chart */}
+      <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+        <h3 className="font-semibold mb-4">Orders Over Time</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data.revenueByMonth}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+            <YAxis stroke="hsl(var(--muted-foreground))" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+            />
+            <Bar dataKey="orders" fill={CHART_COLORS.purple} name="Number of Orders" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </>
+  )
 }

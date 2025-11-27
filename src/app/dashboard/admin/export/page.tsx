@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Download, FileSpreadsheet, CheckCircle2, ArrowRight, Users, Package, ShoppingCart, Calendar, Filter } from "lucide-react"
+import toast from "react-hot-toast"
 
 type ExportType = "products" | "customers" | "orders" | null
 type ExportFormat = "csv" | "xlsx" | null
@@ -26,6 +27,8 @@ export default function ExportPage() {
 
   const handleExport = async () => {
     setIsExporting(true)
+
+    const loadingToast = toast.loading(`Exporting ${exportType}...`)
 
     try {
       // Call the export API
@@ -59,13 +62,14 @@ export default function ExportPage() {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
+      toast.success(`Successfully exported ${exportType}!`, { id: loadingToast })
       setIsExporting(false)
       setExportComplete(true)
       setStep(4)
     } catch (error) {
       console.error("Export error:", error)
+      toast.error("Failed to export data. Please try again.", { id: loadingToast })
       setIsExporting(false)
-      alert("Failed to export data. Please try again.")
     }
   }
 

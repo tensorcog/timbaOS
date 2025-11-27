@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { ArrowRight, Clock, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
+import { TransferActions } from "./transfer-actions";
 
 export default async function TransfersPage() {
     const transfers = await prisma.inventoryTransfer.findMany({
@@ -28,7 +29,7 @@ export default async function TransfersPage() {
                 return 'bg-blue-500/20 text-blue-400';
             case 'IN_TRANSIT':
                 return 'bg-purple-500/20 text-purple-400';
-            case 'COMPLETED':
+            case 'RECEIVED':
                 return 'bg-green-500/20 text-green-400';
             case 'CANCELLED':
                 return 'bg-red-500/20 text-red-400';
@@ -41,7 +42,7 @@ export default async function TransfersPage() {
         switch (status) {
             case 'PENDING':
                 return <Clock className="h-4 w-4" />;
-            case 'COMPLETED':
+            case 'RECEIVED':
                 return <CheckCircle className="h-4 w-4" />;
             case 'CANCELLED':
                 return <XCircle className="h-4 w-4" />;
@@ -90,9 +91,12 @@ export default async function TransfersPage() {
                                                 {transfer.originLocation.name} → {transfer.destinationLocation.name}
                                             </div>
                                         </div>
-                                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium ${getStatusColor(transfer.status)}`}>
-                                            {getStatusIcon(transfer.status)}
-                                            {transfer.status}
+                                        <div className="flex items-center gap-3">
+                                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium ${getStatusColor(transfer.status)}`}>
+                                                {getStatusIcon(transfer.status)}
+                                                {transfer.status}
+                                            </div>
+                                            <TransferActions transferId={transfer.id} status={transfer.status} />
                                         </div>
                                     </div>
 

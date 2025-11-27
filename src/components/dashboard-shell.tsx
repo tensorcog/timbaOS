@@ -18,6 +18,7 @@ import {
     MapPin,
 } from "lucide-react"
 import { LocationSelector } from "./location-selector"
+import { GlobalSearch } from "./global-search"
 import { UserMenu } from "./user-menu"
 import { LocationProvider, useLocation } from "@/lib/context/location-context"
 import { CartProvider } from "@/lib/context/cart-context"
@@ -119,18 +120,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 </div>
                 <div className="flex flex-col">
                     <header className="flex h-14 items-center gap-4 border-b border-border bg-card/50 backdrop-blur px-4 lg:h-[60px] lg:px-6">
-                        <div className="w-full flex-1">
-                            <form>
-                                <div className="relative">
-                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <input
-                                        type="search"
-                                        placeholder="Search products..."
-                                        className="w-full appearance-none bg-muted border border-border rounded-lg pl-8 h-9 shadow-none md:w-2/3 lg:w-1/3 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    />
-                                </div>
-                            </form>
-                        </div>
+                        <GlobalSearch />
                         <LocationSelector />
                         <CartButton onClick={() => setIsCartOpen(true)} />
                         <UserMenu />

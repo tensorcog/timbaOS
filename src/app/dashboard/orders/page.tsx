@@ -1,8 +1,22 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 
-export default async function OrdersPage() {
+export default async function OrdersPage({
+    searchParams,
+}: {
+    searchParams: { q?: string };
+}) {
+    const query = searchParams.q;
+
     const orders = await prisma.order.findMany({
+        where: query
+            ? {
+                OR: [
+                    { orderNumber: { contains: query, mode: "insensitive" } },
+                    { customer: { name: { contains: query, mode: "insensitive" } } },
+                ],
+            }
+            : undefined,
         include: {
             customer: true,
             items: {
@@ -12,7 +26,7 @@ export default async function OrdersPage() {
             },
         },
         orderBy: {
-            createdAt: 'desc',
+            createdAt: "desc",
         },
     });
 
@@ -27,7 +41,7 @@ export default async function OrdersPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b">
-                                    <th className="text-left p-2">Order ID</th>
+                                    <th className="text-left p-2">Order Number</th>
                                     <th className="text-left p-2">Customer</th>
                                     <th className="text-left p-2">Status</th>
                                     <th className="text-left p-2">Total</th>
@@ -39,7 +53,7 @@ export default async function OrdersPage() {
                                     <tr key={order.id} className="border-b hover:bg-muted/50 transition-colors">
                                         <td className="p-2">
                                             <Link href={`/dashboard/orders/${order.id}`} className="font-mono text-sm hover:text-primary">
-                                                {order.id.slice(0, 8)}
+                                                {order.orderNumber}
                                             </Link>
                                         </td>
                                         <td className="p-2">

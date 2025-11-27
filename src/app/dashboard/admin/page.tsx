@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Upload, Database, MapPin, FileSpreadsheet } from "lucide-react";
+import { Upload, Database, MapPin, FileSpreadsheet, Download } from "lucide-react";
 
 export default function AdminPage() {
     return (
@@ -67,20 +67,22 @@ export default function AdminPage() {
                 </div>
 
                 {/* Export Data Card */}
-                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-orange-500/10 via-orange-500/5 to-transparent p-6 backdrop-blur opacity-50">
+                <Link
+                    href="/dashboard/admin/export"
+                    className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 backdrop-blur hover:from-green-500/20 hover:via-green-500/10 transition-all"
+                >
                     <div className="flex items-start justify-between">
                         <div>
-                            <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-4">
-                                <FileSpreadsheet className="h-6 w-6 text-orange-400" />
+                            <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+                                <Download className="h-6 w-6 text-green-400" />
                             </div>
                             <h3 className="text-lg font-semibold mb-2">Export Data</h3>
                             <p className="text-sm text-muted-foreground">
-                                Export reports and data to Excel, CSV, or PDF formats
+                                Export products, customers, and orders to CSV or Excel files
                             </p>
-                            <span className="mt-2 inline-block text-xs px-2 py-1 rounded bg-muted">Coming Soon</span>
                         </div>
                     </div>
-                </div>
+                </Link>
             </div>
 
             <div className="rounded-xl border border-blue-500/50 bg-blue-500/10 p-6">

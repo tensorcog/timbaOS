@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileSpreadsheet, MapPin, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Upload, FileSpreadsheet, MapPin, AlertCircle, CheckCircle2, ArrowRight, Package, Users, ShoppingCart } from "lucide-react";
 
 type ImportType = "products" | "customers" | "orders" | null;
 type ImportStep = "select" | "upload" | "map" | "preview" | "import";
@@ -76,7 +76,7 @@ export default function ImportPage() {
                         className="group text-left relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent p-6 backdrop-blur hover:from-blue-500/20 hover:via-blue-500/10 transition-all"
                     >
                         <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
-                            <FileSpreadsheet className="h-6 w-6 text-blue-400" />
+                            <Package className="h-6 w-6 text-blue-400" />
                         </div>
                         <h3 className="text-lg font-semibold mb-2">Products</h3>
                         <p className="text-sm text-muted-foreground">
@@ -92,7 +92,7 @@ export default function ImportPage() {
                         className="group text-left relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent p-6 backdrop-blur hover:from-purple-500/20 hover:via-purple-500/10 transition-all"
                     >
                         <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
-                            <FileSpreadsheet className="h-6 w-6 text-purple-400" />
+                            <Users className="h-6 w-6 text-purple-400" />
                         </div>
                         <h3 className="text-lg font-semibold mb-2">Customers</h3>
                         <p className="text-sm text-muted-foreground">
@@ -108,7 +108,7 @@ export default function ImportPage() {
                         className="group text-left relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 backdrop-blur hover:from-green-500/20 hover:via-green-500/10 transition-all"
                     >
                         <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
-                            <FileSpreadsheet className="h-6 w-6 text-green-400" />
+                            <ShoppingCart className="h-6 w-6 text-green-400" />
                         </div>
                         <h3 className="text-lg font-semibold mb-2">Orders</h3>
                         <p className="text-sm text-muted-foreground">

@@ -5,6 +5,7 @@ import { createQuoteSchema } from '@/lib/validations/quote';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { currency } from '@/lib/currency';
+import { QuoteStatus } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
     try {
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
                 locationId,
                 customerId,
                 createdById: userId,
-                status: 'PENDING',
+                status: QuoteStatus.PENDING,
                 validUntil,
                 subtotal: subtotal.toNumber(),
                 discountAmount: discountAmount.toNumber(),
@@ -162,7 +163,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
-        const status = searchParams.get('status');
+        const statusParam = searchParams.get('status');
+        const status = statusParam ? (statusParam as QuoteStatus) : undefined;
 
         const quotes = await prisma.quote.findMany({
             where: status ? { status } : undefined,

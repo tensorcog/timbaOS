@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from "@/lib/prisma";
+import { TransferStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -36,8 +37,8 @@ export async function createTransfer(formData: FormData) {
             transferNumber,
             originLocationId,
             destinationLocationId,
-            status: 'PENDING',
-            requestedBy: user.id,
+            status: TransferStatus.PENDING,
+            requestedById: user.id,
             notes,
             items: {
                 create: items.map(item => ({

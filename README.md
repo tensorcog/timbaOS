@@ -1,8 +1,8 @@
-# Pine ERP 🌲
+# timbaOS 🌲
 
 **Modern ERP System for Lumber Yards & Building Material Suppliers**
 
-Pine ERP is a next-generation enterprise resource planning system specifically designed for lumber yards, building material suppliers, and hardware stores. Built with modern web technologies and featuring AI-powered automation for multi-location businesses.
+timbaOS is a next-generation enterprise resource planning system specifically designed for lumber yards, building material suppliers, and hardware stores. Built with modern web technologies and featuring AI-powered automation for multi-location businesses.
 
 ---
 
@@ -168,7 +168,7 @@ spruce-killer/
 
 ### 1. Multi-Location Architecture
 
-Pine ERP uses a sophisticated multi-location architecture:
+timbaOS uses a sophisticated multi-location architecture:
 
 - **Products** exist in a master catalog with a `basePrice`
 - **Inventory** is tracked separately per location via `LocationInventory`
@@ -256,10 +256,10 @@ After running `npm run seed`, you get:
 
 ### Users
 ```
-admin@pine.com          - SUPER_ADMIN
-main.manager@pine.com   - LOCATION_ADMIN (Main Yard)
-west.manager@pine.com   - LOCATION_ADMIN (Westside Branch)
-sales@pine.com          - SALES (Main + West access)
+admin@timbaos.com          - SUPER_ADMIN
+main.manager@timbaos.com   - LOCATION_ADMIN (Main Yard)
+west.manager@timbaos.com   - LOCATION_ADMIN (Westside Branch)
+sales@timbaos.com          - SALES (Main + West access)
 
 Password: hashed_password_here (change in production!)
 ```
@@ -445,4 +445,4 @@ Built with:
 
 ---
 
-**Pine ERP** - Modernizing lumber yard management, one location at a time. 🌲
+**timbaOS** - Modernizing lumber yard management, one location at a time. 🌲

@@ -12,8 +12,8 @@ export default async function TransfersPage() {
                     product: true,
                 }
             },
-            requestedByUser: true,
-            approvedByUser: true,
+            requester: true,
+            approver: true,
         },
         orderBy: {
             requestedAt: 'desc',
@@ -119,7 +119,7 @@ export default async function TransfersPage() {
 
                                     <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
                                         <div>
-                                            Requested by <span className="font-medium">{transfer.requestedByUser?.name || 'System'}</span>
+                                            Requested by <span className="font-medium">{transfer.requester?.name || 'System'}</span>
                                             {' on '}{new Date(transfer.requestedAt).toLocaleDateString()}
                                         </div>
                                         {transfer.receivedAt && (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { OrderType, OrderStatus, PaymentStatus, FulfillmentType } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
     try {
@@ -36,14 +37,14 @@ export async function POST(request: NextRequest) {
                     orderNumber: `POS-${Date.now()}`,
                     locationId,
                     customerId,
-                    orderType: 'POS',
-                    status: 'COMPLETED',
-                    paymentStatus: 'PAID',
+                    orderType: OrderType.POS,
+                    status: OrderStatus.COMPLETED,
+                    paymentStatus: PaymentStatus.PAID,
                     subtotal,
                     taxAmount,
                     discountAmount: items.reduce((sum: number, item: any) => sum + (item.discount || 0), 0),
                     totalAmount,
-                    fulfillmentType: 'PICKUP',
+                    fulfillmentType: FulfillmentType.PICKUP,
                     completedAt: new Date(),
                     items: {
                         create: items.map((item: any) => ({
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
                         create: payments.map((payment: any) => ({
                             paymentMethod: payment.method,
                             amount: payment.amount,
-                            status: 'COMPLETED',
+                            status: PaymentStatus.PAID,
                         })),
                     },
                 },

@@ -1,0 +1,545 @@
+// ============================================================================
+// IMPROVED SCHEMA - Clean Relations, Enums, Better Naming
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS - Type Safety for Status Fields
+// ============================================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  LOCATION_ADMIN
+  MANAGER
+  SALES
+  WAREHOUSE
+}
+
+enum CustomerType {
+  RETAIL
+  WHOLESALE
+  CONTRACTOR
+  BUILDER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+  ON_HOLD
+}
+
+enum OrderType {
+  STANDARD
+  POS
+  QUOTE_CONVERSION
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  CHECK
+  ACCOUNT
+  WIRE_TRANSFER
+}
+
+enum FulfillmentType {
+  PICKUP
+  DELIVERY
+  WILL_CALL
+}
+
+enum TransferStatus {
+  PENDING
+  APPROVED
+  IN_TRANSIT
+  RECEIVED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  DRAFT
+  PENDING
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+enum AgentScope {
+  LOCATION
+  GLOBAL
+}
+
+// ============================================================================
+// AUTHENTICATION MODELS (NextAuth)
+// ============================================================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================================
+// CORE BUSINESS MODELS
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations with descriptive names
+  accounts               Account[]
+  sessions               Session[]
+  auditLogs              AuditLog[]
+  managedLocations       Location[]            @relation("LocationManager")
+  userLocations          UserLocation[]
+  ordersAsSalesRep       Order[]               @relation("OrderSalesRep")
+  quotesCreated          Quote[]               @relation("QuoteCreator")
+  transfersRequested     InventoryTransfer[]   @relation("TransferRequester")
+  transfersApproved      InventoryTransfer[]   @relation("TransferApprover")
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  address     String
+  phone       String?
+  email       String?
+  timezone    String   @default("America/New_York")
+  taxRate     Decimal  @default(0.0825) @db.Decimal(5, 4)
+  isActive    Boolean  @default(true)
+  isWarehouse Boolean  @default(false)
+  managerId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations with clear, descriptive names
+  manager                Location? @relation("LocationManager", fields: [managerId], references: [id])
+  inventory              LocationInventory[]
+  pricing                LocationPricing[]
+  orders                 Order[]
+  quotes                 Quote[]
+  agents                 Agent[]
+  userLocations          UserLocation[]
+  outgoingTransfers      InventoryTransfer[]  @relation("TransferOrigin")
+  incomingTransfers      InventoryTransfer[]  @relation("TransferDestination")
+
+  @@index([code])
+  @@index([isActive])
+  @@index([isWarehouse])
+  @@index([managerId])
+}
+
+model Customer {
+  id            String       @id @default(cuid())
+  name          String
+  email         String       @unique
+  phone         String?
+  address       String?
+  customerType  CustomerType @default(RETAIL)
+  accountNumber String?      @unique
+  creditLimit   Decimal      @default(0) @db.Decimal(12, 2)
+  taxExempt     Boolean      @default(false)
+  taxId         String?
+  loyaltyPoints Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  orders Order[]
+  quotes Quote[]
+
+  @@index([email])
+  @@index([accountNumber])
+  @@index([customerType])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  sku         String   @unique
+  basePrice   Decimal  @db.Decimal(12, 2)
+  category    String
+  uom         String   @default("EA") // Unit of Measure
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  inventory                LocationInventory[]
+  pricing                  LocationPricing[]
+  orderItems               OrderItem[]
+  quoteItems               QuoteItem[]
+  transferItems            TransferItem[]
+  recommendations          ProductRecommendation[] @relation("BaseProduct")
+  recommendedFor           ProductRecommendation[] @relation("RecommendedProduct")
+
+  @@index([sku])
+  @@index([category])
+  @@index([isActive])
+}
+
+// ============================================================================
+// INVENTORY MODELS
+// ============================================================================
+
+model LocationInventory {
+  id              String    @id @default(cuid())
+  locationId      String
+  productId       String
+  stockLevel      Int       @default(0)
+  reorderPoint    Int       @default(10)
+  reorderQuantity Int       @default(50)
+  maxStock        Int?
+  aisle           String?
+  bin             String?
+  lastCounted     DateTime?
+  lastRestocked   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([locationId, productId])
+  @@index([locationId])
+  @@index([productId])
+  @@index([stockLevel])
+}
+
+model LocationPricing {
+  id            String    @id @default(cuid())
+  locationId    String
+  productId     String
+  price         Decimal   @db.Decimal(12, 2)
+  cost          Decimal?  @db.Decimal(12, 2)
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([locationId, productId])
+  @@index([locationId])
+  @@index([productId])
+  @@index([effectiveFrom])
+}
+
+model InventoryTransfer {
+  id                    String         @id @default(cuid())
+  transferNumber        String         @unique
+  originLocationId      String
+  destinationLocationId String
+  status                TransferStatus @default(PENDING)
+  requestedById         String
+  approvedById          String?
+  notes                 String?        @db.Text
+  requestedAt           DateTime       @default(now())
+  approvedAt            DateTime?
+  shippedAt             DateTime?
+  receivedAt            DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  // Clean, descriptive relation names
+  originLocation      Location       @relation("TransferOrigin", fields: [originLocationId], references: [id])
+  destinationLocation Location       @relation("TransferDestination", fields: [destinationLocationId], references: [id])
+  requester           User           @relation("TransferRequester", fields: [requestedById], references: [id])
+  approver            User?          @relation("TransferApprover", fields: [approvedById], references: [id])
+  items               TransferItem[]
+
+  @@index([originLocationId])
+  @@index([destinationLocationId])
+  @@index([status])
+  @@index([requestedById])
+  @@index([approvedById])
+}
+
+model TransferItem {
+  id           String  @id @default(cuid())
+  transferId   String
+  productId    String
+  requestedQty Int
+  shippedQty   Int?
+  receivedQty  Int?
+
+  transfer InventoryTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  product  Product           @relation(fields: [productId], references: [id])
+
+  @@index([transferId])
+  @@index([productId])
+}
+
+// ============================================================================
+// ORDER MODELS
+// ============================================================================
+
+model Order {
+  id              String          @id @default(cuid())
+  orderNumber     String          @unique
+  locationId      String
+  customerId      String
+  salesRepId      String?
+  orderType       OrderType       @default(STANDARD)
+  status          OrderStatus     @default(PENDING)
+  paymentStatus   PaymentStatus   @default(PENDING)
+  fulfillmentType FulfillmentType @default(PICKUP)
+  subtotal        Decimal         @db.Decimal(12, 2)
+  discountAmount  Decimal         @default(0) @db.Decimal(12, 2)
+  taxAmount       Decimal         @default(0) @db.Decimal(12, 2)
+  deliveryFee     Decimal         @default(0) @db.Decimal(12, 2)
+  totalAmount     Decimal         @db.Decimal(12, 2)
+  deliveryAddress String?
+  deliveryDate    DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  completedAt     DateTime?
+
+  location  Location    @relation(fields: [locationId], references: [id])
+  customer  Customer    @relation(fields: [customerId], references: [id])
+  salesRep  User?       @relation("OrderSalesRep", fields: [salesRepId], references: [id])
+  items     OrderItem[]
+  payments  Payment[]
+  quote     Quote?
+
+  @@index([orderNumber])
+  @@index([locationId])
+  @@index([customerId])
+  @@index([salesRepId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(12, 2)
+  discount  Decimal @default(0) @db.Decimal(12, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  paymentMethod PaymentMethod
+  amount        Decimal       @db.Decimal(12, 2)
+  transactionId String?
+  status        PaymentStatus @default(COMPLETED)
+  processedAt   DateTime      @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+  @@index([processedAt])
+}
+
+// ============================================================================
+// QUOTE MODELS
+// ============================================================================
+
+model Quote {
+  id                 String      @id @default(cuid())
+  quoteNumber        String      @unique
+  locationId         String
+  customerId         String
+  createdById        String
+  convertedToOrderId String?     @unique
+  status             QuoteStatus @default(DRAFT)
+  validUntil         DateTime
+  subtotal           Decimal     @db.Decimal(12, 2)
+  discountAmount     Decimal     @default(0) @db.Decimal(12, 2)
+  taxAmount          Decimal     @db.Decimal(12, 2)
+  deliveryFee        Decimal     @default(0) @db.Decimal(12, 2)
+  totalAmount        Decimal     @db.Decimal(12, 2)
+  notes              String?     @db.Text
+  terms              String?     @db.Text
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  sentAt             DateTime?
+  acceptedAt         DateTime?
+
+  location        Location    @relation(fields: [locationId], references: [id])
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  createdBy       User        @relation("QuoteCreator", fields: [createdById], references: [id])
+  convertedOrder  Order?      @relation(fields: [convertedToOrderId], references: [id])
+  items           QuoteItem[]
+
+  @@index([quoteNumber])
+  @@index([locationId])
+  @@index([customerId])
+  @@index([createdById])
+  @@index([status])
+  @@index([validUntil])
+}
+
+model QuoteItem {
+  id        String  @id @default(cuid())
+  quoteId   String
+  productId String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(12, 2)
+  discount  Decimal @default(0) @db.Decimal(12, 2)
+  subtotal  Decimal @db.Decimal(12, 2)
+
+  quote   Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([quoteId])
+  @@index([productId])
+}
+
+model QuoteSequence {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}
+
+// ============================================================================
+// AI AGENT MODELS
+// ============================================================================
+
+model Agent {
+  id         String      @id @default(cuid())
+  name       String
+  type       String
+  status     AgentStatus @default(ACTIVE)
+  scope      AgentScope  @default(LOCATION)
+  locationId String?
+  config     Json?
+  lastRun    DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  location Location? @relation(fields: [locationId], references: [id])
+
+  @@index([locationId])
+  @@index([status])
+  @@index([type])
+}
+
+model ProductRecommendation {
+  id                   String   @id @default(cuid())
+  productId            String
+  recommendedProductId String
+  strength             Float
+  reason               String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  baseProduct        Product @relation("BaseProduct", fields: [productId], references: [id], onDelete: Cascade)
+  recommendedProduct Product @relation("RecommendedProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, recommendedProductId])
+  @@index([productId])
+  @@index([recommendedProductId])
+}
+
+// ============================================================================
+// AUDIT & SYSTEM MODELS
+// ============================================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  changes    Json
+  userId     String
+  timestamp  DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?  @db.Text
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([timestamp])
+  @@index([action])
+}
+
+model SystemConfig {
+  key         String   @id
+  value       Json
+  description String?  @db.Text
+  updatedAt   DateTime @updatedAt
+}

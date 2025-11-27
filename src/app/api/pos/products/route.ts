@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
                     where: { locationId },
                     select: { stockLevel: true },
                 },
-                locationPricing: {
+                pricing: {
                     where: { locationId },
                     select: { price: true },
                 },
@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
             id: product.id,
             name: product.name,
             sku: product.sku,
-            price: product.locationPricing[0]?.price
-                ? parseFloat(product.locationPricing[0].price.toString())
+            price: product.pricing[0]?.price
+                ? parseFloat(product.pricing[0].price.toString())
                 : parseFloat(product.basePrice.toString()),
             stockLevel: product.inventory[0]?.stockLevel || 0,
         }));

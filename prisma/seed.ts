@@ -1,9 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import {
+    PrismaClient,
+    UserRole,
+    CustomerType,
+    OrderStatus,
+    FulfillmentType,
+    TransferStatus,
+    AgentStatus,
+    AgentScope
+} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌲 Seeding Pine Lumber Yard (Multi-Location)...');
+    console.log('🌲 Seeding timbaOS Lumber Yard (Multi-Location)...');
 
     // Clear existing data (in correct order for foreign keys)
     await prisma.transferItem.deleteMany();
@@ -23,34 +32,34 @@ async function main() {
     const users = await Promise.all([
         prisma.user.create({
             data: {
-                email: 'admin@pine.com',
+                email: 'admin@timbaos.com',
                 name: 'Admin User',
                 password: 'password', // In production, use bcrypt
-                role: 'SUPER_ADMIN',
+                role: UserRole.SUPER_ADMIN,
             },
         }),
         prisma.user.create({
             data: {
-                email: 'main.manager@pine.com',
+                email: 'main.manager@timbaos.com',
                 name: 'Sarah Johnson',
                 password: 'hashed_password_here',
-                role: 'LOCATION_ADMIN',
+                role: UserRole.LOCATION_ADMIN,
             },
         }),
         prisma.user.create({
             data: {
-                email: 'west.manager@pine.com',
+                email: 'west.manager@timbaos.com',
                 name: 'Mike Chen',
                 password: 'hashed_password_here',
-                role: 'LOCATION_ADMIN',
+                role: UserRole.LOCATION_ADMIN,
             },
         }),
         prisma.user.create({
             data: {
-                email: 'sales@pine.com',
+                email: 'sales@timbaos.com',
                 name: 'Tom Wilson',
                 password: 'hashed_password_here',
-                role: 'SALES',
+                role: UserRole.SALES,
             },
         }),
     ]);
@@ -65,7 +74,7 @@ async function main() {
                 name: 'Main Yard',
                 address: '100 Pine Street, Lumber City, ST 12345',
                 phone: '555-0100',
-                email: 'main@pine.com',
+                email: 'main@timbaos.com',
                 isActive: true,
                 isWarehouse: false,
                 managerId: users[1].id,
@@ -77,7 +86,7 @@ async function main() {
                 name: 'Westside Branch',
                 address: '450 West Avenue, Lumber City, ST 12346',
                 phone: '555-0200',
-                email: 'west@pine.com',
+                email: 'west@timbaos.com',
                 isActive: true,
                 isWarehouse: false,
                 managerId: users[2].id,
@@ -89,7 +98,7 @@ async function main() {
                 name: 'Distribution Warehouse',
                 address: '1000 Industrial Parkway, Lumber City, ST 12347',
                 phone: '555-0300',
-                email: 'warehouse@pine.com',
+                email: 'warehouse@timbaos.com',
                 isActive: true,
                 isWarehouse: true,
             },
@@ -296,7 +305,7 @@ async function main() {
                 email: 'orders@abcconstruction.com',
                 phone: '555-0101',
                 address: '123 Builder Ave, Construction City, ST 12345',
-                customerType: 'CONTRACTOR',
+                customerType: CustomerType.CONTRACTOR,
                 accountNumber: 'ACC-001',
                 creditLimit: 50000,
             },
@@ -307,7 +316,7 @@ async function main() {
                 email: 'joe.homeowner@email.com',
                 phone: '555-0202',
                 address: '456 Residential St, Suburbia, ST 67890',
-                customerType: 'RETAIL',
+                customerType: CustomerType.RETAIL,
             },
         }),
         prisma.customer.create({
@@ -316,7 +325,7 @@ async function main() {
                 email: 'info@premierdecks.com',
                 phone: '555-0303',
                 address: '789 Contractor Blvd, Tradesville, ST 11223',
-                customerType: 'CONTRACTOR',
+                customerType: CustomerType.CONTRACTOR,
                 accountNumber: 'ACC-002',
                 creditLimit: 75000,
             },
@@ -327,7 +336,7 @@ async function main() {
                 email: 'facilities@cityschools.edu',
                 phone: '555-0404',
                 address: '321 Education Way, Schooltown, ST 44556',
-                customerType: 'WHOLESALE',
+                customerType: CustomerType.WHOLESALE,
                 accountNumber: 'ACC-003',
                 creditLimit: 100000,
                 taxExempt: true,
@@ -341,11 +350,12 @@ async function main() {
     // Create Orders for Main Location
     await prisma.order.create({
         data: {
+            orderNumber: 'ORD-001',
             locationId: locations[0].id,
             customerId: customers[0].id,
-            status: 'COMPLETED',
+            status: OrderStatus.COMPLETED,
             totalAmount: 1247.83,
-            fulfillmentType: 'DELIVERY',
+            fulfillmentType: FulfillmentType.DELIVERY,
             deliveryAddress: customers[0].address!,
             deliveryFee: 75.00,
             salesRepId: users[3].id,
@@ -362,11 +372,12 @@ async function main() {
 
     await prisma.order.create({
         data: {
+            orderNumber: 'ORD-002',
             locationId: locations[0].id,
             customerId: customers[1].id,
-            status: 'PENDING',
+            status: OrderStatus.PENDING,
             totalAmount: 327.84,
-            fulfillmentType: 'PICKUP',
+            fulfillmentType: FulfillmentType.PICKUP,
             salesRepId: users[3].id,
             items: {
                 create: [
@@ -381,11 +392,12 @@ async function main() {
     // Create Orders for West Location
     await prisma.order.create({
         data: {
+            orderNumber: 'ORD-003',
             locationId: locations[1].id,
             customerId: customers[2].id,
-            status: 'COMPLETED',
+            status: OrderStatus.COMPLETED,
             totalAmount: 2204.90,
-            fulfillmentType: 'DELIVERY',
+            fulfillmentType: FulfillmentType.DELIVERY,
             deliveryAddress: customers[2].address!,
             deliveryFee: 85.00,
             items: {
@@ -401,11 +413,12 @@ async function main() {
 
     await prisma.order.create({
         data: {
+            orderNumber: 'ORD-004',
             locationId: locations[1].id,
             customerId: customers[3].id,
-            status: 'PENDING',
+            status: OrderStatus.PENDING,
             totalAmount: 5432.10,
-            fulfillmentType: 'DELIVERY',
+            fulfillmentType: FulfillmentType.DELIVERY,
             deliveryAddress: customers[3].address!,
             deliveryFee: 0, // Tax exempt customer, no delivery fee
             items: {
@@ -427,9 +440,9 @@ async function main() {
             transferNumber: 'TXF-001',
             originLocationId: locations[2].id, // From warehouse
             destinationLocationId: locations[0].id, // To main yard
-            status: 'COMPLETED',
-            requestedBy: users[1].id,
-            approvedBy: users[0].id,
+            status: TransferStatus.RECEIVED,
+            requestedById: users[1].id,
+            approvedById: users[0].id,
             requestedAt: new Date('2024-01-15'),
             approvedAt: new Date('2024-01-15'),
             shippedAt: new Date('2024-01-16'),
@@ -449,8 +462,8 @@ async function main() {
             transferNumber: 'TXF-002',
             originLocationId: locations[2].id, // From warehouse
             destinationLocationId: locations[0].id, // To main yard
-            status: 'PENDING',
-            requestedBy: users[1].id,
+            status: TransferStatus.PENDING,
+            requestedById: users[1].id,
             notes: 'Low stock emergency restock - Cedar posts and plywood',
             items: {
                 create: [
@@ -469,8 +482,8 @@ async function main() {
         data: {
             name: 'StockWatcher - Main',
             type: 'INVENTORY_WATCHER',
-            status: 'ACTIVE',
-            scope: 'LOCATION',
+            status: AgentStatus.ACTIVE,
+            scope: AgentScope.LOCATION,
             locationId: locations[0].id,
             lastRun: new Date(),
             config: {
@@ -484,8 +497,8 @@ async function main() {
         data: {
             name: 'StockWatcher - West',
             type: 'INVENTORY_WATCHER',
-            status: 'ACTIVE',
-            scope: 'LOCATION',
+            status: AgentStatus.ACTIVE,
+            scope: AgentScope.LOCATION,
             locationId: locations[1].id,
             lastRun: new Date(),
             config: {
@@ -499,8 +512,8 @@ async function main() {
         data: {
             name: 'Global Analytics Agent',
             type: 'SALES_ANALYST',
-            status: 'ACTIVE',
-            scope: 'GLOBAL',
+            status: AgentStatus.ACTIVE,
+            scope: AgentScope.GLOBAL,
             config: {
                 analysisInterval: 86400, // Daily
             },
@@ -516,10 +529,10 @@ async function main() {
     console.log('  - WARE: Distribution Warehouse');
     console.log('');
     console.log('👥 Users:');
-    console.log('  - admin@pine.com (SUPER_ADMIN)');
-    console.log('  - main.manager@pine.com (LOCATION_ADMIN)');
-    console.log('  - west.manager@pine.com (LOCATION_ADMIN)');
-    console.log('  - sales@pine.com (SALES)');
+    console.log('  - admin@timbaos.com (SUPER_ADMIN)');
+    console.log('  - main.manager@timbaos.com (LOCATION_ADMIN)');
+    console.log('  - west.manager@timbaos.com (LOCATION_ADMIN)');
+    console.log('  - sales@timbaos.com (SALES)');
 }
 
 main()

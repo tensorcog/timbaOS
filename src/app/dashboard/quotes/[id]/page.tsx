@@ -14,12 +14,12 @@ export default async function QuotePage({ params }: QuotePageProps) {
     const quote = await prisma.quote.findUnique({
         where: { id: params.id },
         include: {
-            customer: true,
-            location: true,
-            createdBy: true,
-            items: {
+            Customer: true,
+            Location: true,
+            User: true,
+            QuoteItem: {
                 include: {
-                    product: true,
+                    Product: true,
                 },
             },
         },
@@ -80,16 +80,16 @@ export default async function QuotePage({ params }: QuotePageProps) {
                                     <User className="h-4 w-4" />
                                     Customer
                                 </div>
-                                <div className="font-medium">{quote.customer.name}</div>
-                                <div className="text-sm text-muted-foreground">{quote.customer.email}</div>
+                                <div className="font-medium">{quote.Customer.name}</div>
+                                <div className="text-sm text-muted-foreground">{quote.Customer.email}</div>
                             </div>
                             <div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                                     <MapPin className="h-4 w-4" />
                                     Location
                                 </div>
-                                <div className="font-medium">{quote.location.name}</div>
-                                <div className="text-sm text-muted-foreground">{quote.location.code}</div>
+                                <div className="font-medium">{quote.Location.name}</div>
+                                <div className="text-sm text-muted-foreground">{quote.Location.code}</div>
                             </div>
                             <div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
@@ -105,7 +105,7 @@ export default async function QuotePage({ params }: QuotePageProps) {
                                     <User className="h-4 w-4" />
                                     Created By
                                 </div>
-                                <div className="font-medium">{quote.createdBy.name}</div>
+                                <div className="font-medium">{quote.User.name}</div>
                             </div>
                         </div>
                     </div>
@@ -114,14 +114,14 @@ export default async function QuotePage({ params }: QuotePageProps) {
                     <div className="rounded-xl border bg-card p-6">
                         <h2 className="text-lg font-semibold mb-4">Items</h2>
                         <div className="space-y-3">
-                            {quote.items.map((item) => (
+                            {quote.QuoteItem.map((item) => (
                                 <div key={item.id} className="p-4 rounded-lg border bg-muted/50">
                                     <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1">
                                             <div className="font-mono text-xs text-muted-foreground">
-                                                {item.product.sku}
+                                                {item.Product.sku}
                                             </div>
-                                            <div className="font-medium">{item.product.name}</div>
+                                            <div className="font-medium">{item.Product.name}</div>
                                             <div className="text-sm text-muted-foreground">
                                                 ${Number(item.unitPrice).toFixed(2)} × {item.quantity}
                                             </div>

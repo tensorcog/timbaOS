@@ -6,15 +6,15 @@ import { TransferActions } from "./transfer-actions";
 export default async function TransfersPage() {
     const transfers = await prisma.inventoryTransfer.findMany({
         include: {
-            originLocation: true,
-            destinationLocation: true,
-            items: {
+            Location_InventoryTransfer_originLocationIdToLocation: true,
+            Location_InventoryTransfer_destinationLocationIdToLocation: true,
+            TransferItem: {
                 include: {
-                    product: true,
-                }
+                    Product: true,
+                },
             },
-            requester: true,
-            approver: true,
+            User_InventoryTransfer_requestedByIdToUser: true,
+            User_InventoryTransfer_approvedByIdToUser: true,
         },
         orderBy: {
             requestedAt: 'desc',
@@ -80,15 +80,15 @@ export default async function TransfersPage() {
                                         <div className="flex items-center gap-3">
                                             <div className="flex items-center gap-2">
                                                 <div className="px-3 py-1 rounded bg-blue-500/20 text-blue-400 font-semibold text-sm">
-                                                    {transfer.originLocation.code}
+                                                    {transfer.Location_InventoryTransfer_originLocationIdToLocation.code}
                                                 </div>
                                                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 <div className="px-3 py-1 rounded bg-purple-500/20 text-purple-400 font-semibold text-sm">
-                                                    {transfer.destinationLocation.code}
+                                                    {transfer.Location_InventoryTransfer_destinationLocationIdToLocation.code}
                                                 </div>
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                {transfer.originLocation.name} → {transfer.destinationLocation.name}
+                                                {transfer.Location_InventoryTransfer_originLocationIdToLocation.name} → {transfer.Location_InventoryTransfer_destinationLocationIdToLocation.name}
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
@@ -101,16 +101,16 @@ export default async function TransfersPage() {
                                     </div>
 
                                     <div className="space-y-2 mb-3">
-                                        {transfer.items.map((item) => (
+                                        {transfer.TransferItem.map((item) => (
                                             <div
                                                 key={item.id}
                                                 className="flex items-center justify-between text-sm"
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-mono text-xs text-muted-foreground">
-                                                        {item.product.sku}
+                                                        {item.Product.sku}
                                                     </span>
-                                                    <span>{item.product.name}</span>
+                                                    <span>{item.Product.name}</span>
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <span className="font-semibold">
@@ -123,7 +123,7 @@ export default async function TransfersPage() {
 
                                     <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
                                         <div>
-                                            Requested by <span className="font-medium">{transfer.requester?.name || 'System'}</span>
+                                            Requested by <span className="font-medium">{transfer.User_InventoryTransfer_requestedByIdToUser?.name || 'System'}</span>
                                             {' on '}{new Date(transfer.requestedAt).toLocaleDateString()}
                                         </div>
                                         {transfer.receivedAt && (

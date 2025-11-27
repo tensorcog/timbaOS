@@ -4,7 +4,7 @@ export default async function CustomersPage() {
     const customers = await prisma.customer.findMany({
         include: {
             _count: {
-                select: { orders: true },
+                select: { Order: true },
             },
         },
         orderBy: {
@@ -36,7 +36,7 @@ export default async function CustomersPage() {
                                         <td className="p-2 font-semibold">{customer.name}</td>
                                         <td className="p-2 text-sm text-muted-foreground">{customer.email}</td>
                                         <td className="p-2 text-sm">{customer.phone}</td>
-                                        <td className="p-2">{customer._count.orders}</td>
+                                        <td className="p-2">{customer._count.Order}</td>
                                         <td className="p-2 text-sm">{new Date(customer.createdAt).toLocaleDateString()}</td>
                                     </tr>
                                 ))}

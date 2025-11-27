@@ -4,9 +4,9 @@ import { ProductList } from "@/components/product-list";
 export default async function ProductsPage() {
     const products = await prisma.product.findMany({
         include: {
-            inventory: {
+            LocationInventory: {
                 include: {
-                    location: true,
+                    Location: true,
                 }
             }
         },
@@ -22,12 +22,12 @@ export default async function ProductsPage() {
         name: product.name,
         category: product.category,
         basePrice: parseFloat(product.basePrice.toString()),
-        inventory: product.inventory.map(inv => ({
+        inventory: product.LocationInventory.map(inv => ({
             id: inv.id,
             stockLevel: inv.stockLevel,
             location: {
-                code: inv.location.code,
-                name: inv.location.name,
+                code: inv.Location.code,
+                name: inv.Location.name,
             },
         })),
     }));

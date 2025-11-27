@@ -1,5 +1,46 @@
 {
-  "node": {},
+  "node": {
+    "821f302f64185a3cdaf112a0857866b77c6d368e": {
+      "workers": {
+        "app/dashboard/transfers/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fmonty%2Fspruce-killer%2Fsrc%2Fapp%2Fdashboard%2Ftransfers%2Factions.ts%22%2C%5B%22rejectTransfer%22%2C%22receiveTransfer%22%2C%22createTransfer%22%2C%22shipTransfer%22%2C%22approveTransfer%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/dashboard/transfers/page": "action-browser"
+      }
+    },
+    "acdea048839c707e4bd40ecf27872d5212818ab5": {
+      "workers": {
+        "app/dashboard/transfers/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fmonty%2Fspruce-killer%2Fsrc%2Fapp%2Fdashboard%2Ftransfers%2Factions.ts%22%2C%5B%22rejectTransfer%22%2C%22receiveTransfer%22%2C%22createTransfer%22%2C%22shipTransfer%22%2C%22approveTransfer%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/dashboard/transfers/page": "action-browser"
+      }
+    },
+    "ad16009e80f763aa7bad7be75e3216cafbebb224": {
+      "workers": {
+        "app/dashboard/transfers/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fmonty%2Fspruce-killer%2Fsrc%2Fapp%2Fdashboard%2Ftransfers%2Factions.ts%22%2C%5B%22rejectTransfer%22%2C%22receiveTransfer%22%2C%22createTransfer%22%2C%22shipTransfer%22%2C%22approveTransfer%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/dashboard/transfers/page": "action-browser"
+      }
+    },
+    "ee08196a811c0bb044a12bbc110cd2a6f5d0bf75": {
+      "workers": {
+        "app/dashboard/transfers/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fmonty%2Fspruce-killer%2Fsrc%2Fapp%2Fdashboard%2Ftransfers%2Factions.ts%22%2C%5B%22rejectTransfer%22%2C%22receiveTransfer%22%2C%22createTransfer%22%2C%22shipTransfer%22%2C%22approveTransfer%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/dashboard/transfers/page": "action-browser"
+      }
+    },
+    "f6030df688df6b07b569111a74edc3758834a72e": {
+      "workers": {
+        "app/dashboard/transfers/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fmonty%2Fspruce-killer%2Fsrc%2Fapp%2Fdashboard%2Ftransfers%2Factions.ts%22%2C%5B%22rejectTransfer%22%2C%22receiveTransfer%22%2C%22createTransfer%22%2C%22shipTransfer%22%2C%22approveTransfer%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/dashboard/transfers/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
   "encryptionKey": "FXwI3bzB96FOzQMnhbBGLYatSzFThuivWgTBlHVd2HQ="
 }

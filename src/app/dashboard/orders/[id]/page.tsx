@@ -7,10 +7,10 @@ export default async function OrderDetailPage({ params }: { params: { id: string
     const order = await prisma.order.findUnique({
         where: { id: params.id },
         include: {
-            customer: true,
-            items: {
+            Customer: true,
+            OrderItem: {
                 include: {
-                    product: true,
+                    Product: true,
                 },
             },
         },
@@ -43,8 +43,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground">Customer</p>
-                            <p className="font-semibold">{order.customer.name}</p>
-                            <p className="text-xs text-muted-foreground">{order.customer.email}</p>
+                            <p className="font-semibold">{order.Customer.name}</p>
+                            <p className="text-xs text-muted-foreground">{order.Customer.email}</p>
                         </div>
                     </div>
                 </div>
@@ -58,8 +58,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             <p className="text-sm text-muted-foreground">Order Date</p>
                             <p className="font-semibold">{new Date(order.createdAt).toLocaleDateString()}</p>
                             <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'COMPLETED'
-                                    ? 'bg-green-500/20 text-green-400'
-                                    : 'bg-yellow-500/20 text-yellow-400'
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-yellow-500/20 text-yellow-400'
                                 }`}>
                                 {order.status}
                             </span>
@@ -84,15 +84,15 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 <div className="p-6">
                     <h3 className="font-semibold text-lg mb-4">Order Items</h3>
                     <div className="space-y-3">
-                        {order.items.map((item) => (
+                        {order.OrderItem.map((item) => (
                             <div key={item.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                                 <div className="flex items-center gap-4">
                                     <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                                         <Package className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
-                                        <p className="font-medium">{item.product.name}</p>
-                                        <p className="text-sm text-muted-foreground">SKU: {item.product.sku}</p>
+                                        <p className="font-medium">{item.Product.name}</p>
+                                        <p className="text-sm text-muted-foreground">SKU: {item.Product.sku}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">

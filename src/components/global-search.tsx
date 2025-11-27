@@ -34,7 +34,7 @@ export function GlobalSearch() {
     // Determine placeholder based on route
     let placeholder = "Search...";
     if (pathname.includes("/dashboard/orders")) {
-        placeholder = "Search orders (ID or Customer)...";
+        placeholder = "Search by Name or Order Number...";
     } else if (pathname.includes("/dashboard/products")) {
         placeholder = "Search products...";
     } else if (pathname.includes("/dashboard/customers")) {

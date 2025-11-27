@@ -3,12 +3,14 @@ import prisma from "@/lib/prisma";
 import { TrendingUp, Package, Users, DollarSign, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
-    const [orders, lowStockItems, customers] = await Promise.all([
+    const [orders, lowStockItems, customers, quotes] = await Promise.all([
         prisma.order.findMany({
             include: {
-                customer: true,
-                items: true,
+                Customer: true,
+                OrderItem: true,
             },
             orderBy: { createdAt: 'desc' },
             take: 5,
@@ -18,14 +20,22 @@ export default async function DashboardPage() {
                 stockLevel: { lt: 10 }
             },
             include: {
-                product: true,
-                location: true,
+                Product: true,
+                Location: true,
             },
             take: 10,
         }),
         prisma.customer.findMany({
             take: 5,
             orderBy: { createdAt: 'desc' }
+        }),
+        prisma.quote.findMany({
+            include: {
+                Customer: true,
+                QuoteItem: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 5,
         })
     ]);
 
@@ -134,26 +144,80 @@ export default async function DashboardPage() {
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                                            {order.customer.name.charAt(0)}
+                                            {order.Customer.name.charAt(0)}
                                         </div>
                                         <div>
-                                            <p className="font-medium">{order.customer.name}</p>
+                                            <p className="font-medium">{order.Customer.name}</p>
                                             <p className="text-sm text-muted-foreground">
-                                                {order.items.length} items • {new Date(order.createdAt).toLocaleDateString()}
+                                                {order.OrderItem.length} items • {new Date(order.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="font-semibold">${order.totalAmount.toString()}</p>
                                         <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'COMPLETED'
-                                                ? 'bg-green-500/20 text-green-400'
-                                                : 'bg-yellow-500/20 text-yellow-400'
+                                            ? 'bg-green-500/20 text-green-400'
+                                            : 'bg-yellow-500/20 text-yellow-400'
                                             }`}>
                                             {order.status}
                                         </span>
                                     </div>
                                 </Link>
                             ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Recent Quotes */}
+                <div className="col-span-4 rounded-xl border bg-card/50 backdrop-blur">
+                    <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="font-semibold text-lg mb-1">Recent Quotes</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    Latest quotes generated
+                                </p>
+                            </div>
+                            <Link href="/dashboard/quotes" className="text-sm text-blue-500 hover:underline">
+                                View all
+                            </Link>
+                        </div>
+                        <div className="space-y-4">
+                            {quotes.map((quote) => (
+                                <Link
+                                    key={quote.id}
+                                    href={`/dashboard/quotes/${quote.id}`}
+                                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-semibold">
+                                            {quote.Customer.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{quote.Customer.name}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {quote.quoteNumber} • {quote.QuoteItem.length} items
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold">${Number(quote.totalAmount).toFixed(2)}</p>
+                                        <span className={`text-xs px-2 py-1 rounded-full ${quote.status === 'ACCEPTED'
+                                            ? 'bg-green-500/20 text-green-400'
+                                            : quote.status === 'REJECTED' || quote.status === 'EXPIRED'
+                                                ? 'bg-red-500/20 text-red-400'
+                                                : 'bg-yellow-500/20 text-yellow-400'
+                                            }`}>
+                                            {quote.status}
+                                        </span>
+                                    </div>
+                                </Link>
+                            ))}
+                            {quotes.length === 0 && (
+                                <p className="text-sm text-muted-foreground text-center py-4">
+                                    No quotes generated yet.
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -178,8 +242,8 @@ export default async function DashboardPage() {
                                 {lowStockItems.slice(0, 3).map((item) => (
                                     <div key={item.id} className="flex items-center justify-between text-sm">
                                         <div className="flex-1">
-                                            <span className="font-medium">{item.product.name}</span>
-                                            <span className="text-xs text-muted-foreground ml-2">@ {item.location.name}</span>
+                                            <span className="font-medium">{item.Product.name}</span>
+                                            <span className="text-xs text-muted-foreground ml-2">@ {item.Location.name}</span>
                                         </div>
                                         <span className="font-semibold text-red-400">{item.stockLevel} left</span>
                                     </div>

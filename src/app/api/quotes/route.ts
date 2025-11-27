@@ -50,6 +50,16 @@ export async function POST(request: NextRequest) {
 
         const userId = session.user.id;
 
+        // Verify user exists in DB (handle stale sessions after seed)
+        const userExists = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true }
+        });
+
+        if (!userExists) {
+            return NextResponse.json({ error: 'User account not found. Please log out and log back in.' }, { status: 401 });
+        }
+
         // Get System Configs
         const [defaultTaxRateConfig, deliveryFeeThresholdConfig, deliveryFeeAmountConfig] = await Promise.all([
             prisma.systemConfig.findUnique({ where: { key: 'DEFAULT_TAX_RATE' } }),
@@ -122,18 +132,18 @@ export async function POST(request: NextRequest) {
                 totalAmount: totalAmount.toNumber(),
                 notes: notes || null,
                 terms: 'Standard terms and conditions apply.',
-                items: {
+                QuoteItem: {
                     create: processedItems,
                 },
             },
             include: {
-                items: {
+                QuoteItem: {
                     include: {
-                        product: true,
+                        Product: true,
                     },
                 },
-                customer: true,
-                location: true,
+                Customer: true,
+                Location: true,
             },
         });
 
@@ -169,11 +179,11 @@ export async function GET(request: NextRequest) {
         const quotes = await prisma.quote.findMany({
             where: status ? { status } : undefined,
             include: {
-                customer: true,
-                location: true,
-                items: {
+                Customer: true,
+                Location: true,
+                QuoteItem: {
                     include: {
-                        product: true,
+                        Product: true,
                     },
                 },
             },

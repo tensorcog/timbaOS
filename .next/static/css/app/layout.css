@@ -1398,6 +1398,9 @@ video {
 .to-muted {
   --tw-gradient-to: hsl(var(--muted)) var(--tw-gradient-to-position);
 }
+.to-pink-600 {
+  --tw-gradient-to: #db2777 var(--tw-gradient-to-position);
+}
 .to-purple-500\/10 {
   --tw-gradient-to: rgb(168 85 247 / 0.1) var(--tw-gradient-to-position);
 }

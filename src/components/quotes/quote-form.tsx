@@ -142,7 +142,7 @@ export function QuoteForm({ customers, products, locations }: QuoteFormProps) {
                         unitPrice: item.unitPrice,
                         discount: item.discount,
                     })),
-                    deliveryAddress: deliveryAddress || null,
+                    deliveryAddress: deliveryAddress || undefined,
                     notes,
                     validityDays,
                 }),
@@ -151,7 +151,9 @@ export function QuoteForm({ customers, products, locations }: QuoteFormProps) {
             if (response.ok) {
                 router.push('/dashboard/quotes');
             } else {
-                alert('Failed to create quote');
+                const data = await response.json();
+                alert(data.error || 'Failed to create quote');
+                console.error('Quote creation failed:', data);
             }
         } catch (error) {
             console.error('Quote creation error:', error);

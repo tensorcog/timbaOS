@@ -13,15 +13,15 @@ export default async function OrdersPage({
             ? {
                 OR: [
                     { orderNumber: { contains: query, mode: "insensitive" } },
-                    { customer: { name: { contains: query, mode: "insensitive" } } },
+                    { Customer: { name: { contains: query, mode: "insensitive" } } },
                 ],
             }
             : undefined,
         include: {
-            customer: true,
-            items: {
+            Customer: true,
+            OrderItem: {
                 include: {
-                    product: true,
+                    Product: true,
                 },
             },
         },
@@ -58,7 +58,7 @@ export default async function OrdersPage({
                                         </td>
                                         <td className="p-2">
                                             <Link href={`/dashboard/orders/${order.id}`} className="hover:text-primary">
-                                                {order.customer.name}
+                                                {order.Customer.name}
                                             </Link>
                                         </td>
                                         <td className="p-2">

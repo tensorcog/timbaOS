@@ -2,15 +2,17 @@ import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { Plus, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default async function QuotesPage() {
     const quotes = await prisma.quote.findMany({
         include: {
-            customer: true,
-            location: true,
-            createdBy: true,
-            items: {
+            Customer: true,
+            Location: true,
+            User: true,
+            QuoteItem: {
                 include: {
-                    product: true,
+                    Product: true,
                 },
             },
         },
@@ -95,9 +97,9 @@ export default async function QuotesPage() {
                                                     {quote.quoteNumber}
                                                 </Link>
                                             </td>
-                                            <td className="p-2">{quote.customer.name}</td>
+                                            <td className="p-2">{quote.Customer.name}</td>
                                             <td className="p-2">
-                                                <span className="font-mono text-xs">{quote.location.code}</span>
+                                                <span className="font-mono text-xs">{quote.Location.code}</span>
                                             </td>
                                             <td className="p-2">
                                                 <span className={`px-2 py-1 rounded text-xs flex items-center gap-1 w-fit ${getStatusColor(displayStatus)}`}>
@@ -117,7 +119,7 @@ export default async function QuotesPage() {
                                                 {new Date(quote.createdAt).toLocaleDateString()}
                                             </td>
                                             <td className="p-2 text-sm text-muted-foreground">
-                                                {quote.items.length} items
+                                                {quote.QuoteItem.length} items
                                             </td>
                                         </tr>
                                     );

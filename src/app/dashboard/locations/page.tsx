@@ -5,7 +5,7 @@ import Link from "next/link";
 export default async function LocationsPage() {
     const locations = await prisma.location.findMany({
         include: {
-            manager: {
+            User: {
                 select: {
                     name: true,
                     email: true,
@@ -69,11 +69,11 @@ export default async function LocationsPage() {
                                         <span className="text-muted-foreground">{location.phone}</span>
                                     </div>
                                 )}
-                                {location.manager && (
+                                {location.User && (
                                     <div className="flex items-center gap-3">
                                         <User className="h-4 w-4 text-muted-foreground shrink-0" />
                                         <span className="text-muted-foreground">
-                                            Mgr: {location.manager.name}
+                                            Mgr: {location.User.name}
                                         </span>
                                     </div>
                                 )}

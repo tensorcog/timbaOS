@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { OrderType, OrderStatus, PaymentStatus, FulfillmentType } from '@prisma/client';
 import { currency } from '@/lib/currency';
 import { posCheckoutSchema, PosCheckoutItem, PosPayment } from '@/lib/validations/pos';
+import { classifyError, logError } from '@/lib/error-handler';
 
 export async function POST(request: NextRequest) {
     try {
@@ -120,7 +121,11 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(order);
     } catch (error) {
-        console.error('Checkout error:', error);
-        return NextResponse.json({ error: 'Checkout failed' }, { status: 500 });
+        const { status, error: errorMessage, details } = classifyError(error);
+        logError(error, 'POS Checkout');
+        return NextResponse.json(
+            { error: errorMessage, details },
+            { status }
+        );
     }
 }

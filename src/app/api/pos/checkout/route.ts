@@ -87,20 +87,22 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            // Deduct inventory
-            for (const item of items) {
-                await tx.locationInventory.updateMany({
-                    where: {
-                        locationId,
-                        productId: item.productId,
-                    },
-                    data: {
-                        stockLevel: {
-                            decrement: item.quantity,
+            // Deduct inventory in parallel (optimized from N+1 sequential queries)
+            await Promise.all(
+                items.map((item: any) =>
+                    tx.locationInventory.updateMany({
+                        where: {
+                            locationId,
+                            productId: item.productId,
                         },
-                    },
-                });
-            }
+                        data: {
+                            stockLevel: {
+                                decrement: item.quantity,
+                            },
+                        },
+                    })
+                )
+            );
 
             return newOrder;
         });

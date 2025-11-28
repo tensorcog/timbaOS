@@ -46,10 +46,14 @@ export async function POST(request: NextRequest) {
 
         // Create order with transaction
         const order = await prisma.$transaction(async (tx) => {
+            // Generate Order Number using Sequence (prevents race conditions)
+            const sequence = await tx.orderSequence.create({ data: {} });
+            const orderNumber = `ORD-${1000 + sequence.id}`;
+
             // Create the order
             const newOrder = await tx.order.create({
                 data: {
-                    orderNumber: `POS-${Date.now()}`,
+                    orderNumber,
                     locationId,
                     customerId,
                     orderType: OrderType.POS,

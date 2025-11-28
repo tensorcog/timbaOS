@@ -343,6 +343,11 @@ model QuoteSequence {
   createdAt DateTime @default(now())
 }
 
+model OrderSequence {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}
+
 model Session {
   id           String   @id
   sessionToken String   @unique

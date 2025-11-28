@@ -50,17 +50,6 @@ export async function POST(request: NextRequest) {
         }
 
         const userId = session.user.id;
-
-        // Verify user exists in DB (handle stale sessions after seed)
-        const userExists = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { id: true }
-        });
-
-        if (!userExists) {
-            return NextResponse.json({ error: 'User account not found. Please log out and log back in.' }, { status: 401 });
-        }
-
         const userRole = session.user.role as UserRole;
 
         // Only sales, managers, and admins can create quotes - warehouse cannot

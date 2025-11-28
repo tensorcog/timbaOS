@@ -2,11 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { OrderType, OrderStatus, PaymentStatus, FulfillmentType } from '@prisma/client';
 import { currency } from '@/lib/currency';
+import { posCheckoutSchema, PosCheckoutItem, PosPayment } from '@/lib/validations/pos';
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { customerId, locationId, items, payments } = body;
+
+        // Validate input
+        const validationResult = posCheckoutSchema.safeParse(body);
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validationResult.error.format() },
+                { status: 400 }
+            );
+        }
+
+        const { customerId, locationId, items, payments } = validationResult.data;
 
         // Get location for tax rate
         const location = await prisma.location.findUnique({
@@ -30,7 +41,7 @@ export async function POST(request: NextRequest) {
         for (const item of items) {
             const itemPrice = currency(item.price);
             const itemQuantity = item.quantity;
-            const itemDiscount = currency(item.discount || 0);
+            const itemDiscount = currency(item.discount);
 
             const itemLineTotal = itemPrice.multiply(itemQuantity).subtract(itemDiscount);
             subtotal = subtotal.add(itemLineTotal);
@@ -66,15 +77,15 @@ export async function POST(request: NextRequest) {
                     fulfillmentType: FulfillmentType.PICKUP,
                     completedAt: new Date(),
                     items: {
-                        create: items.map((item: any) => ({
+                        create: items.map((item: PosCheckoutItem) => ({
                             productId: item.productId,
                             quantity: item.quantity,
                             price: item.price,
-                            discount: item.discount || 0,
+                            discount: item.discount,
                         })),
                     },
                     payments: {
-                        create: payments.map((payment: any) => ({
+                        create: payments.map((payment: PosPayment) => ({
                             paymentMethod: payment.method,
                             amount: payment.amount,
                             status: PaymentStatus.PAID,
@@ -89,7 +100,7 @@ export async function POST(request: NextRequest) {
 
             // Deduct inventory in parallel (optimized from N+1 sequential queries)
             await Promise.all(
-                items.map((item: any) =>
+                items.map((item: PosCheckoutItem) =>
                     tx.locationInventory.updateMany({
                         where: {
                             locationId,

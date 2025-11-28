@@ -1,6 +1,6 @@
 #!/bin/bash
 # Comprehensive Test Suite Runner
-# Runs all regression tests for the Bill's Supplies application
+# Runs all regression tests for the timbaOS application
 
 # Change to project root (parent of cmd directory)
 cd "$(dirname "$0")/.."
@@ -38,7 +38,7 @@ log_msg() {
 }
 
 log_msg "╔════════════════════════════════════════════════════╗"
-log_msg "║  Bill's Supplies - Regression Test Suite          ║"
+log_msg "║  timbaOS - Regression Test Suite                  ║"
 log_msg "╚════════════════════════════════════════════════════╝"
 log_msg ""
 log_msg "Started at: $(date)"
@@ -67,8 +67,8 @@ run_test_suite() {
     log_msg "=================================================="
 
     if [ -f "$test_script" ]; then
-        # Run test and capture output
-        if bash "$test_script" >> "$LOG_FILE" 2>&1; then
+        # Run test and capture output - use tee to show real-time output AND log
+        if bash "$test_script" 2>&1 | tee -a "$LOG_FILE"; then
             log_msg "${GREEN}✓ $test_name PASSED${NC}"
             ((SUITE_PASSED++))
             return 0
@@ -84,16 +84,24 @@ run_test_suite() {
     log_msg ""
 }
 
-# Run all test suites
-run_test_suite "RBAC Tests" "./tests/rbac-test.sh"
-run_test_suite "Quote Validation Tests" "./tests/quote-validation-test.sh"
-run_test_suite "Order Validation Tests" "./tests/order-validation-test.sh"
-run_test_suite "Inventory Validation Tests" "./tests/inventory-validation-test.sh"
-run_test_suite "POS Validation Tests" "./tests/pos-validation-test.sh"
-run_test_suite "Customer Validation Tests" "./tests/customer-validation-test.sh"
-run_test_suite "Product Validation Tests" "./tests/product-validation-test.sh"
-run_test_suite "Audit Log Validation Tests" "./tests/audit-log-validation-test.sh"
-run_test_suite "Export Validation Tests" "./tests/export-validation-test.sh"
+# Define test suites as an array
+TEST_SUITES=(
+    "RBAC Tests:./tests/rbac-test.sh"
+    "Quote Validation Tests:./tests/quote-validation-test.sh"
+    "Order Validation Tests:./tests/order-validation-test.sh"
+    "Inventory Validation Tests:./tests/inventory-validation-test.sh"
+    "POS Validation Tests:./tests/pos-validation-test.sh"
+    "Customer Validation Tests:./tests/customer-validation-test.sh"
+    "Product Validation Tests:./tests/product-validation-test.sh"
+    "Audit Log Validation Tests:./tests/audit-log-validation-test.sh"
+    "Export Validation Tests:./tests/export-validation-test.sh"
+)
+
+# Run all test suites from array
+for test in "${TEST_SUITES[@]}"; do
+    IFS=':' read -r name script <<< "$test"
+    run_test_suite "$name" "$script"
+done
 
 # Additional API tests - handle consistently with other tests
 if [ -f "./scripts/test-api.sh" ]; then

@@ -1,52 +1,40 @@
 #!/bin/bash
 
-echo "🌲 Starting Pine ERP..."
+echo "🌲 Starting timbaOS..."
 echo ""
 
-# Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+# Get the directory where this script lives
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source common functions
+source "$SCRIPT_DIR/common.sh"
 
 # Load NVM
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-# Check if PostgreSQL container is running
-echo -e "${BLUE}Checking PostgreSQL...${NC}"
-if ! docker ps | grep -q pine-postgres; then
-    echo -e "${YELLOW}PostgreSQL container not running. Starting it...${NC}"
-
-    # Check if container exists but is stopped
-    if docker ps -a | grep -q pine-postgres; then
-        echo "Starting existing container..."
-        docker start pine-postgres
-    else
-        echo "Creating new PostgreSQL container..."
-        docker run --name pine-postgres \
-            -e POSTGRES_PASSWORD=password \
-            -e POSTGRES_DB=pine_db \
-            -p 5432:5432 \
-            -d postgres:15
-    fi
-
-    echo "Waiting for PostgreSQL to be ready..."
-    sleep 5
+# Ensure PostgreSQL is running (uses proper health check with polling)
+if ! ensure_postgres_running; then
+    echo -e "${RED}✗ Failed to start PostgreSQL${NC}"
+    exit 1
 fi
 
-echo -e "${GREEN}✓ PostgreSQL is running${NC}"
 echo ""
 
 # Check if database is initialized
 echo -e "${BLUE}Checking database schema...${NC}"
-if ! npx prisma db pull --force > /dev/null 2>&1; then
+if ! is_database_initialized; then
     echo -e "${YELLOW}Database not initialized. Running migrations...${NC}"
-    npx prisma migrate deploy
+    if ! npx prisma migrate deploy; then
+        echo -e "${RED}✗ Failed to run migrations${NC}"
+        exit 1
+    fi
     echo ""
     echo -e "${YELLOW}Seeding database...${NC}"
-    npm run seed
+    if ! npm run seed; then
+        echo -e "${RED}✗ Failed to seed database${NC}"
+        exit 1
+    fi
 else
     echo -e "${GREEN}✓ Database schema exists${NC}"
 fi
@@ -56,8 +44,15 @@ echo ""
 echo -e "${BLUE}Starting Next.js development server...${NC}"
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}  Pine ERP is starting...${NC}"
+echo -e "${GREEN}  timbaOS is starting...${NC}"
 echo -e "${GREEN}  URL: http://localhost:3000${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-npm run dev
+
+# Start dev server and store PID
+npm run dev &
+DEV_PID=$!
+echo "$DEV_PID" > "$PID_FILE"
+
+# Wait for the dev server process
+wait "$DEV_PID"

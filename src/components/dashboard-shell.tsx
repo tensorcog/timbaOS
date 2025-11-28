@@ -136,7 +136,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                 </div>
                 <div className="flex flex-col">
                     <header className="flex h-14 items-center gap-4 border-b border-border bg-card/50 backdrop-blur px-4 lg:h-[60px] lg:px-6">
-                        <GlobalSearch />
+                        <div className="flex-1" />
                         <LocationSelector />
                         <CartButton onClick={() => setIsCartOpen(true)} />
                         <UserMenu />

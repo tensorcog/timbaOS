@@ -99,10 +99,10 @@ model InventoryTransfer {
   requestedById                                              String
   updatedAt                                                  DateTime
   status                                                     TransferStatus @default(PENDING)
-  approvedBy        User?          @relation("InventoryTransfer_approvedByIdToUser", fields: [approvedById], references: [id])
-  destinationLocation Location       @relation("InventoryTransfer_destinationLocationIdToLocation", fields: [destinationLocationId], references: [id])
-  originLocation      Location       @relation("InventoryTransfer_originLocationIdToLocation", fields: [originLocationId], references: [id])
-  requestedBy         User           @relation("InventoryTransfer_requestedByIdToUser", fields: [requestedById], references: [id])
+  User_InventoryTransfer_approvedByIdToUser                  User?          @relation("InventoryTransfer_approvedByIdToUser", fields: [approvedById], references: [id])
+  Location_InventoryTransfer_destinationLocationIdToLocation Location       @relation("InventoryTransfer_destinationLocationIdToLocation", fields: [destinationLocationId], references: [id])
+  Location_InventoryTransfer_originLocationIdToLocation      Location       @relation("InventoryTransfer_originLocationIdToLocation", fields: [originLocationId], references: [id])
+  User_InventoryTransfer_requestedByIdToUser                 User           @relation("InventoryTransfer_requestedByIdToUser", fields: [requestedById], references: [id])
   TransferItem                                               TransferItem[]
 
   @@index([approvedById])
@@ -127,8 +127,8 @@ model Location {
   updatedAt                                                           DateTime
   taxRate                                                             Decimal             @default(0.0825) @db.Decimal(5, 4)
   Agent                                                               Agent[]
-  transfersToHere   InventoryTransfer[] @relation("InventoryTransfer_destinationLocationIdToLocation")
-  transfersFromHere InventoryTransfer[] @relation("InventoryTransfer_originLocationIdToLocation")
+  InventoryTransfer_InventoryTransfer_destinationLocationIdToLocation InventoryTransfer[] @relation("InventoryTransfer_destinationLocationIdToLocation")
+  InventoryTransfer_InventoryTransfer_originLocationIdToLocation      InventoryTransfer[] @relation("InventoryTransfer_originLocationIdToLocation")
   User                                                                User?               @relation(fields: [managerId], references: [id])
   LocationInventory                                                   LocationInventory[]
   LocationPricing                                                     LocationPricing[]
@@ -268,8 +268,8 @@ model Product {
   LocationInventory                                                         LocationInventory[]
   LocationPricing                                                           LocationPricing[]
   OrderItem                                                                 OrderItem[]
-  recommendations        ProductRecommendation[] @relation("ProductRecommendation_productIdToProduct")
-  recommendedBy          ProductRecommendation[] @relation("ProductRecommendation_recommendedProductIdToProduct")
+  ProductRecommendation_ProductRecommendation_productIdToProduct            ProductRecommendation[] @relation("ProductRecommendation_productIdToProduct")
+  ProductRecommendation_ProductRecommendation_recommendedProductIdToProduct ProductRecommendation[] @relation("ProductRecommendation_recommendedProductIdToProduct")
   QuoteItem                                                                 QuoteItem[]
   TransferItem                                                              TransferItem[]
 
@@ -286,8 +286,8 @@ model ProductRecommendation {
   reason                                                      String
   createdAt                                                   DateTime @default(now())
   updatedAt                                                   DateTime
-  product            Product  @relation("ProductRecommendation_productIdToProduct", fields: [productId], references: [id], onDelete: Cascade)
-  recommendedProduct Product  @relation("ProductRecommendation_recommendedProductIdToProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
+  Product_ProductRecommendation_productIdToProduct            Product  @relation("ProductRecommendation_productIdToProduct", fields: [productId], references: [id], onDelete: Cascade)
+  Product_ProductRecommendation_recommendedProductIdToProduct Product  @relation("ProductRecommendation_recommendedProductIdToProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
 
   @@unique([productId, recommendedProductId])
   @@index([productId])
@@ -397,6 +397,7 @@ model User {
   Quote                                                   Quote[]
   Session                                                 Session[]
   UserLocation                                            UserLocation[]
+  UserPreferences                                         UserPreferences?
 
   @@index([email])
   @@index([isActive])
@@ -417,12 +418,31 @@ model UserLocation {
   @@index([userId])
 }
 
+model UserPreferences {
+  id                   String   @id
+  userId               String   @unique
+  theme                Theme    @default(DEFAULT)
+  emailNotifications   Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime
+  User                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+enum Theme {
+  DEFAULT
+  OCEAN
+  FOREST
+  SUNSET
 }
 
 enum AgentScope {

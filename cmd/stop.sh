@@ -1,22 +1,39 @@
 #!/bin/bash
 
-echo "🛑 Stopping Pine ERP..."
+# Get the directory where this script lives
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source common functions
+source "$SCRIPT_DIR/common.sh"
+
+echo "🛑 Stopping timbaOS..."
 echo ""
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
-
-# Kill Next.js dev server
+# Stop Next.js dev server using PID file
 echo "Stopping Next.js development server..."
-pkill -f "next dev" 2>/dev/null || echo "No dev server running"
+if [ -f "$PID_FILE" ]; then
+    PID=$(cat "$PID_FILE")
+    if kill -0 "$PID" 2>/dev/null; then
+        kill "$PID" 2>/dev/null
+        rm "$PID_FILE"
+        echo -e "${GREEN}✓ Dev server stopped${NC}"
+    else
+        echo "Dev server not running (stale PID file)"
+        rm "$PID_FILE"
+    fi
+else
+    # Fallback: try to find and kill by pattern, but warn about it
+    if pkill -f "next dev" 2>/dev/null; then
+        echo -e "${YELLOW}⚠ Stopped dev server (no PID file found)${NC}"
+    else
+        echo "No dev server running"
+    fi
+fi
 
 # Stop PostgreSQL container
-echo "Stopping PostgreSQL container..."
-docker stop pine-postgres 2>/dev/null || echo "Container not running"
+stop_postgres
 
 echo ""
-echo -e "${GREEN}✓ Pine ERP stopped${NC}"
+echo -e "${GREEN}✓ timbaOS stopped${NC}"
 echo ""
-echo "To start again, run: ./start.sh"
+echo "To start again, run: ./cmd/start.sh"

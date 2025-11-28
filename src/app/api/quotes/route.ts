@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { currency } from '@/lib/currency';
 import { QuoteStatus, UserRole } from '@prisma/client';
 import { checkLocationAccess } from '@/lib/permissions';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
     try {
@@ -97,11 +98,12 @@ export async function POST(request: NextRequest) {
             discountAmount = discountAmount.add(discount);
 
             return {
+                id: randomUUID(),
                 productId: item.productId,
                 quantity: item.quantity,
-                unitPrice: unitPrice.toNumber(),
-                discount: discount.toNumber(),
-                subtotal: itemSubtotal.toNumber(),
+                unitPrice: unitPrice.toPrismaDecimal(),
+                discount: discount.toPrismaDecimal(),
+                subtotal: itemSubtotal.toPrismaDecimal(),
             };
         });
 
@@ -128,19 +130,21 @@ export async function POST(request: NextRequest) {
         // Create quote
         const quote = await prisma.quote.create({
             data: {
+                id: randomUUID(),
                 quoteNumber,
                 locationId,
                 customerId,
                 createdById: userId,
                 status: QuoteStatus.PENDING,
                 validUntil,
-                subtotal: subtotal.toNumber(),
-                discountAmount: discountAmount.toNumber(),
-                taxAmount: taxAmount.toNumber(),
-                deliveryFee: deliveryFee.toNumber(),
-                totalAmount: totalAmount.toNumber(),
+                subtotal: subtotal.toPrismaDecimal(),
+                discountAmount: discountAmount.toPrismaDecimal(),
+                taxAmount: taxAmount.toPrismaDecimal(),
+                deliveryFee: deliveryFee.toPrismaDecimal(),
+                totalAmount: totalAmount.toPrismaDecimal(),
                 notes: notes || null,
                 terms: 'Standard terms and conditions apply.',
+                updatedAt: new Date(),
                 QuoteItem: {
                     create: processedItems,
                 },
@@ -164,7 +168,7 @@ export async function POST(request: NextRequest) {
             userId: userId,
             changes: {
                 quoteNumber: { new: quoteNumber },
-                totalAmount: { new: totalAmount.toNumber() },
+                totalAmount: { new: totalAmount.toPrismaDecimal() },
                 customerId: { new: customerId },
                 itemsCount: { new: items.length },
             },

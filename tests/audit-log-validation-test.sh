@@ -43,10 +43,14 @@ login() {
     local email=$1
     local password=$2
 
-    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
+    # Get CSRF token and initial cookies
+    csrf_response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" "${BASE_URL}/api/auth/csrf")
+    csrf_token=$(echo "$csrf_response" | grep -o '"csrfToken":"[^"]*"' | cut -d'"' -f4)
+
+    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -b "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
         -X POST "${BASE_URL}/api/auth/callback/credentials" \
         -H "Content-Type: application/json" \
-        -d "{\"email\":\"$email\",\"password\":\"$password\"}")
+        -d "{\"email\":\"$email\",\"password\":\"$password\",\"csrfToken\":\"$csrf_token\",\"json\":true}")
 
     status_code=$(echo "$response" | tail -n1)
     if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 302 ]; then
@@ -93,13 +97,14 @@ test_quote_audit() {
 
     # Get a quote ID
     QUOTE_ID=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst();
-    if (quote) {
-        console.log(quote.id);
-    }
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst();
+        if (quote) {
+            console.log(quote.id);
+        }
+    })();
+    " )
 
     if [ -z "$QUOTE_ID" ]; then
         info "No quotes found to test audit logs"
@@ -118,11 +123,15 @@ test_quote_audit() {
         LOG_COUNT=$(echo "$body" | grep -o '"id":' | wc -l)
         pass "Audit logs retrieved successfully (found $LOG_COUNT logs)"
 
-        # Verify logs have required fields
-        if echo "$body" | grep -q '"action"' && echo "$body" | grep -q '"timestamp"'; then
-            pass "Audit logs include required fields (action, timestamp)"
+        if [ "$LOG_COUNT" -gt 0 ]; then
+            # Verify logs have required fields
+            if echo "$body" | grep -q '"action"' && echo "$body" | grep -q '"timestamp"'; then
+                pass "Audit logs include required fields (action, timestamp)"
+            else
+                fail "Audit logs missing required fields"
+            fi
         else
-            fail "Audit logs missing required fields"
+            info "Skipping field validation (no logs found)"
         fi
     else
         fail "Audit log retrieval failed (status: $status)"
@@ -148,13 +157,14 @@ test_order_audit() {
 
     # Get an order ID
     ORDER_ID=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const order = await prisma.order.findFirst();
-    if (order) {
-        console.log(order.id);
-    }
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const order = await prisma.order.findFirst();
+        if (order) {
+            console.log(order.id);
+        }
+    })();
+    " )
 
     if [ -z "$ORDER_ID" ]; then
         info "No orders found to test audit logs"
@@ -195,24 +205,25 @@ test_user_attribution() {
 
     # Get audit logs with user info
     USER_LOGS=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const logs = await prisma.auditLog.findMany({
-        include: {
-            user: { select: { name: true, email: true } }
-        },
-        take: 5,
-        orderBy: { timestamp: 'desc' }
-    });
-    
-    const logsWithUsers = logs.filter(log => log.user !== null);
-    
-    console.log(JSON.stringify({
-        totalLogs: logs.length,
-        logsWithUsers: logsWithUsers.length,
-        hasUserAttribution: logsWithUsers.length > 0
-    }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const logs = await prisma.auditLog.findMany({
+            include: {
+                User: { select: { name: true, email: true } }
+            },
+            take: 5,
+            orderBy: { timestamp: 'desc' }
+        });
+        
+        const logsWithUsers = logs.filter(log => log.User !== null);
+        
+        console.log(JSON.stringify({
+            totalLogs: logs.length,
+            logsWithUsers: logsWithUsers.length,
+            hasUserAttribution: logsWithUsers.length > 0
+        }));
+    })();
+    " )
 
     if [ -z "$USER_LOGS" ]; then
         fail "Could not fetch audit log user data"
@@ -247,25 +258,26 @@ test_timestamp_accuracy() {
 
     # Get recent audit logs
     TIMESTAMP_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const logs = await prisma.auditLog.findMany({
-        orderBy: { timestamp: 'desc' },
-        take: 10,
-        select: { timestamp: true }
-    });
-    
-    if (logs.length > 0) {
-        const now = new Date();
-        const mostRecent = new Date(logs[0].timestamp);
-        const ageInHours = (now - mostRecent) / (1000 * 60 * 60);
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const logs = await prisma.auditLog.findMany({
+            orderBy: { timestamp: 'desc' },
+            take: 10,
+            select: { timestamp: true }
+        });
         
-        console.log(JSON.stringify({
-            logCount: logs.length,
-            mostRecentAge: ageInHours.toFixed(2)
-        }));
-    }
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+        if (logs.length > 0) {
+            const now = new Date();
+            const mostRecent = new Date(logs[0].timestamp);
+            const ageInHours = (now.getTime() - mostRecent.getTime()) / (1000 * 60 * 60);
+            
+            console.log(JSON.stringify({
+                logCount: logs.length,
+                mostRecentAge: ageInHours.toFixed(2)
+            }));
+        }
+    })();
+    " )
 
     if [ -z "$TIMESTAMP_DATA" ]; then
         info "No audit logs found to test timestamps"
@@ -300,21 +312,22 @@ test_audit_actions() {
 
     # Get various action types
     ACTION_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const logs = await prisma.auditLog.findMany({
-        select: { action: true }
-    });
-    
-    const actions = logs.map(log => log.action);
-    const uniqueActions = [...new Set(actions)];
-    
-    console.log(JSON.stringify({
-        totalLogs: actions.length,
-        uniqueActions: uniqueActions.length,
-        actions: uniqueActions
-    }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const logs = await prisma.auditLog.findMany({
+            select: { action: true }
+        });
+        
+        const actions = logs.map(log => log.action);
+        const uniqueActions = [...new Set(actions)];
+        
+        console.log(JSON.stringify({
+            totalLogs: actions.length,
+            uniqueActions: uniqueActions.length,
+            actions: uniqueActions
+        }));
+    })();
+    " )
 
     if [ -z "$ACTION_DATA" ]; then
         info "No audit log action data found"

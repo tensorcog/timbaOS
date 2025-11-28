@@ -94,30 +94,26 @@ test_pos_checkout() {
 
     # Get test data for checkout
     TEST_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const location = await prisma.location.findFirst();
-    const customer = await prisma.customer.findFirst({
-        where: { customerType: 'RETAIL' }
-    });
-    const inventory = await prisma.locationInventory.findFirst({
-        where: {
-            locationId: location?.id,
-            stockLevel: { gte: 10 }
-        },
-        include: { product: true }
-    });
-
-    if (location && customer && inventory) {
-        console.log(JSON.stringify({
-            locationId: location.id,
-            customerId: customer.id,
-            productId: inventory.productId,
-            productName: inventory.product.name,
-            price: inventory.product.basePrice.toString(),
-            stock: inventory.stockLevel
-        }));
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const location = await prisma.location.findFirst();
+        const customer = await prisma.customer.findFirst({
+            where: { customerType: 'RETAIL' }
+        });
+        const product = await prisma.product.findFirst({
+            where: { isActive: true },
+            include: { LocationPricing: true }
+        });
+        
+        if (location && customer && product) {
+            console.log(JSON.stringify({
+                locationId: location.id,
+                customerId: customer.id,
+                productId: product.id,
+                price: product.LocationPricing[0]?.price || product.basePrice
+            }));
+        }
+    })();
     " 2>/dev/null)
 
     if [ -z "$TEST_DATA" ]; then
@@ -164,17 +160,25 @@ test_pos_checkout() {
             pass "POS checkout successful: $ORDER_NUMBER"
             echo "$ORDER_ID" > "${RESULTS_DIR}/pos_order_id.txt"
 
-            # Verify order type is POS
-            ORDER_TYPE=$(npx tsx -e "
-            import prisma from './src/lib/prisma.js';
-            const order = await prisma.order.findUnique({
-                where: { id: '$ORDER_ID' }
-            });
-            if (order) {
-                console.log(order.orderType);
-            }
-            await prisma.\$disconnect();
+            # Verify order in database
+            ORDER_DETAILS=$(npx tsx -e "
+            import prisma from './src/lib/prisma';
+            (async () => {
+                const order = await prisma.order.findUnique({
+                    where: { orderNumber: '$ORDER_NUMBER' }
+                });
+                if (order) {
+                    console.log(JSON.stringify({
+                        type: order.orderType,
+                        paymentStatus: order.paymentStatus,
+                        status: order.status
+                    }));
+                }
+            })();
             " 2>/dev/null)
+
+            # Verify order type is POS
+            ORDER_TYPE=$(echo "$ORDER_DETAILS" | grep -o '"type":"[^"]*"' | cut -d'"' -f4)
 
             if [ "$ORDER_TYPE" == "POS" ]; then
                 pass "Order type correctly set to POS"
@@ -182,17 +186,10 @@ test_pos_checkout() {
                 fail "Order type incorrect (expected: POS, got: $ORDER_TYPE)"
             fi
 
+
+
             # Verify payment status is PAID
-            PAYMENT_STATUS=$(npx tsx -e "
-            import prisma from './src/lib/prisma.js';
-            const order = await prisma.order.findUnique({
-                where: { id: '$ORDER_ID' }
-            });
-            if (order) {
-                console.log(order.paymentStatus);
-            }
-            await prisma.\$disconnect();
-            " 2>/dev/null)
+            PAYMENT_STATUS=$(echo "$ORDER_DETAILS" | grep -o '"paymentStatus":"[^"]*"' | cut -d'"' -f4)
 
             if [ "$PAYMENT_STATUS" == "PAID" ]; then
                 pass "Payment status correctly set to PAID"
@@ -201,16 +198,7 @@ test_pos_checkout() {
             fi
 
             # Verify order status is COMPLETED
-            ORDER_STATUS=$(npx tsx -e "
-            import prisma from './src/lib/prisma.js';
-            const order = await prisma.order.findUnique({
-                where: { id: '$ORDER_ID' }
-            });
-            if (order) {
-                console.log(order.status);
-            }
-            await prisma.\$disconnect();
-            " 2>/dev/null)
+            ORDER_STATUS=$(echo "$ORDER_DETAILS" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
 
             if [ "$ORDER_STATUS" == "COMPLETED" ]; then
                 pass "Order status correctly set to COMPLETED"
@@ -511,8 +499,22 @@ test_pos_products() {
         return
     fi
 
+    # Get location ID
+    LOCATION_ID=$(npx tsx -e "
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const location = await prisma.location.findFirst();
+        if (location) console.log(location.id);
+    })();
+    ")
+
+    if [ -z "$LOCATION_ID" ]; then
+        fail "Could not fetch location ID for products test"
+        return
+    fi
+
     # Test products endpoint
-    response=$(api_request "GET" "/api/pos/products" "")
+    response=$(api_request "GET" "/api/pos/products?locationId=$LOCATION_ID" "")
     status=$(echo "$response" | tail -n1)
     body=$(echo "$response" | head -n-1)
 
@@ -521,8 +523,8 @@ test_pos_products() {
         pass "POS products endpoint accessible (found $PRODUCT_COUNT products)"
 
         # Verify products have required fields
-        if echo "$body" | grep -q '"name"' && echo "$body" | grep -q '"basePrice"'; then
-            pass "Products include required fields (name, basePrice)"
+        if echo "$body" | grep -q '"name"' && echo "$body" | grep -q '"price"'; then
+            pass "Products include required fields (name, price)"
         else
             fail "Products missing required fields"
         fi

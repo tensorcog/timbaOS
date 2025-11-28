@@ -1,5 +1,6 @@
 
 import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -19,24 +20,32 @@ async function main() {
 
     const quote = await prisma.quote.create({
         data: {
-            quoteNumber: `Q${Date.now()}`,
-            customerId: customer.id,
+            id: randomUUID(),
+            quoteNumber: `Q-${Date.now()}`,
             locationId: location.id,
+            customerId: customer.id,
             createdById: user.id,
-            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            totalAmount: 100.00,
-            subtotal: 100.00,
-            taxAmount: 0.00,
+            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
             status: 'DRAFT',
             QuoteItem: {
                 create: {
+                    id: randomUUID(),
                     productId: product.id,
                     quantity: 1,
                     unitPrice: 100.00,
                     subtotal: 100.00,
-                }
-            }
-        }
+                },
+            },
+            subtotal: 100.00,
+            taxAmount: 0.00,
+            deliveryFee: 0.00,
+            discountAmount: 0.00,
+            totalAmount: 100.00,
+            updatedAt: new Date(),
+        },
+        include: {
+            QuoteItem: true,
+        },
     });
 
     console.log(`Quote created: ${quote.id}`);

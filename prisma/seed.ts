@@ -8,8 +8,10 @@ import {
     TransferStatus,
     AgentStatus,
     AgentScope,
-    OrderType
+    OrderType,
+    QuoteStatus
 } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -32,8 +34,13 @@ async function main() {
     console.log('🏪 Seeding Bills Supplies - Upstate NY...');
 
     // Clear existing data
+    await prisma.auditLog.deleteMany();
+    await prisma.productRecommendation.deleteMany();
+    await prisma.quoteItem.deleteMany();
+    await prisma.quote.deleteMany();
     await prisma.transferItem.deleteMany();
     await prisma.inventoryTransfer.deleteMany();
+    await prisma.payment.deleteMany();
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
     await prisma.locationInventory.deleteMany();
@@ -51,66 +58,82 @@ async function main() {
     const users = await Promise.all([
         prisma.user.create({
             data: {
+                id: randomUUID(),
                 email: 'admin@billssupplies.com',
                 name: 'Bill Thompson',
                 password: 'password',
                 role: UserRole.SUPER_ADMIN,
+                updatedAt: new Date(),
             },
         }),
         prisma.user.create({
             data: {
+                id: randomUUID(),
                 email: 'amherst.manager@billssupplies.com',
                 name: 'Sarah Martinez',
                 password: 'password',
                 role: UserRole.LOCATION_ADMIN,
+                updatedAt: new Date(),
             },
         }),
         prisma.user.create({
             data: {
+                id: randomUUID(),
                 email: 'buffalo.manager@billssupplies.com',
                 name: 'Mike O\'Connor',
                 password: 'password',
                 role: UserRole.LOCATION_ADMIN,
+                updatedAt: new Date(),
             },
         }),
         prisma.user.create({
             data: {
+                id: randomUUID(),
                 email: 'westchester.manager@billssupplies.com',
                 name: 'Jennifer Wu',
                 password: 'password',
                 role: UserRole.LOCATION_ADMIN,
+                updatedAt: new Date(),
             },
         }),
         prisma.user.create({
             data: {
+                id: randomUUID(),
                 email: 'orchardpark.manager@billssupplies.com',
                 name: 'Tom Kowalski',
                 password: 'password',
                 role: UserRole.LOCATION_ADMIN,
+                updatedAt: new Date(),
             },
         }),
         prisma.user.create({
             data: {
+                id: randomUUID(),
                 email: 'niagara.manager@billssupplies.com',
                 name: 'Lisa Chen',
                 password: 'password',
                 role: UserRole.LOCATION_ADMIN,
+                updatedAt: new Date(),
             },
         }),
         prisma.user.create({
             data: {
+                id: randomUUID(),
                 email: 'sales1@billssupplies.com',
                 name: 'Robert Johnson',
                 password: 'password',
                 role: UserRole.SALES,
+                updatedAt: new Date(),
             },
         }),
         prisma.user.create({
             data: {
+                id: randomUUID(),
                 email: 'sales2@billssupplies.com',
                 name: 'Amanda Rodriguez',
                 password: 'password',
                 role: UserRole.SALES,
+                updatedAt: new Date(),
             },
         }),
     ]);
@@ -121,6 +144,7 @@ async function main() {
     const locations = await Promise.all([
         prisma.location.create({
             data: {
+                id: randomUUID(),
                 code: 'AMHERST',
                 name: 'Bills Supplies - Amherst',
                 address: '4250 Maple Road, Amherst, NY 14226',
@@ -129,10 +153,12 @@ async function main() {
                 isActive: true,
                 isWarehouse: false,
                 managerId: users[1].id,
+                updatedAt: new Date(),
             },
         }),
         prisma.location.create({
             data: {
+                id: randomUUID(),
                 code: 'BUFFALO',
                 name: 'Bills Supplies - Buffalo',
                 address: '1875 Main Street, Buffalo, NY 14208',
@@ -141,10 +167,12 @@ async function main() {
                 isActive: true,
                 isWarehouse: false,
                 managerId: users[2].id,
+                updatedAt: new Date(),
             },
         }),
         prisma.location.create({
             data: {
+                id: randomUUID(),
                 code: 'WESTCHESTER',
                 name: 'Bills Supplies - Westchester',
                 address: '328 Central Avenue, White Plains, NY 10606',
@@ -153,10 +181,12 @@ async function main() {
                 isActive: true,
                 isWarehouse: false,
                 managerId: users[3].id,
+                updatedAt: new Date(),
             },
         }),
         prisma.location.create({
             data: {
+                id: randomUUID(),
                 code: 'ORCHARDPARK',
                 name: 'Bills Supplies - Orchard Park',
                 address: '5680 Abbott Road, Orchard Park, NY 14127',
@@ -165,10 +195,12 @@ async function main() {
                 isActive: true,
                 isWarehouse: false,
                 managerId: users[4].id,
+                updatedAt: new Date(),
             },
         }),
         prisma.location.create({
             data: {
+                id: randomUUID(),
                 code: 'NIAGARA',
                 name: 'Bills Supplies - Niagara Falls',
                 address: '2450 Military Road, Niagara Falls, NY 14304',
@@ -177,11 +209,34 @@ async function main() {
                 isActive: true,
                 isWarehouse: true,
                 managerId: users[5].id,
+                updatedAt: new Date(),
             },
         }),
     ]);
 
     console.log(`✅ Created ${locations.length} locations`);
+
+    // Assign users to locations
+    await Promise.all([
+        // Managers
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[1].id, locationId: locations[0].id, canManage: true } }),
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[2].id, locationId: locations[1].id, canManage: true } }),
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[3].id, locationId: locations[2].id, canManage: true } }),
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[4].id, locationId: locations[3].id, canManage: true } }),
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[5].id, locationId: locations[4].id, canManage: true } }),
+
+        // Sales Reps
+        // Sales1 to all locations for testing ease
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[6].id, locationId: locations[0].id, canManage: false } }),
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[6].id, locationId: locations[1].id, canManage: false } }),
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[6].id, locationId: locations[2].id, canManage: false } }),
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[6].id, locationId: locations[3].id, canManage: false } }),
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[6].id, locationId: locations[4].id, canManage: false } }),
+
+        // Sales2 to Westchester
+        prisma.userLocation.create({ data: { id: randomUUID(), userId: users[7].id, locationId: locations[2].id, canManage: false } }),
+    ]);
+    console.log('✅ Assigned users to locations');
 
     // Create 200 Products across various categories
     const productCategories = [
@@ -200,12 +255,14 @@ async function main() {
         const size = randomItem(lumberSizes);
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: `${size} ${type}`,
                 description: `${type} lumber for framing and construction`,
                 sku: `LMB-${skuCounter++}`,
                 basePrice: randomInt(5, 35) + 0.99,
                 category: 'Lumber',
                 uom: 'EA',
+                updatedAt: new Date(),
             },
         }));
     }
@@ -218,12 +275,14 @@ async function main() {
         const thickness = randomItem(thicknesses);
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: `4x8 ${thickness} ${type}`,
                 description: `${thickness} ${type} sheet goods`,
                 sku: `PLY-${skuCounter++}`,
                 basePrice: randomInt(25, 95) + 0.99,
                 category: 'Plywood',
                 uom: 'SHEET',
+                updatedAt: new Date(),
             },
         }));
     }
@@ -237,12 +296,14 @@ async function main() {
         const item = randomItem(hardwareItems);
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: `${item} ${randomItem(['1"', '2"', '3"', '16d', '8d'])} (${randomItem(['1lb', '5lb', '25lb', '50lb'])})`,
                 description: `Quality ${item.toLowerCase()} for construction`,
                 sku: `HW-${skuCounter++}`,
                 basePrice: randomInt(8, 95) + 0.99,
                 category: 'Hardware',
                 uom: 'BOX',
+                updatedAt: new Date(),
             },
         }));
     }
@@ -256,12 +317,14 @@ async function main() {
         const tool = randomItem(tools);
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: `${randomItem(['Pro', 'Professional', 'Heavy Duty', 'Standard'])} ${tool}`,
                 description: `Reliable ${tool.toLowerCase()} for professionals`,
                 sku: `TOOL-${skuCounter++}`,
                 basePrice: randomInt(15, 299) + 0.99,
                 category: 'Tools',
                 uom: 'EA',
+                updatedAt: new Date(),
             },
         }));
     }
@@ -272,12 +335,14 @@ async function main() {
     for (let i = 0; i < 20; i++) {
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: `${randomItem(paintTypes)} Paint - ${randomItem(finishes)} (Gallon)`,
                 description: 'Premium quality paint',
                 sku: `PNT-${skuCounter++}`,
                 basePrice: randomInt(25, 75) + 0.99,
                 category: 'Paint',
                 uom: 'GAL',
+                updatedAt: new Date(),
             },
         }));
     }
@@ -290,12 +355,14 @@ async function main() {
     for (let i = 0; i < 20; i++) {
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: randomItem(electricalItems),
                 description: 'Electrical supplies',
                 sku: `ELEC-${skuCounter++}`,
                 basePrice: randomInt(2, 85) + 0.99,
                 category: 'Electrical',
                 uom: randomItem(['EA', 'BOX', 'FT']),
+                updatedAt: new Date(),
             },
         }));
     }
@@ -308,12 +375,14 @@ async function main() {
     for (let i = 0; i < 20; i++) {
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: randomItem(plumbingItems),
                 description: 'Plumbing supplies',
                 sku: `PLUMB-${skuCounter++}`,
                 basePrice: randomInt(3, 299) + 0.99,
                 category: 'Plumbing',
                 uom: randomItem(['EA', 'FT']),
+                updatedAt: new Date(),
             },
         }));
     }
@@ -323,12 +392,14 @@ async function main() {
         const item = randomItem(['Concrete Mix', 'Mortar Mix', 'Grout', 'Rebar', 'Concrete Block']);
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: `${item} ${randomItem(['60lb', '80lb', '1/2"x10ft', '8x8x16'])}`,
                 description: 'Concrete and masonry products',
                 sku: `CONC-${skuCounter++}`,
                 basePrice: randomInt(4, 45) + 0.99,
                 category: 'Concrete',
                 uom: randomItem(['BAG', 'EA']),
+                updatedAt: new Date(),
             },
         }));
     }
@@ -337,12 +408,14 @@ async function main() {
     for (let i = 0; i < 10; i++) {
         products.push(await prisma.product.create({
             data: {
+                id: randomUUID(),
                 name: `Insulation R-${randomItem([13, 15, 19, 21, 30])} ${randomItem(['Batts', 'Rolls', 'Foam Board'])}`,
                 description: 'Insulation products',
                 sku: `INSUL-${skuCounter++}`,
                 basePrice: randomInt(15, 89) + 0.99,
                 category: 'Insulation',
                 uom: 'EA',
+                updatedAt: new Date(),
             },
         }));
     }
@@ -353,11 +426,13 @@ async function main() {
     for (const location of locations) {
         const isWarehouse = location.isWarehouse;
         const inventoryData = products.map(product => ({
+            id: randomUUID(),
             locationId: location.id,
             productId: product.id,
             stockLevel: isWarehouse ? randomInt(500, 5000) : randomInt(10, 300),
             reorderPoint: isWarehouse ? randomInt(200, 1000) : randomInt(5, 50),
             aisle: `${randomItem(['A', 'B', 'C', 'D', 'E'])}${randomInt(1, 20)}`,
+            updatedAt: new Date(),
         }));
 
         await prisma.locationInventory.createMany({ data: inventoryData });
@@ -393,6 +468,7 @@ async function main() {
 
         customers.push(await prisma.customer.create({
             data: {
+                id: randomUUID(),
                 name,
                 email: `customer${i}_${email}`,
                 phone: `716-555-${String(i).padStart(4, '0')}`,
@@ -403,6 +479,7 @@ async function main() {
                 taxExempt: customerType === CustomerType.WHOLESALE && Math.random() > 0.7,
                 taxId: (customerType === CustomerType.WHOLESALE && Math.random() > 0.7) ? `TAX-${String(i).padStart(6, '0')}` : null,
                 loyaltyPoints: customerType === CustomerType.RETAIL ? randomInt(0, 5000) : 0,
+                updatedAt: new Date(),
             },
         }));
     }
@@ -410,10 +487,10 @@ async function main() {
     console.log(`✅ Created ${customers.length} customers`);
 
     // Create 3,000 Orders
-    const statuses = [OrderStatus.COMPLETED, OrderStatus.COMPLETED, OrderStatus.COMPLETED, OrderStatus.PENDING, OrderStatus.CONFIRMED];
+    const statuses = [OrderStatus.COMPLETED, OrderStatus.COMPLETED, OrderStatus.COMPLETED, OrderStatus.PENDING, OrderStatus.PROCESSING];
     const paymentStatuses = [PaymentStatus.PAID, PaymentStatus.PAID, PaymentStatus.PAID, PaymentStatus.PENDING];
     const fulfillmentTypes = [FulfillmentType.PICKUP, FulfillmentType.PICKUP, FulfillmentType.DELIVERY];
-    const orderTypes = [OrderType.SALE, OrderType.SALE, OrderType.SALE, OrderType.QUOTE];
+    const orderTypes = [OrderType.STANDARD, OrderType.STANDARD, OrderType.STANDARD, OrderType.POS];
 
     const endDate = new Date();
     const startDate = new Date();
@@ -437,9 +514,10 @@ async function main() {
         for (let j = 0; j < itemCount; j++) {
             const product = randomItem(products);
             const quantity = randomInt(1, 25);
-            const price = product.basePrice * (1 + (Math.random() * 0.2 - 0.1)); // ±10% variation
+            const price = Number(product.basePrice) * (1 + (Math.random() * 0.2 - 0.1)); // ±10% variation
 
             orderItems.push({
+                id: randomUUID(),
                 productId: product.id,
                 quantity,
                 price: Math.round(price * 100) / 100,
@@ -448,7 +526,7 @@ async function main() {
             subtotal += quantity * price;
         }
 
-        const taxRate = customer.taxExempt ? 0 : 0.08; // 8% sales tax
+        const taxRate = customer.taxExempt ? 0 : 0.0825; // 8.25% sales tax
         const taxAmount = subtotal * taxRate;
         const deliveryFee = fulfillmentType === FulfillmentType.DELIVERY ? randomInt(0, 150) : 0;
         const discountAmount = customer.customerType === CustomerType.CONTRACTOR ? subtotal * 0.05 : 0; // 5% contractor discount
@@ -456,6 +534,7 @@ async function main() {
 
         await prisma.order.create({
             data: {
+                id: randomUUID(),
                 orderNumber: `ORD-${String(i + 1).padStart(6, '0')}`,
                 locationId: location.id,
                 customerId: customer.id,
@@ -472,7 +551,8 @@ async function main() {
                 deliveryAddress: fulfillmentType === FulfillmentType.DELIVERY ? customer.address : null,
                 deliveryDate: fulfillmentType === FulfillmentType.DELIVERY ? randomDate(startDate, endDate) : null,
                 createdAt: randomDate(startDate, endDate),
-                items: {
+                updatedAt: new Date(),
+                OrderItem: {
                     create: orderItems,
                 },
             },
@@ -497,6 +577,7 @@ async function main() {
             const product = randomItem(products);
             const qty = randomInt(10, 100);
             transferItems.push({
+                id: randomUUID(),
                 productId: product.id,
                 requestedQty: qty,
                 shippedQty: status !== TransferStatus.PENDING ? qty : null,
@@ -506,6 +587,7 @@ async function main() {
 
         await prisma.inventoryTransfer.create({
             data: {
+                id: randomUUID(),
                 transferNumber: `TRF-${String(i + 1).padStart(5, '0')}`,
                 originLocationId: originLocation.id,
                 destinationLocationId: destLocation.id,
@@ -517,7 +599,8 @@ async function main() {
                 shippedAt: status === TransferStatus.IN_TRANSIT || status === TransferStatus.RECEIVED ? randomDate(startDate, endDate) : null,
                 receivedAt: status === TransferStatus.RECEIVED ? randomDate(startDate, endDate) : null,
                 notes: randomItem(['Regular restock', 'Low inventory alert', 'Seasonal restock', 'Customer special order', null]),
-                items: {
+                updatedAt: new Date(),
+                TransferItem: {
                     create: transferItems,
                 },
             },
@@ -525,6 +608,77 @@ async function main() {
     }
 
     console.log('✅ Created inventory transfers');
+
+    // Create a specific retail customer for seed quotes to ensure tax calculation is consistent
+    const seedCustomer = await prisma.customer.create({
+        data: {
+            id: randomUUID(),
+            name: "Seed Customer",
+            email: "seed.customer@example.com",
+            customerType: CustomerType.RETAIL,
+            taxExempt: false,
+            updatedAt: new Date()
+        }
+    });
+
+    // Create Quotes for RBAC testing
+    const quote1 = await prisma.quote.create({
+        data: {
+            id: randomUUID(),
+            quoteNumber: 'Q-SEED-001',
+            locationId: locations[0].id,
+            customerId: seedCustomer.id,
+            createdById: users[0].id, // Admin
+            status: QuoteStatus.PENDING,
+            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            subtotal: 100,
+            discountAmount: 0,
+            taxAmount: 8.25,
+            deliveryFee: 0,
+            totalAmount: 108.25,
+            updatedAt: new Date(),
+            QuoteItem: {
+                create: [{
+                    id: randomUUID(),
+                    productId: products[0].id,
+                    quantity: 1,
+                    unitPrice: 100,
+                    discount: 0,
+                    subtotal: 100
+                }]
+            }
+        }
+    });
+
+    const quote2 = await prisma.quote.create({
+        data: {
+            id: randomUUID(),
+            quoteNumber: 'Q-SEED-002',
+            locationId: locations[0].id,
+            customerId: seedCustomer.id,
+            createdById: users[6].id, // Sales1
+            status: QuoteStatus.PENDING,
+            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            subtotal: 200,
+            discountAmount: 0,
+            taxAmount: 16.50,
+            deliveryFee: 0,
+            totalAmount: 216.50,
+            updatedAt: new Date(),
+            QuoteItem: {
+                create: [{
+                    id: randomUUID(),
+                    productId: products[1].id,
+                    quantity: 1,
+                    unitPrice: 200,
+                    discount: 0,
+                    subtotal: 200
+                }]
+            }
+        }
+    });
+
+    console.log('✅ Created seed quotes for RBAC testing');
 
     console.log('');
     console.log('🎉 Bills Supplies seed complete!');

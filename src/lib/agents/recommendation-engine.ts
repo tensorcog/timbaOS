@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { randomUUID } from 'crypto';
 
 /**
  * Recommendation Engine
@@ -20,7 +21,7 @@ export async function analyzeRecommendations() {
             status: 'COMPLETED',
         },
         include: {
-            items: {
+            OrderItem: {
                 select: {
                     productId: true,
                 },
@@ -34,7 +35,7 @@ export async function analyzeRecommendations() {
     const pairCounts = new Map<string, ProductPair>();
 
     orders.forEach(order => {
-        const productIds = order.items.map(item => item.productId);
+        const productIds = order.OrderItem.map(item => item.productId);
 
         // For each pair of products in the order
         for (let i = 0; i < productIds.length; i++) {
@@ -78,10 +79,12 @@ export async function analyzeRecommendations() {
     // Calculate strength scores (0-1 based on frequency)
     const maxCount = Math.max(...significantPairs.map(p => p.count));
     const recommendations = significantPairs.map(pair => ({
+        id: randomUUID(),
         productId: pair.productId,
         recommendedProductId: pair.recommendedProductId,
         strength: Math.min(pair.count / maxCount, 1.0),
         reason: 'frequently_bought_together',
+        updatedAt: new Date(),
     }));
 
     // Clear existing recommendations
@@ -111,10 +114,12 @@ export async function seedDemoRecommendations() {
     });
 
     const demoRecommendations: Array<{
+        id: string;
         productId: string;
         recommendedProductId: string;
         strength: number;
         reason: string;
+        updatedAt: Date;
     }> = [];
 
     // Find lumber and screws/nails
@@ -128,10 +133,12 @@ export async function seedDemoRecommendations() {
     lumber.forEach(lumberProduct => {
         fasteners.slice(0, 2).forEach(fastener => {
             demoRecommendations.push({
+                id: randomUUID(),
                 productId: lumberProduct.id,
                 recommendedProductId: fastener.id,
                 strength: 0.8,
                 reason: 'project_bundle',
+                updatedAt: new Date(),
             });
         });
     });

@@ -43,10 +43,14 @@ login() {
     local email=$1
     local password=$2
 
-    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
+    # Get CSRF token and initial cookies
+    csrf_response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" "${BASE_URL}/api/auth/csrf")
+    csrf_token=$(echo "$csrf_response" | grep -o '"csrfToken":"[^"]*"' | cut -d'"' -f4)
+
+    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -b "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
         -X POST "${BASE_URL}/api/auth/callback/credentials" \
         -H "Content-Type: application/json" \
-        -d "{\"email\":\"$email\",\"password\":\"$password\"}")
+        -d "{\"email\":\"$email\",\"password\":\"$password\",\"csrfToken\":\"$csrf_token\",\"json\":true}")
 
     status_code=$(echo "$response" | tail -n1)
     if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 302 ]; then
@@ -91,8 +95,17 @@ test_product_listing() {
         return
     fi
 
+    # Get a location ID
+    LOCATION_ID=$(npx tsx -e "
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const location = await prisma.location.findFirst();
+        if (location) console.log(location.id);
+    })();
+    " )
+
     # Test products endpoint
-    response=$(api_request "GET" "/api/pos/products" "")
+    response=$(api_request "GET" "/api/pos/products?locationId=$LOCATION_ID" "")
     status=$(echo "$response" | tail -n1)
     body=$(echo "$response" | head -n-1)
 
@@ -101,10 +114,11 @@ test_product_listing() {
         pass "Product listing accessible (found $PRODUCT_COUNT products)"
 
         # Verify products have required fields
-        if echo "$body" | grep -q '"name"' && echo "$body" | grep -q '"basePrice"' && echo "$body" | grep -q '"sku"'; then
-            pass "Products include required fields (name, sku, basePrice)"
+        if echo "$body" | grep -q '"name"' && echo "$body" | grep -q '"price"' && echo "$body" | grep -q '"sku"'; then
+            pass "Products include required fields (name, sku, price)"
         else
             fail "Products missing required fields"
+            debug "Response: $body"
         fi
     else
         fail "Product listing failed (status: $status)"
@@ -130,21 +144,22 @@ test_product_categories() {
 
     # Get category distribution
     CATEGORY_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const products = await prisma.product.findMany({
-        select: { category: true }
-    });
-    
-    const categories = products.map(p => p.category);
-    const uniqueCategories = [...new Set(categories)];
-    
-    console.log(JSON.stringify({
-        totalProducts: categories.length,
-        uniqueCategories: uniqueCategories.length,
-        categories: uniqueCategories
-    }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const products = await prisma.product.findMany({
+            select: { category: true }
+        });
+        
+        const categories = products.map(p => p.category);
+        const uniqueCategories = [...new Set(categories)];
+        
+        console.log(JSON.stringify({
+            totalProducts: categories.length,
+            uniqueCategories: uniqueCategories.length,
+            categories: uniqueCategories
+        }));
+    })();
+    " )
 
     if [ -z "$CATEGORY_DATA" ]; then
         fail "Could not fetch category data"
@@ -181,22 +196,23 @@ test_sku_uniqueness() {
 
     # Check for duplicate SKUs
     DUPLICATE_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const products = await prisma.product.findMany({
-        select: { sku: true }
-    });
-    
-    const skus = products.map(p => p.sku);
-    const uniqueSkus = new Set(skus);
-    const hasDuplicates = skus.length !== uniqueSkus.size;
-    
-    console.log(JSON.stringify({
-        totalSkus: skus.length,
-        uniqueSkus: uniqueSkus.size,
-        hasDuplicates
-    }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const products = await prisma.product.findMany({
+            select: { sku: true }
+        });
+        
+        const skus = products.map(p => p.sku);
+        const uniqueSkus = new Set(skus);
+        const hasDuplicates = skus.length !== uniqueSkus.size;
+        
+        console.log(JSON.stringify({
+            totalSkus: skus.length,
+            uniqueSkus: uniqueSkus.size,
+            hasDuplicates
+        }));
+    })();
+    " )
 
     if [ -z "$DUPLICATE_DATA" ]; then
         fail "Could not fetch SKU data"
@@ -230,12 +246,13 @@ test_product_active_status() {
 
     # Get active/inactive counts
     STATUS_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const active = await prisma.product.count({ where: { isActive: true } });
-    const inactive = await prisma.product.count({ where: { isActive: false } });
-    console.log(JSON.stringify({ active, inactive }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const active = await prisma.product.count({ where: { isActive: true } });
+        const inactive = await prisma.product.count({ where: { isActive: false } });
+        console.log(JSON.stringify({ active, inactive }));
+    })();
+    " )
 
     if [ -z "$STATUS_DATA" ]; then
         fail "Could not fetch product status data"
@@ -272,27 +289,28 @@ test_product_pricing() {
 
     # Get product with pricing
     PRICING_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const product = await prisma.product.findFirst({
-        where: { isActive: true },
-        include: {
-            locationPrices: {
-                include: { location: { select: { name: true } } }
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const product = await prisma.product.findFirst({
+            where: { isActive: true },
+            include: {
+                LocationPricing: {
+                    include: { Location: { select: { name: true } } }
+                }
             }
+        });
+        
+        if (product) {
+            console.log(JSON.stringify({
+                productName: product.name,
+                basePrice: product.basePrice.toString(),
+                hasCost: product.cost !== null,
+                hasLocationPricing: product.LocationPricing.length > 0,
+                locationPriceCount: product.LocationPricing.length
+            }));
         }
-    });
-    
-    if (product) {
-        console.log(JSON.stringify({
-            productName: product.name,
-            basePrice: product.basePrice.toString(),
-            hasCost: product.cost !== null,
-            hasLocationPricing: product.locationPrices.length > 0,
-            locationPriceCount: product.locationPrices.length
-        }));
-    }
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    })();
+    " )
 
     if [ -z "$PRICING_DATA" ]; then
         fail "Could not fetch pricing data"
@@ -335,27 +353,28 @@ test_location_pricing() {
 
     # Get location pricing data
     LOC_PRICING_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const locationPrices = await prisma.locationPricing.findMany({
-        include: {
-            product: { select: { name: true, basePrice: true } },
-            location: { select: { name: true } }
-        },
-        take: 1
-    });
-    
-    console.log(JSON.stringify({
-        count: locationPrices.length,
-        hasLocationPricing: locationPrices.length > 0,
-        sample: locationPrices[0] ? {
-            product: locationPrices[0].product.name,
-            location: locationPrices[0].location.name,
-            basePrice: locationPrices[0].product.basePrice.toString(),
-            locationPrice: locationPrices[0].price.toString()
-        } : null
-    }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const locationPrices = await prisma.locationPricing.findMany({
+            include: {
+                Product: { select: { name: true, basePrice: true } },
+                Location: { select: { name: true } }
+            },
+            take: 1
+        });
+        
+        console.log(JSON.stringify({
+            count: locationPrices.length,
+            hasLocationPricing: locationPrices.length > 0,
+            sample: locationPrices[0] ? {
+                product: locationPrices[0].Product.name,
+                location: locationPrices[0].Location.name,
+                basePrice: locationPrices[0].Product.basePrice.toString(),
+                locationPrice: locationPrices[0].price.toString()
+            } : null
+        }));
+    })();
+    " )
 
     if [ -z "$LOC_PRICING_DATA" ]; then
         info "Could not fetch location pricing data"

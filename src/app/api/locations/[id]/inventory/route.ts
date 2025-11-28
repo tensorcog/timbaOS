@@ -11,7 +11,7 @@ export async function GET(
                 locationId: params.id,
             },
             include: {
-                product: {
+                Product: {
                     select: {
                         id: true,
                         name: true,
@@ -22,7 +22,7 @@ export async function GET(
                 },
             },
             orderBy: {
-                product: {
+                Product: {
                     category: 'asc',
                 },
             },

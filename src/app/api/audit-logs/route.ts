@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
                 entityId,
             },
             include: {
-                user: {
+                User: {
                     select: {
                         name: true,
                         email: true,

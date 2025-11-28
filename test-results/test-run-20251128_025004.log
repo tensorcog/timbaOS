@@ -1,0 +1,586 @@
+╔════════════════════════════════════════════════════╗
+║  Bill's Supplies - Regression Test Suite          ║
+╚════════════════════════════════════════════════════╝
+
+Started at: Fri Nov 28 02:50:04 CST 2025
+Server URL: http://localhost:3000
+Log file: ./test-results/test-run-20251128_025004.log
+
+[1;33mChecking server status...[0m
+[0;32m✓ Server is running[0m
+
+==================================================
+[0;34mRunning: RBAC Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  RBAC Regression Test Suite           ║
+╔════════════════════════════════════════╗
+
+
+=========================================
+TEST: Unauthenticated User Access
+=========================================
+[1;33mℹ INFO[0m: Testing GET /api/analytics without auth
+[0;32m✓ PASS[0m: Unauthenticated user correctly blocked from analytics
+[1;33mℹ INFO[0m: Testing GET /api/quotes without auth
+[0;32m✓ PASS[0m: Unauthenticated user correctly blocked from quotes
+
+=========================================
+TEST: Admin User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics
+[0;32m✓ PASS[0m: Admin can access analytics endpoint
+[1;33mℹ INFO[0m: Testing GET /api/quotes
+[0;32m✓ PASS[0m: Admin can access quotes endpoint (found 30 quotes)
+
+=========================================
+TEST: Sales User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as sales1@billssupplies.com
+[0;32m✓ PASS[0m: Sales login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics (should be blocked)
+[0;32m✓ PASS[0m: Sales user correctly blocked from analytics
+[1;33mℹ INFO[0m: Testing GET /api/quotes (should only see own quotes)
+[0;32m✓ PASS[0m: Sales can access quotes endpoint (found 25 quotes)
+[0;32m✓ PASS[0m: Sales user sees fewer quotes than admin (25 < 30) - filtering works!
+
+=========================================
+TEST: Manager User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as amherst.manager@billssupplies.com
+[0;32m✓ PASS[0m: Manager login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics (should have access)
+[0;32m✓ PASS[0m: Manager can access analytics endpoint
+[1;33mℹ INFO[0m: Testing GET /api/quotes (should see location-filtered quotes)
+[0;32m✓ PASS[0m: Manager can access quotes endpoint (found 30 quotes)
+[0;32m✓ PASS[0m: Manager sees more/equal quotes than sales (30 >= 25)
+
+=========================================
+TEST: Quote Creation Permissions
+=========================================
+[1;33mℹ INFO[0m: This test validates quote creation permissions
+[0;32m✓ PASS[0m: Quote creation test prepared (requires seed data IDs)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 14[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ RBAC Tests PASSED[0m
+==================================================
+[0;34mRunning: Quote Validation Tests[0m
+==================================================
+╔════════════════════════════════════════════════════╗
+║  Quote Validation Regression Tests                ║
+╚════════════════════════════════════════════════════╝
+
+
+=========================================
+TEST: Quote Creation Validation
+=========================================
+[1;33mℹ INFO[0m: Fetching test data from database...
+[0;34mDEBUG[0m: Test data: {"customerId":"ace3012d-65c2-41b4-89c2-b268840a1a48","locationId":"26ec5d42-7c43-4f0d-a1b6-80462285413f","productId":"142007d5-7d2a-4f41-afb8-cb41450729f5","userId":"57f2d629-5008-496f-be9c-4656a05b27a4","productPrice":"31.99"}
+[1;33mℹ INFO[0m: Logging in as sales1@billssupplies.com
+[0;32m✓ PASS[0m: Sales user login successful
+[1;33mℹ INFO[0m: Creating a new quote
+[0;32m✓ PASS[0m: Quote created successfully: Q-1016
+
+=========================================
+TEST: Quote Total Calculation Validation
+=========================================
+[0;34mDEBUG[0m: Quote data: {"id":"662bd09b-cdc7-44c6-8062-7667799b956f","quoteNumber":"Q-SEED-001","subtotal":"100","taxAmount":"8","discountAmount":"0","deliveryFee":"0","totalAmount":"108","itemCount":1,"taxExempt":false,"taxRate":"0.0825"}
+[1;33mℹ INFO[0m: Quote totals - Subtotal: 100, Tax: 8, Discount: 0, Delivery: 0, Total: 108
+[0;32m✓ PASS[0m: Quote total calculation is correct (108 = 108)
+
+=========================================
+TEST: Quote Tax Calculation
+=========================================
+[1;33mℹ INFO[0m: No tax-exempt customer quotes found to test
+[0;31m✗ FAIL[0m: Quote tax calculation mismatch (expected: 8.25, got: 8.00)
+
+=========================================
+TEST: Quote Delivery Fee Calculation
+=========================================
+[1;33mℹ INFO[0m: Delivery fees - With delivery: 0, Without: 7
+[0;32m✓ PASS[0m: Quote delivery fees are being calculated and tracked
+
+=========================================
+TEST: Quote Status Transitions
+=========================================
+[1;33mℹ INFO[0m: Quote status distribution - DRAFT: 0, PENDING: 1, SENT: 0, ACCEPTED: 6, REJECTED: 0, EXPIRED: 0
+[0;32m✓ PASS[0m: Quote statuses are being tracked correctly
+
+=========================================
+TEST: Quote Validity Period
+=========================================
+[1;33mℹ INFO[0m: Quote validity - Valid: 7, Expired: 0
+[0;32m✓ PASS[0m: Quote validity periods are being tracked correctly
+[1;33mℹ INFO[0m: No expired quotes found to test conversion blocking
+
+=========================================
+TEST: Quote Number Generation
+=========================================
+[1;33mℹ INFO[0m: Quote numbers - Total: 7
+[0;32m✓ PASS[0m: All quote numbers are unique
+
+=========================================
+TEST: Quote Access Permissions
+=========================================
+[1;33mℹ INFO[0m: Testing sales user quote filtering
+[0;32m✓ PASS[0m: Sales user can access quotes endpoint (found 30 quotes)
+[1;33mℹ INFO[0m: Testing admin user quote access
+[0;32m✓ PASS[0m: Admin can access quotes endpoint (found 35 quotes)
+[0;32m✓ PASS[0m: Admin sees more/equal quotes than sales user (35 >= 30)
+[1;33mℹ INFO[0m: Testing unauthenticated quote access
+[0;32m✓ PASS[0m: Unauthenticated users correctly blocked from quotes
+
+=========================================
+TEST: Quote to Order Conversion
+=========================================
+[1;33mℹ INFO[0m: Testing conversion for quote: Q-1016 (status: PENDING)
+[0;32m✓ PASS[0m: Quote Q-1016 converted to order successfully
+[0;32m✓ PASS[0m: Converted order has correct total (173.15)
+[0;32m✓ PASS[0m: Quote status correctly updated to ACCEPTED
+[0;32m✓ PASS[0m: Quote correctly linked to order
+
+=========================================
+TEST: Quote Conversion Validation Rules
+=========================================
+[1;33mℹ INFO[0m: Testing that already-converted quotes cannot be re-converted
+[0;32m✓ PASS[0m: Already-converted quotes are correctly blocked from re-conversion
+[1;33mℹ INFO[0m: No rejected quotes found to test
+[1;33mℹ INFO[0m: No draft quotes found to test
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 16[0m
+[0;31mFailed: 1[0m
+=========================================
+[0;31m✗ SOME TESTS FAILED[0m
+[0;31m✗ Quote Validation Tests FAILED[0m
+==================================================
+[0;34mRunning: Order Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Order Validation Regression Tests    ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Order Creation Validation
+=========================================
+[1;33mℹ INFO[0m: Fetching test data from database...
+[0;34mDEBUG[0m: Test data: {"customerId":"ace3012d-65c2-41b4-89c2-b268840a1a48","locationId":"26ec5d42-7c43-4f0d-a1b6-80462285413f","productId":"142007d5-7d2a-4f41-afb8-cb41450729f5","userId":"57f2d629-5008-496f-be9c-4656a05b27a4","productPrice":"31.99"}
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[1;33mℹ INFO[0m: Testing order creation via quote conversion
+[0;32m✓ PASS[0m: Order creation test prepared (using existing conversion flow)
+
+=========================================
+TEST: Order Total Calculation Validation
+=========================================
+[1;33mℹ INFO[0m: Testing order total calculations with various scenarios
+[0;34mDEBUG[0m: Order data: {"id":"a9e1bd2e-ef83-46c0-9e62-bc19bf93410c","subtotal":"2637.38","taxAmount":"210.99","discountAmount":"131.87","deliveryFee":"0","totalAmount":"2716.5","itemCount":7,"taxExempt":false,"taxRate":"0.0825"}
+[1;33mℹ INFO[0m: Order totals - Subtotal: 2637.38, Tax: 210.99, Discount: 131.87, Delivery: 0, Total: 2716.5
+[0;31m✗ FAIL[0m: Order total calculation mismatch (expected: 2716.50, got: 2716.5)
+
+=========================================
+TEST: Tax Calculation Validation
+=========================================
+[0;32m✓ PASS[0m: Tax-exempt customers have zero tax amount
+[0;31m✗ FAIL[0m: Tax calculation mismatch (expected: 157.98, got: 153.19)
+
+=========================================
+TEST: Order Payment Status Validation
+=========================================
+[1;33mℹ INFO[0m: Payment status distribution - PENDING: 782, PAID: 2230, PARTIAL: 0
+[0;32m✓ PASS[0m: Order payment statuses are being tracked correctly
+
+=========================================
+TEST: Order Edit Validation
+=========================================
+[1;33mℹ INFO[0m: Testing order edit for order: a9e1bd2e-ef83-46c0-9e62-bc19bf93410c
+[1;33mℹ INFO[0m: Attempting to update quantity from 3 to 4
+[0;32m✓ PASS[0m: PENDING order can be edited successfully
+[1;33mℹ INFO[0m: Testing that PROCESSING orders cannot be edited
+[0;32m✓ PASS[0m: PROCESSING orders are correctly blocked from editing
+
+=========================================
+TEST: Order Status Transitions
+=========================================
+[1;33mℹ INFO[0m: Testing status transition for order: 2e86b106-57e5-4756-9d22-0a98f3509753
+[1;33mℹ INFO[0m: Testing PENDING -> CONFIRMED transition via /api/orders/2e86b106-57e5-4756-9d22-0a98f3509753/confirm
+[0;32m✓ PASS[0m: Order confirmation successful (PENDING -> PROCESSING)
+[0;32m✓ PASS[0m: Order status correctly updated to PROCESSING in database
+
+=========================================
+TEST: Order Cancellation Validation
+=========================================
+[1;33mℹ INFO[0m: Testing order cancellation for order: e3d45f19-86fe-42fb-9b62-02af6930d8d5
+[0;32m✓ PASS[0m: Order cancellation successful
+[0;32m✓ PASS[0m: Order status correctly updated to CANCELLED in database
+
+=========================================
+TEST: Quote to Order Conversion Validation
+=========================================
+[1;33mℹ INFO[0m: No convertible quotes found to test conversion
+[0;32m✓ PASS[0m: Quote conversion test skipped (no suitable quotes)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 11[0m
+[0;31mFailed: 2[0m
+=========================================
+[0;31m✗ SOME TESTS FAILED[0m
+[0;31m✗ Order Validation Tests FAILED[0m
+==================================================
+[0;34mRunning: Inventory Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Inventory Validation Regression Tests║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Inventory Levels Tracking
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[0;34mDEBUG[0m: Location data: {"locationId":"26ec5d42-7c43-4f0d-a1b6-80462285413f","locationName":"Bills Supplies - Amherst","productId":"275c9c0a-8218-4ae2-8728-5d56ad2d4bb1","productName":"Insulation R-15 Foam Board","stockLevel":144}
+[1;33mℹ INFO[0m: Testing inventory for location: Bills Supplies - Amherst (Stock: 144)
+[0;32m✓ PASS[0m: Inventory data retrieved successfully (found 400 items)
+[0;32m✓ PASS[0m: No negative stock levels found
+
+=========================================
+TEST: Low Stock Detection
+=========================================
+[1;33mℹ INFO[0m: Found 5 items with low stock
+[0;32m✓ PASS[0m: Low stock detection is working (found 5 items)
+
+=========================================
+TEST: Inventory Deduction After POS Sale
+=========================================
+[1;33mℹ INFO[0m: Current stock level: 64
+[1;33mℹ INFO[0m: Attempting POS checkout with 2 items
+[0;32m✓ PASS[0m: POS checkout successful
+[0;32m✓ PASS[0m: Inventory correctly deducted (was: 64, now: 62, expected: 62)
+
+=========================================
+TEST: Multi-Location Inventory
+=========================================
+[1;33mℹ INFO[0m: Product found in 5 locations
+[0;32m✓ PASS[0m: Multi-location inventory tracking is working (found in 5 locations)
+
+=========================================
+TEST: Inventory Query Performance
+=========================================
+[1;33mℹ INFO[0m: Inventory query took 42ms
+[0;32m✓ PASS[0m: Inventory query performance is acceptable (42ms)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 8[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Inventory Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: POS Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  POS Validation Regression Tests      ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: POS Checkout Flow
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[0;34mDEBUG[0m: Test data: {"locationId":"26ec5d42-7c43-4f0d-a1b6-80462285413f","customerId":"ace3012d-65c2-41b4-89c2-b268840a1a48","productId":"142007d5-7d2a-4f41-afb8-cb41450729f5","price":"31.99"}
+[1;33mℹ INFO[0m: Testing POS checkout for product: 
+[0;32m✓ PASS[0m: POS checkout successful: ORD-1010
+[0;32m✓ PASS[0m: Order type correctly set to POS
+[0;32m✓ PASS[0m: Payment status correctly set to PAID
+[0;32m✓ PASS[0m: Order status correctly set to COMPLETED
+
+=========================================
+TEST: Walk-in Customer Creation
+=========================================
+[0;32m✓ PASS[0m: Walk-in customer created: Walk-in 1764319825332
+[0;32m✓ PASS[0m: Walk-in customer name format is correct
+
+=========================================
+TEST: Multiple Payment Methods (Split)
+=========================================
+[1;33mℹ INFO[0m: No suitable test data found
+[0;32m✓ PASS[0m: Multiple payment test skipped (no data)
+
+=========================================
+TEST: POS Tax Calculation
+=========================================
+[1;33mℹ INFO[0m: No taxable customer found
+[0;32m✓ PASS[0m: POS tax test skipped (no taxable customer)
+
+=========================================
+TEST: POS Products Endpoint
+=========================================
+[0;32m✓ PASS[0m: POS products endpoint accessible (found 50 products)
+[0;32m✓ PASS[0m: Products include required fields (name, price)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 11[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ POS Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: Customer Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Customer Validation Regression Tests ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Customer Types (RETAIL vs WHOLESALE)
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[1;33mℹ INFO[0m: Customer types - RETAIL: 159, WHOLESALE: 44
+[0;32m✓ PASS[0m: Customer types are being tracked correctly
+
+=========================================
+TEST: Tax-Exempt Customer Status
+=========================================
+[1;33mℹ INFO[0m: Tax status - Exempt: 14, Non-exempt: 245
+[0;32m✓ PASS[0m: Tax-exempt status is being tracked correctly
+
+=========================================
+TEST: Customer Listing
+=========================================
+[0;32m✓ PASS[0m: Customer listing accessible (found 10 customers)
+[0;32m✓ PASS[0m: Customers include required fields (name, email)
+
+=========================================
+TEST: Customer Email Uniqueness
+=========================================
+/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:29
+`)}};function Ot(e){return new ki(Zs(e))}function Zs(e){let t=new At;for(let[r,n]of Object.entries(e)){let i=new bn(r,Xs(n));t.addField(i)}return t}function Xs(e){if(typeof e=="string")return new W(JSON.stringify(e));if(typeof e=="number"||typeof e=="boolean")return new W(String(e));if(typeof e=="bigint")return new W(`${e}n`);if(e===null)return new W("null");if(e===void 0)return new W("undefined");if(vt(e))return new W(`new Prisma.Decimal("${e.toFixed()}")`);if(e instanceof Uint8Array)return Buffer.isBuffer(e)?new W(`Buffer.alloc(${e.byteLength})`):new W(`new Uint8Array(${e.byteLength})`);if(e instanceof Date){let t=ln(e)?e.toISOString():"Invalid Date";return new W(`new Date("${t}")`)}return e instanceof Me?new W(`Prisma.${e._getName()}`):It(e)?new W(`prisma.${zs(e.modelName)}.$fields.${e.name}`):Array.isArray(e)?zp(e):typeof e=="object"?Zs(e):new W(Object.prototype.toString.call(e))}function zp(e){let t=new St;for(let r of e)t.addItem(Xs(r));return t}function En(e,t){let r=t==="pretty"?Us:fn,n=e.renderAllMessages(r),i=new Rt(0,{colors:r}).write(e).toString();return{message:n,args:i}}function wn({args:e,errors:t,errorFormat:r,callsite:n,originalMethod:i,clientVersion:o,globalOmit:s}){let a=Ot(e);for(let p of t)pn(p,a,s);let{message:l,args:u}=En(a,r),c=Tt({message:l,callsite:n,originalMethod:i,showColors:r==="pretty",callArguments:u});throw new J(c,{clientVersion:o})}var ve=class{constructor(){this._map=new Map}get(t){return this._map.get(t)?.value}set(t,r){this._map.set(t,{value:r})}getOrCreate(t,r){let n=this._map.get(t);if(n)return n.value;let i=r();return this.set(t,i),i}};function pr(e){let t;return{get(){return t||(t={value:e()}),t.value}}}function Te(e){return e.replace(/^./,t=>t.toLowerCase())}function ta(e,t,r){let n=Te(r);return!t.result||!(t.result.$allModels||t.result[n])?e:Yp({...e,...ea(t.name,e,t.result.$allModels),...ea(t.name,e,t.result[n])})}function Yp(e){let t=new ve,r=(n,i)=>t.getOrCreate(n,()=>i.has(n)?[n]:(i.add(n),e[n]?e[n].needs.flatMap(o=>r(o,i)):[n]));return yt(e,n=>({...n,needs:r(n.name,new Set)}))}function ea(e,t,r){return r?yt(r,({needs:n,compute:i},o)=>({name:o,needs:n?Object.keys(n).filter(s=>n[s]):[],compute:Zp(t,o,i)})):{}}function Zp(e,t,r){let n=e?.[t]?.compute;return n?i=>r({...i,[t]:n(i)}):r}function ra(e,t){if(!t)return e;let r={...e};for(let n of Object.values(t))if(e[n.name])for(let i of n.needs)r[i]=!0;return r}function na(e,t){if(!t)return e;let r={...e};for(let n of Object.values(t))if(!e[n.name])for(let i of n.needs)delete r[i];return r}var xn=class{constructor(t,r){this.extension=t;this.previous=r;this.computedFieldsCache=new ve;this.modelExtensionsCache=new ve;this.queryCallbacksCache=new ve;this.clientExtensions=pr(()=>this.extension.client?{...this.previous?.getAllClientExtensions(),...this.extension.client}:this.previous?.getAllClientExtensions());this.batchCallbacks=pr(()=>{let t=this.previous?.getAllBatchQueryCallbacks()??[],r=this.extension.query?.$__internalBatch;return r?t.concat(r):t})}getAllComputedFields(t){return this.computedFieldsCache.getOrCreate(t,()=>ta(this.previous?.getAllComputedFields(t),this.extension,t))}getAllClientExtensions(){return this.clientExtensions.get()}getAllModelExtensions(t){return this.modelExtensionsCache.getOrCreate(t,()=>{let r=Te(t);return!this.extension.model||!(this.extension.model[r]||this.extension.model.$allModels)?this.previous?.getAllModelExtensions(t):{...this.previous?.getAllModelExtensions(t),...this.extension.model.$allModels,...this.extension.model[r]}})}getAllQueryCallbacks(t,r){return this.queryCallbacksCache.getOrCreate(`${t}:${r}`,()=>{let n=this.previous?.getAllQueryCallbacks(t,r)??[],i=[],o=this.extension.query;return!o||!(o[t]||o.$allModels||o[r]||o.$allOperations)?n:(o[t]!==void 0&&(o[t][r]!==void 0&&i.push(o[t][r]),o[t].$allOperations!==void 0&&i.push(o[t].$allOperations)),t!=="$none"&&o.$allModels!==void 0&&(o.$allModels[r]!==void 0&&i.push(o.$allModels[r]),o.$allModels.$allOperations!==void 0&&i.push(o.$allModels.$allOperations)),o[r]!==void 0&&i.push(o[r]),o.$allOperations!==void 0&&i.push(o.$allOperations),n.concat(i))})}getAllBatchQueryCallbacks(){return this.batchCallbacks.get()}},kt=class e{constructor(t){this.head=t}static empty(){return new e}static single(t){return new e(new xn(t))}isEmpty(){return this.head===void 0}append(t){return new e(new xn(t,this.head))}getAllComputedFields(t){return this.head?.getAllComputedFields(t)}getAllClientExtensions(){return this.head?.getAllClientExtensions()}getAllModelExtensions(t){return this.head?.getAllModelExtensions(t)}getAllQueryCallbacks(t,r){return this.head?.getAllQueryCallbacks(t,r)??[]}getAllBatchQueryCallbacks(){return this.head?.getAllBatchQueryCallbacks()??[]}};var ia=Symbol(),dr=class{constructor(t){if(t!==ia)throw new Error("Skip instance can not be constructed directly")}ifUndefined(t){return t===void 0?Pn:t}},Pn=new dr(ia);function Re(e){return e instanceof dr}var Xp={findUnique:"findUnique",findUniqueOrThrow:"findUniqueOrThrow",findFirst:"findFirst",findFirstOrThrow:"findFirstOrThrow",findMany:"findMany",count:"aggregate",create:"createOne",createMany:"createMany",createManyAndReturn:"createManyAndReturn",update:"updateOne",updateMany:"updateMany",upsert:"upsertOne",delete:"deleteOne",deleteMany:"deleteMany",executeRaw:"executeRaw",queryRaw:"queryRaw",aggregate:"aggregate",groupBy:"groupBy",runCommandRaw:"runCommandRaw",findRaw:"findRaw",aggregateRaw:"aggregateRaw"},oa="explicitly `undefined` values are not allowed";function vn({modelName:e,action:t,args:r,runtimeDataModel:n,extensions:i=kt.empty(),callsite:o,clientMethod:s,errorFormat:a,clientVersion:l,previewFeatures:u,globalOmit:c}){let p=new Di({runtimeDataModel:n,modelName:e,action:t,rootArgs:r,callsite:o,extensions:i,selectionPath:[],argumentPath:[],originalMethod:s,errorFormat:a,clientVersion:l,previewFeatures:u,globalOmit:c});return{modelName:e,action:Xp[t],query:mr(r,p)}}function mr({select:e,include:t,...r}={},n){let i;return n.isPreviewFeatureOn("omitApi")&&(i=r.omit,delete r.omit),{arguments:aa(r,n),selection:ed(e,t,i,n)}}function ed(e,t,r,n){return e?(t?n.throwValidationError({kind:"MutuallyExclusiveFields",firstField:"include",secondField:"select",selectionPath:n.getSelectionPath()}):r&&n.isPreviewFeatureOn("omitApi")&&n.throwValidationError({kind:"MutuallyExclusiveFields",firstField:"omit",secondField:"select",selectionPath:n.getSelectionPath()}),id(e,n)):td(n,t,r)}function td(e,t,r){let n={};return e.modelOrType&&!e.isRawAction()&&(n.$composites=!0,n.$scalars=!0),t&&rd(n,t,e),e.isPreviewFeatureOn("omitApi")&&nd(n,r,e),n}function rd(e,t,r){for(let[n,i]of Object.entries(t)){if(Re(i))continue;let o=r.nestSelection(n);if(_i(i,o),i===!1||i===void 0){e[n]=!1;continue}let s=r.findField(n);if(s&&s.kind!=="object"&&r.throwValidationError({kind:"IncludeOnScalar",selectionPath:r.getSelectionPath().concat(n),outputType:r.getOutputTypeDescription()}),s){e[n]=mr(i===!0?{}:i,o);continue}if(i===!0){e[n]=!0;continue}e[n]=mr(i,o)}}function nd(e,t,r){let n=r.getComputedFields(),i={...r.getGlobalOmit(),...t},o=na(i,n);for(let[s,a]of Object.entries(o)){if(Re(a))continue;_i(a,r.nestSelection(s));let l=r.findField(s);n?.[s]&&!l||(e[s]=!a)}}function id(e,t){let r={},n=t.getComputedFields(),i=ra(e,n);for(let[o,s]of Object.entries(i)){if(Re(s))continue;let a=t.nestSelection(o);_i(s,a);let l=t.findField(o);if(!(n?.[o]&&!l)){if(s===!1||s===void 0||Re(s)){r[o]=!1;continue}if(s===!0){l?.kind==="object"?r[o]=mr({},a):r[o]=!0;continue}r[o]=mr(s,a)}}return r}function sa(e,t){if(e===null)return null;if(typeof e=="string"||typeof e=="number"||typeof e=="boolean")return e;if(typeof e=="bigint")return{$type:"BigInt",value:String(e)};if(Pt(e)){if(ln(e))return{$type:"DateTime",value:e.toISOString()};t.throwValidationError({kind:"InvalidArgumentValue",selectionPath:t.getSelectionPath(),argumentPath:t.getArgumentPath(),argument:{name:t.getArgumentName(),typeNames:["Date"]},underlyingError:"Provided Date object is invalid"})}if(It(e))return{$type:"FieldRef",value:{_ref:e.name,_container:e.modelName}};if(Array.isArray(e))return od(e,t);if(ArrayBuffer.isView(e))return{$type:"Bytes",value:Buffer.from(e).toString("base64")};if(sd(e))return e.values;if(vt(e))return{$type:"Decimal",value:e.toFixed()};if(e instanceof Me){if(e!==yn.instances[e._getName()])throw new Error("Invalid ObjectEnumValue");return{$type:"Enum",value:e._getName()}}if(ad(e))return e.toJSON();if(typeof e=="object")return aa(e,t);t.throwValidationError({kind:"InvalidArgumentValue",selectionPath:t.getSelectionPath(),argumentPath:t.getArgumentPath(),argument:{name:t.getArgumentName(),typeNames:[]},underlyingError:`We could not serialize ${Object.prototype.toString.call(e)} value. Serialize the object to JSON or implement a ".toJSON()" method on it`})}function aa(e,t){if(e.$type)return{$type:"Raw",value:e};let r={};for(let n in e){let i=e[n],o=t.nestArgument(n);Re(i)||(i!==void 0?r[n]=sa(i,o):t.isPreviewFeatureOn("strictUndefinedChecks")&&t.throwValidationError({kind:"InvalidArgumentValue",argumentPath:o.getArgumentPath(),selectionPath:t.getSelectionPath(),argument:{name:t.getArgumentName(),typeNames:[]},underlyingError:oa}))}return r}function od(e,t){let r=[];for(let n=0;n<e.length;n++){let i=t.nestArgument(String(n)),o=e[n];if(o===void 0||Re(o)){let s=o===void 0?"undefined":"Prisma.skip";t.throwValidationError({kind:"InvalidArgumentValue",selectionPath:i.getSelectionPath(),argumentPath:i.getArgumentPath(),argument:{name:`${t.getArgumentName()}[${n}]`,typeNames:[]},underlyingError:`Can not use \`${s}\` value within array. Use \`null\` or filter out \`${s}\` values`})}r.push(sa(o,i))}return r}function sd(e){return typeof e=="object"&&e!==null&&e.__prismaRawParameters__===!0}function ad(e){return typeof e=="object"&&e!==null&&typeof e.toJSON=="function"}function _i(e,t){e===void 0&&t.isPreviewFeatureOn("strictUndefinedChecks")&&t.throwValidationError({kind:"InvalidSelectionValue",selectionPath:t.getSelectionPath(),underlyingError:oa})}var Di=class e{constructor(t){this.params=t;this.params.modelName&&(this.modelOrType=this.params.runtimeDataModel.models[this.params.modelName]??this.params.runtimeDataModel.types[this.params.modelName])}throwValidationError(t){wn({errors:[t],originalMethod:this.params.originalMethod,args:this.params.rootArgs??{},callsite:this.params.callsite,errorFormat:this.params.errorFormat,clientVersion:this.params.clientVersion,globalOmit:this.params.globalOmit})}getSelectionPath(){return this.params.selectionPath}getArgumentPath(){return this.params.argumentPath}getArgumentName(){return this.params.argumentPath[this.params.argumentPath.length-1]}getOutputTypeDescription(){if(!(!this.params.modelName||!this.modelOrType))return{name:this.params.modelName,fields:this.modelOrType.fields.map(t=>({name:t.name,typeName:"boolean",isRelation:t.kind==="object"}))}}isRawAction(){return["executeRaw","queryRaw","runCommandRaw","findRaw","aggregateRaw"].includes(this.params.action)}isPreviewFeatureOn(t){return this.params.previewFeatures.includes(t)}getComputedFields(){if(this.params.modelName)return this.params.extensions.getAllComputedFields(this.params.modelName)}findField(t){return this.modelOrType?.fields.find(r=>r.name===t)}nestSelection(t){let r=this.findField(t),n=r?.kind==="object"?r.type:void 0;return new e({...this.params,modelName:n,selectionPath:this.params.selectionPath.concat(t)})}getGlobalOmit(){return this.params.modelName&&this.shouldApplyGlobalOmit()?this.params.globalOmit?.[xt(this.params.modelName)]??{}:{}}shouldApplyGlobalOmit(){switch(this.params.action){case"findFirst":case"findFirstOrThrow":case"findUniqueOrThrow":case"findMany":case"upsert":case"findUnique":case"createManyAndReturn":case"create":case"update":case"delete":return!0;case"executeRaw":case"aggregateRaw":case"runCommandRaw":case"findRaw":case"createMany":case"deleteMany":case"groupBy":case"updateMany":case"count":case"aggregate":case"queryRaw":return!1;default:Fe(this.params.action,"Unknown action")}}nestArgument(t){return new e({...this.params,argumentPath:this.params.argumentPath.concat(t)})}};var Dt=class{constructor(t){this._engine=t}prometheus(t){return this._engine.metrics({format:"prometheus",...t})}json(t){return this._engine.metrics({format:"json",...t})}};function la(e){return{models:Fi(e.models),enums:Fi(e.enums),types:Fi(e.types)}}function Fi(e){let t={};for(let{name:r,...n}of e)t[r]=n;return t}function ua(e,t){let r=pr(()=>ld(t));Object.defineProperty(e,"dmmf",{get:()=>r.get()})}function ld(e){return{datamodel:{models:Li(e.models),enums:Li(e.enums),types:Li(e.types)}}}function Li(e){return Object.entries(e).map(([t,r])=>({name:t,...r}))}var Ni=new WeakMap,Tn="$$PrismaTypedSql",Mi=class{constructor(t,r){Ni.set(this,{sql:t,values:r}),Object.defineProperty(this,Tn,{value:Tn})}get sql(){return Ni.get(this).sql}get values(){return Ni.get(this).values}};function ca(e){return(...t)=>new Mi(e,t)}function pa(e){return e!=null&&e[Tn]===Tn}function fr(e){return{ok:!1,error:e,map(){return fr(e)},flatMap(){return fr(e)}}}var $i=class{constructor(){this.registeredErrors=[]}consumeError(t){return this.registeredErrors[t]}registerNewError(t){let r=0;for(;this.registeredErrors[r]!==void 0;)r++;return this.registeredErrors[r]={error:t},r}},qi=e=>{let t=new $i,r=Ce(t,e.transactionContext.bind(e)),n={adapterName:e.adapterName,errorRegistry:t,queryRaw:Ce(t,e.queryRaw.bind(e)),executeRaw:Ce(t,e.executeRaw.bind(e)),provider:e.provider,transactionContext:async(...i)=>(await r(...i)).map(s=>ud(t,s))};return e.getConnectionInfo&&(n.getConnectionInfo=pd(t,e.getConnectionInfo.bind(e))),n},ud=(e,t)=>{let r=Ce(e,t.startTransaction.bind(t));return{adapterName:t.adapterName,provider:t.provider,queryRaw:Ce(e,t.queryRaw.bind(t)),executeRaw:Ce(e,t.executeRaw.bind(t)),startTransaction:async(...n)=>(await r(...n)).map(o=>cd(e,o))}},cd=(e,t)=>({adapterName:t.adapterName,provider:t.provider,options:t.options,queryRaw:Ce(e,t.queryRaw.bind(t)),executeRaw:Ce(e,t.executeRaw.bind(t)),commit:Ce(e,t.commit.bind(t)),rollback:Ce(e,t.rollback.bind(t))});function Ce(e,t){return async(...r)=>{try{return await t(...r)}catch(n){let i=e.registerNewError(n);return fr({kind:"GenericJs",id:i})}}}function pd(e,t){return(...r)=>{try{return t(...r)}catch(n){let i=e.registerNewError(n);return fr({kind:"GenericJs",id:i})}}}var Wl=k(oi());var Hl=require("async_hooks"),Kl=require("events"),zl=k(require("fs")),Fr=k(require("path"));var oe=class e{constructor(t,r){if(t.length-1!==r.length)throw t.length===0?new TypeError("Expected at least 1 string"):new TypeError(`Expected ${t.length} strings to have ${t.length-1} values`);let n=r.reduce((s,a)=>s+(a instanceof e?a.values.length:1),0);this.values=new Array(n),this.strings=new Array(n+1),this.strings[0]=t[0];let i=0,o=0;for(;i<r.length;){let s=r[i++],a=t[i];if(s instanceof e){this.strings[o]+=s.strings[0];let l=0;for(;l<s.values.length;)this.values[o++]=s.values[l++],this.strings[o]=s.strings[l];this.strings[o]+=a}else this.values[o++]=s,this.strings[o]=a}}get sql(){let t=this.strings.length,r=1,n=this.strings[0];for(;r<t;)n+=`?${this.strings[r++]}`;return n}get statement(){let t=this.strings.length,r=1,n=this.strings[0];for(;r<t;)n+=`:${r}${this.strings[r++]}`;return n}get text(){let t=this.strings.length,r=1,n=this.strings[0];for(;r<t;)n+=`$${r}${this.strings[r++]}`;return n}inspect(){return{sql:this.sql,statement:this.statement,text:this.text,values:this.values}}};function da(e,t=",",r="",n=""){if(e.length===0)throw new TypeError("Expected `join([])` to be called with an array of multiple elements, but got an empty array");return new oe([r,...Array(e.length-1).fill(t),n],e)}function ji(e){return new oe([e],[])}var ma=ji("");function Vi(e,...t){return new oe(e,t)}function gr(e){return{getKeys(){return Object.keys(e)},getPropertyValue(t){return e[t]}}}function re(e,t){return{getKeys(){return[e]},getPropertyValue(){return t()}}}function ot(e){let t=new ve;return{getKeys(){return e.getKeys()},getPropertyValue(r){return t.getOrCreate(r,()=>e.getPropertyValue(r))},getPropertyDescriptor(r){return e.getPropertyDescriptor?.(r)}}}var Rn={enumerable:!0,configurable:!0,writable:!0};function Cn(e){let t=new Set(e);return{getOwnPropertyDescriptor:()=>Rn,has:(r,n)=>t.has(n),set:(r,n,i)=>t.add(n)&&Reflect.set(r,n,i),ownKeys:()=>[...t]}}var fa=Symbol.for("nodejs.util.inspect.custom");function Se(e,t){let r=dd(t),n=new Set,i=new Proxy(e,{get(o,s){if(n.has(s))return o[s];let a=r.get(s);return a?a.getPropertyValue(s):o[s]},has(o,s){if(n.has(s))return!0;let a=r.get(s);return a?a.has?.(s)??!0:Reflect.has(o,s)},ownKeys(o){let s=ga(Reflect.ownKeys(o),r),a=ga(Array.from(r.keys()),r);return[...new Set([...s,...a,...n])]},set(o,s,a){return r.get(s)?.getPropertyDescriptor?.(s)?.writable===!1?!1:(n.add(s),Reflect.set(o,s,a))},getOwnPropertyDescriptor(o,s){let a=Reflect.getOwnPropertyDescriptor(o,s);if(a&&!a.configurable)return a;let l=r.get(s);return l?l.getPropertyDescriptor?{...Rn,...l?.getPropertyDescriptor(s)}:Rn:a},defineProperty(o,s,a){return n.add(s),Reflect.defineProperty(o,s,a)}});return i[fa]=function(){let o={...this};return delete o[fa],o},i}function dd(e){let t=new Map;for(let r of e){let n=r.getKeys();for(let i of n)t.set(i,r)}return t}function ga(e,t){return e.filter(r=>t.get(r)?.has?.(r)??!0)}function _t(e){return{getKeys(){return e},has(){return!1},getPropertyValue(){}}}function Ft(e,t){return{batch:e,transaction:t?.kind==="batch"?{isolationLevel:t.options.isolationLevel}:void 0}}function ha(e){if(e===void 0)return"";let t=Ot(e);return new Rt(0,{colors:fn}).write(t).toString()}var md="P2037";function st({error:e,user_facing_error:t},r,n){return t.error_code?new V(fd(t,n),{code:t.error_code,clientVersion:r,meta:t.meta,batchRequestIdx:t.batch_request_idx}):new B(e,{clientVersion:r,batchRequestIdx:t.batch_request_idx})}function fd(e,t){let r=e.message;return(t==="postgresql"||t==="postgres"||t==="mysql")&&e.error_code===md&&(r+=`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+PrismaClientValidationError: 
+Invalid `prisma.customer.findMany()` invocation:
+
+{
+  where: {
+    email: {
++     not: String
+    }
+  },
+  select: {
+    email: true
+  }
+}
+
+Argument `not` must not be null.
+    at wn (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:29:1363)
+    at $n.handleRequestError (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:121:6958)
+    at $n.handleAndLogRequestError (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at async l (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at async [eval]:25:21 {
+  clientVersion: '5.22.0'
+}
+
+Node.js v20.19.6
+[0;31m✗ FAIL[0m: Could not fetch duplicate email data
+
+=========================================
+TEST: Walk-in Customer Generation
+=========================================
+[0;32m✓ PASS[0m: Walk-in customer created successfully: Walk-in 1764319828346
+[0;32m✓ PASS[0m: Walk-in customer saved to database
+[0;32m✓ PASS[0m: Walk-in customer type is RETAIL
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 7[0m
+[0;31mFailed: 1[0m
+=========================================
+[0;31m✗ SOME TESTS FAILED[0m
+[0;31m✗ Customer Validation Tests FAILED[0m
+==================================================
+[0;34mRunning: Product Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Product Validation Regression Tests  ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Product Listing
+=========================================
+[1;33mℹ INFO[0m: Logging in as sales1@billssupplies.com
+[0;32m✓ PASS[0m: Product listing accessible (found 50 products)
+[0;31m✗ FAIL[0m: Products missing required fields
+
+=========================================
+TEST: Product Categories
+=========================================
+[1;33mℹ INFO[0m: Found 9 unique categories across 200 products
+[0;32m✓ PASS[0m: Product categories are being tracked (9 categories)
+
+=========================================
+TEST: SKU Uniqueness
+=========================================
+[0;32m✓ PASS[0m: No duplicate SKUs found
+
+=========================================
+TEST: Active/Inactive Product Status
+=========================================
+[1;33mℹ INFO[0m: Product status - Active: 200, Inactive: 0
+[0;32m✓ PASS[0m: Product active status is being tracked correctly
+
+=========================================
+TEST: Product Pricing
+=========================================
+[1;33mℹ INFO[0m: Product has base price: 31.99
+[0;32m✓ PASS[0m: Product has valid base price (31.99)
+[0;32m✓ PASS[0m: Product cost tracking is available
+
+=========================================
+TEST: Location-Specific Pricing
+=========================================
+[1;33mℹ INFO[0m: No location-specific pricing found (using base prices only)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 6[0m
+[0;31mFailed: 1[0m
+=========================================
+[0;31m✗ SOME TESTS FAILED[0m
+[0;31m✗ Product Validation Tests FAILED[0m
+==================================================
+[0;34mRunning: Audit Log Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Audit Log Validation Regression Tests║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Quote Audit Log Retrieval
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[1;33mℹ INFO[0m: Testing audit logs for quote: 662bd09b-cdc7-44c6-8062-7667799b956f
+[0;32m✓ PASS[0m: Audit logs retrieved successfully (found 0 logs)
+[1;33mℹ INFO[0m: Skipping field validation (no logs found)
+
+=========================================
+TEST: Order Audit Log Retrieval
+=========================================
+[1;33mℹ INFO[0m: Testing audit logs for order: d55ce6d9-44da-4fb6-9297-4e42c3f6c1df
+[0;32m✓ PASS[0m: Order audit logs retrieved successfully (found 0 logs)
+
+=========================================
+TEST: User Attribution in Audit Logs
+=========================================
+[0;32m✓ PASS[0m: Audit logs include user attribution (5 logs with users)
+
+=========================================
+TEST: Audit Log Timestamp Accuracy
+=========================================
+[0;32m✓ PASS[0m: Audit log timestamps are being recorded (found 10 recent logs)
+
+=========================================
+TEST: Audit Log Action Types
+=========================================
+[1;33mℹ INFO[0m: Found 4 unique action types across 34 logs
+[0;32m✓ PASS[0m: Audit logs capture various action types (4 types)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 5[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Audit Log Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: Export Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Export Validation Regression Tests   ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Export Endpoint Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[1;33mℹ INFO[0m: Export endpoint status: 400 (may not be implemented yet)
+
+=========================================
+TEST: Export RBAC (Role-Based Access)
+=========================================
+[1;33mℹ INFO[0m: Testing export access as sales user
+[1;33mℹ INFO[0m: Export endpoint returned status: 400
+[1;33mℹ INFO[0m: Testing export access as manager
+[1;33mℹ INFO[0m: Manager export access status: 400
+
+=========================================
+TEST: Analytics Data for Export
+=========================================
+[0;32m✓ PASS[0m: Analytics data is accessible for export
+[0;32m✓ PASS[0m: Analytics data includes key exportable metrics
+
+=========================================
+TEST: Export Data Completeness
+=========================================
+[1;33mℹ INFO[0m: Data available for export - Quotes: 7, Orders: 3014, Customers: 260, Products: 200
+[0;32m✓ PASS[0m: All data types available for export
+
+=========================================
+TEST: Export Performance
+=========================================
+[1;33mℹ INFO[0m: Export/analytics query took 430ms
+[0;32m✓ PASS[0m: Export performance is acceptable (430ms < 10s)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 5[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Export Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: API Conversion Tests[0m
+==================================================
+Logging in as admin...
+[1;33mNo suitable quote found for conversion test[0m
+[0;32m✓ API Conversion Tests PASSED[0m
+
+==================================================
+TEST SUITE SUMMARY
+==================================================
+[0;32mTest Suites Passed: 6[0m
+[0;31mTest Suites Failed: 4[0m
+==================================================
+Completed at: Fri Nov 28 02:50:37 CST 2025
+
+[0;31m✗ SOME TEST SUITES FAILED[0m
+
+Please review the test output above or check: ./test-results/test-run-20251128_025004.log

@@ -1,5 +1,6 @@
 import { BaseAgent, AgentResult } from '../agent-core';
 import prisma from '../prisma';
+import { randomUUID } from 'crypto';
 
 export class ProductRecommendationAgent extends BaseAgent {
     constructor() {
@@ -13,17 +14,17 @@ export class ProductRecommendationAgent extends BaseAgent {
             // 1. Fetch all orders with more than 1 item
             const orders = await prisma.order.findMany({
                 where: {
-                    items: {
+                    OrderItem: {
                         some: {}
                     }
                 },
                 include: {
-                    items: true
+                    OrderItem: true
                 }
             });
 
             // Filter for multi-item orders in memory (Prisma doesn't support "count > 1" easily in where)
-            const multiItemOrders = orders.filter(o => o.items.length > 1);
+            const multiItemOrders = orders.filter(o => o.OrderItem.length > 1);
             this.log(`Analyzing ${multiItemOrders.length} multi-item orders.`);
 
             // 2. Build Co-occurrence Matrix
@@ -32,7 +33,7 @@ export class ProductRecommendationAgent extends BaseAgent {
             const productCounts = new Map<string, number>();
 
             for (const order of multiItemOrders) {
-                const items = order.items;
+                const items = order.OrderItem;
 
                 // Update individual product counts
                 for (const item of items) {
@@ -73,10 +74,12 @@ export class ProductRecommendationAgent extends BaseAgent {
                     if (strength > 0.1) {
                         const rec = await prisma.productRecommendation.create({
                             data: {
+                                id: randomUUID(),
                                 productId,
                                 recommendedProductId: recommendedId,
                                 strength,
-                                reason: `Bought together in ${Math.round(strength * 100)}% of orders`
+                                reason: `Bought together in ${Math.round(strength * 100)}% of orders`,
+                                updatedAt: new Date(),
                             }
                         });
                         recommendations.push(rec);

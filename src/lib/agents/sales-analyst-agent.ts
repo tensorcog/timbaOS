@@ -22,7 +22,7 @@ export class SalesAnalystAgent extends BaseAgent {
                     status: 'COMPLETED'
                 },
                 include: {
-                    items: true
+                    OrderItem: true
                 }
             });
 
@@ -37,7 +37,7 @@ export class SalesAnalystAgent extends BaseAgent {
                 }
                 const locationSales = salesMap.get(order.locationId)!;
 
-                for (const item of order.items) {
+                for (const item of order.OrderItem) {
                     const currentQty = locationSales.get(item.productId) || 0;
                     locationSales.set(item.productId, currentQty + item.quantity);
                 }

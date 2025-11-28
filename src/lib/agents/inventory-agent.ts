@@ -22,7 +22,7 @@ export class InventoryAgent extends BaseAgent {
                     }
                 },
                 include: {
-                    product: {
+                    Product: {
                         select: {
                             id: true,
                             name: true,
@@ -30,7 +30,7 @@ export class InventoryAgent extends BaseAgent {
                             category: true,
                         }
                     },
-                    location: {
+                    Location: {
                         select: {
                             id: true,
                             code: true,
@@ -61,10 +61,10 @@ export class InventoryAgent extends BaseAgent {
                 success: true,
                 message: `Found ${lowStockItems.length} low stock items`,
                 data: lowStockItems.map(item => ({
-                    location: item.location.name,
-                    locationCode: item.location.code,
-                    product: item.product.name,
-                    sku: item.product.sku,
+                    location: item.Location.name,
+                    locationCode: item.Location.code,
+                    product: item.Product.name,
+                    sku: item.Product.sku,
                     stockLevel: item.stockLevel,
                     reorderPoint: item.reorderPoint,
                     needsRestock: item.reorderPoint - item.stockLevel,

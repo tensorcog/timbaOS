@@ -15,13 +15,13 @@ export default async function EditQuotePage({ params }: EditQuotePageProps) {
         prisma.quote.findUnique({
             where: { id: params.id },
             include: {
-                items: {
+                QuoteItem: {
                     include: {
-                        product: true,
+                        Product: true,
                     },
                 },
-                customer: true,
-                location: true,
+                Customer: true,
+                Location: true,
             },
         }),
         prisma.customer.findMany({
@@ -69,14 +69,14 @@ export default async function EditQuotePage({ params }: EditQuotePageProps) {
             locationId: quote.locationId,
             notes: quote.notes,
             validUntil: quote.validUntil.toISOString(),
-            items: quote.items.map(item => ({
+            items: quote.QuoteItem.map(item => ({
                 productId: item.productId,
                 product: {
-                    id: item.product.id,
-                    name: item.product.name,
-                    sku: item.product.sku,
-                    basePrice: parseFloat(item.product.basePrice.toString()),
-                    category: item.product.category,
+                    id: item.Product.id,
+                    name: item.Product.name,
+                    sku: item.Product.sku,
+                    basePrice: parseFloat(item.Product.basePrice.toString()),
+                    category: item.Product.category,
                 },
                 quantity: item.quantity,
                 unitPrice: parseFloat(item.unitPrice.toString()),

@@ -43,10 +43,14 @@ login() {
     local email=$1
     local password=$2
 
-    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
+    # Get CSRF token and initial cookies
+    csrf_response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" "${BASE_URL}/api/auth/csrf")
+    csrf_token=$(echo "$csrf_response" | grep -o '"csrfToken":"[^"]*"' | cut -d'"' -f4)
+
+    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -b "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
         -X POST "${BASE_URL}/api/auth/callback/credentials" \
         -H "Content-Type: application/json" \
-        -d "{\"email\":\"$email\",\"password\":\"$password\"}")
+        -d "{\"email\":\"$email\",\"password\":\"$password\",\"csrfToken\":\"$csrf_token\",\"json\":true}")
 
     status_code=$(echo "$response" | tail -n1)
     if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 302 ]; then
@@ -212,20 +216,21 @@ test_export_completeness() {
 
     # Verify data is available for export
     DATA_COUNTS=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quotes = await prisma.quote.count();
-    const orders = await prisma.order.count();
-    const customers = await prisma.customer.count();
-    const products = await prisma.product.count();
-    
-    console.log(JSON.stringify({
-        quotes,
-        orders,
-        customers,
-        products,
-        total: quotes + orders + customers + products
-    }));
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quotes = await prisma.quote.count();
+        const orders = await prisma.order.count();
+        const customers = await prisma.customer.count();
+        const products = await prisma.product.count();
+        
+        console.log(JSON.stringify({
+            quotes,
+            orders,
+            customers,
+            products,
+            total: quotes + orders + customers + products
+        }));
+    })();
     " 2>/dev/null)
 
     if [ -z "$DATA_COUNTS" ]; then

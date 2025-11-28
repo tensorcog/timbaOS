@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { randomUUID } from "crypto";
 
 export async function createTransfer(formData: FormData) {
     // Get authenticated user session
@@ -52,8 +53,11 @@ export async function createTransfer(formData: FormData) {
             status: TransferStatus.PENDING,
             requestedById: user.id,
             notes,
-            items: {
+            updatedAt: new Date(),
+            id: randomUUID(),
+            TransferItem: {
                 create: items.map(item => ({
+                    id: randomUUID(),
                     productId: item.productId,
                     requestedQty: item.quantity,
                 })),
@@ -159,7 +163,7 @@ export async function shipTransfer(transferId: string) {
     const transfer = await prisma.inventoryTransfer.findUnique({
         where: { id: transferId },
         include: {
-            items: true,
+            TransferItem: true,
         }
     });
 
@@ -172,7 +176,7 @@ export async function shipTransfer(transferId: string) {
     }
 
     // Deduct inventory from origin location
-    for (const item of transfer.items) {
+    for (const item of transfer.TransferItem) {
         const inventory = await prisma.locationInventory.findFirst({
             where: {
                 productId: item.productId,
@@ -223,7 +227,7 @@ export async function receiveTransfer(transferId: string) {
     const transfer = await prisma.inventoryTransfer.findUnique({
         where: { id: transferId },
         include: {
-            items: true,
+            TransferItem: true,
         }
     });
 
@@ -236,7 +240,7 @@ export async function receiveTransfer(transferId: string) {
     }
 
     // Add inventory to destination location
-    for (const item of transfer.items) {
+    for (const item of transfer.TransferItem) {
         const inventory = await prisma.locationInventory.findFirst({
             where: {
                 productId: item.productId,
@@ -256,11 +260,13 @@ export async function receiveTransfer(transferId: string) {
             // Create new inventory record
             await prisma.locationInventory.create({
                 data: {
+                    id: randomUUID(),
                     productId: item.productId,
                     locationId: transfer.destinationLocationId,
                     stockLevel: item.requestedQty,
                     reorderPoint: 10,
-                    reorderQuantity: 20,
+                    reorderQuantity: 20, // This field might not exist in schema, need to check
+                    updatedAt: new Date(),
                 }
             });
         }

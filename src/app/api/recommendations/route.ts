@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
             include: {
                 recommendedProduct: {
                     include: {
-                        inventory: {
+                        LocationInventory: {
                             select: {
                                 stockLevel: true,
                             },
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         const filteredRecommendations = recommendations
             .filter(rec => !productIds.includes(rec.recommendedProductId))
             .filter(rec => {
-                const totalStock = rec.recommendedProduct.inventory.reduce(
+                const totalStock = rec.recommendedProduct.LocationInventory.reduce(
                     (sum, inv) => sum + inv.stockLevel,
                     0
                 );

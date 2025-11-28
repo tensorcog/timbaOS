@@ -1,4 +1,5 @@
 import prisma from '../src/lib/prisma';
+import { randomUUID } from 'crypto';
 
 async function testConversion() {
     console.log('Starting conversion test...');
@@ -33,6 +34,7 @@ async function testConversion() {
             // Create a test quote
             const newQuote = await prisma.quote.create({
                 data: {
+                    id: randomUUID(),
                     quoteNumber: `Q-TEST-${Date.now()}`,
                     customerId: customer.id,
                     locationId: location.id,
@@ -42,8 +44,10 @@ async function testConversion() {
                     subtotal: 100.00,
                     taxAmount: 0.00,
                     totalAmount: 100.00,
+                    updatedAt: new Date(),
                     QuoteItem: {
                         create: {
+                            id: randomUUID(),
                             productId: product.id,
                             quantity: 1,
                             unitPrice: 100.00,
@@ -73,6 +77,7 @@ async function testConversion() {
         console.log('Creating order...');
         const order = await prisma.order.create({
             data: {
+                id: randomUUID(),
                 orderNumber,
                 customerId: quote.customerId,
                 locationId: quote.locationId,
@@ -86,8 +91,10 @@ async function testConversion() {
                 paymentStatus: 'PENDING',
                 orderType: 'QUOTE_CONVERSION',
                 fulfillmentType: 'PICKUP',
+                updatedAt: new Date(),
                 OrderItem: {
                     create: quote.QuoteItem.map(item => ({
+                        id: randomUUID(),
                         productId: item.productId,
                         quantity: item.quantity,
                         price: Number(item.unitPrice),

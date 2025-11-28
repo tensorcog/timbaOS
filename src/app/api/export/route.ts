@@ -153,14 +153,14 @@ export async function POST(request: NextRequest) {
         const products = await prisma.product.findMany({
           where: productWhere,
           include: {
-            inventory: {
+            LocationInventory: {
               include: {
-                location: true
+                Location: true
               }
             },
-            pricing: {
+            LocationPricing: {
               include: {
-                location: true
+                Location: true
               }
             }
           }
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
           "Base Price": product.basePrice.toFixed(2),
           "Unit of Measure": product.uom,
           "Is Active": product.isActive ? "Yes" : "No",
-          "Total Inventory": product.inventory.reduce((sum, inv) => sum + inv.stockLevel, 0),
+          "Total Inventory": product.LocationInventory.reduce((sum, inv) => sum + inv.stockLevel, 0),
           "Created Date": product.createdAt.toISOString().split('T')[0]
         }))
 
@@ -221,11 +221,11 @@ export async function POST(request: NextRequest) {
         const orders = await prisma.order.findMany({
           where: orderWhere,
           include: {
-            customer: true,
-            location: true,
-            items: {
+            Customer: true,
+            Location: true,
+            OrderItem: {
               include: {
-                product: true
+                Product: true
               }
             }
           },
@@ -236,14 +236,14 @@ export async function POST(request: NextRequest) {
 
         data = orders.map(order => ({
           "Order Number": order.orderNumber,
-          "Customer Name": order.customer.name,
-          "Customer Email": order.customer.email,
-          "Location": order.location.name,
+          "Customer Name": order.Customer.name,
+          "Customer Email": order.Customer.email,
+          "Location": order.Location.name,
           "Order Type": order.orderType,
           Status: order.status,
           "Payment Status": order.paymentStatus,
           "Fulfillment Type": order.fulfillmentType,
-          "Item Count": order.items.length,
+          "Item Count": order.OrderItem.length,
           Subtotal: order.subtotal.toFixed(2),
           "Discount Amount": order.discountAmount.toFixed(2),
           "Tax Amount": order.taxAmount.toFixed(2),

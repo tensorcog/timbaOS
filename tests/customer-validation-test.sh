@@ -43,10 +43,14 @@ login() {
     local email=$1
     local password=$2
 
-    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
+    # Get CSRF token and initial cookies
+    csrf_response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" "${BASE_URL}/api/auth/csrf")
+    csrf_token=$(echo "$csrf_response" | grep -o '"csrfToken":"[^"]*"' | cut -d'"' -f4)
+
+    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -b "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
         -X POST "${BASE_URL}/api/auth/callback/credentials" \
         -H "Content-Type: application/json" \
-        -d "{\"email\":\"$email\",\"password\":\"$password\"}")
+        -d "{\"email\":\"$email\",\"password\":\"$password\",\"csrfToken\":\"$csrf_token\",\"json\":true}")
 
     status_code=$(echo "$response" | tail -n1)
     if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 302 ]; then
@@ -93,12 +97,13 @@ test_customer_types() {
 
     # Check customer types distribution
     CUSTOMER_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const retail = await prisma.customer.count({ where: { customerType: 'RETAIL' } });
-    const wholesale = await prisma.customer.count({ where: { customerType: 'WHOLESALE' } });
-    console.log(JSON.stringify({ retail, wholesale }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const retail = await prisma.customer.count({ where: { customerType: 'RETAIL' } });
+        const wholesale = await prisma.customer.count({ where: { customerType: 'WHOLESALE' } });
+        console.log(JSON.stringify({ retail, wholesale }));
+    })();
+    " )
 
     if [ -z "$CUSTOMER_DATA" ]; then
         fail "Could not fetch customer type data"
@@ -135,21 +140,22 @@ test_tax_exempt() {
 
     # Find tax-exempt and non-exempt customers
     TAX_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const exempt = await prisma.customer.count({ where: { taxExempt: true } });
-    const nonExempt = await prisma.customer.count({ where: { taxExempt: false } });
-    
-    const exemptCustomer = await prisma.customer.findFirst({
-        where: { taxExempt: true }
-    });
-    
-    console.log(JSON.stringify({
-        exempt,
-        nonExempt,
-        exemptCustomerName: exemptCustomer?.name || 'None'
-    }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const exempt = await prisma.customer.count({ where: { taxExempt: true } });
+        const nonExempt = await prisma.customer.count({ where: { taxExempt: false } });
+        
+        const exemptCustomer = await prisma.customer.findFirst({
+            where: { taxExempt: true }
+        });
+        
+        console.log(JSON.stringify({
+            exempt,
+            nonExempt,
+            exemptCustomerName: exemptCustomer?.name || 'None'
+        }));
+    })();
+    " )
 
     if [ -z "$TAX_DATA" ]; then
         fail "Could not fetch tax exempt data"
@@ -223,25 +229,28 @@ test_customer_email_uniqueness() {
 
     # Check for duplicate emails
     DUPLICATE_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const customers = await prisma.customer.findMany({
-        where: {
-            email: { not: null }
-        },
-        select: { email: true }
-    });
-    
-    const emails = customers.map(c => c.email).filter(e => !!e);
-    const uniqueEmails = new Set(emails);
-    const hasDuplicates = emails.length !== uniqueEmails.size;
-    
-    console.log(JSON.stringify({
-        totalEmails: emails.length,
-        uniqueEmails: uniqueEmails.size,
-        hasDuplicates
-    }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        try {
+            const customers = await prisma.customer.findMany({
+                select: { email: true }
+            });
+            
+            const emails = customers.map(c => c.email).filter(e => !!e);
+            const uniqueEmails = new Set(emails);
+            const hasDuplicates = emails.length !== uniqueEmails.size;
+            
+            console.log(JSON.stringify({
+                totalEmails: emails.length,
+                uniqueEmails: uniqueEmails.size,
+                hasDuplicates
+            }));
+        } catch (e) {
+            console.error(e);
+            process.exit(1);
+        }
+    })();
+    " )
 
     if [ -z "$DUPLICATE_DATA" ]; then
         fail "Could not fetch duplicate email data"
@@ -287,13 +296,14 @@ test_walkin_generation() {
 
             # Verify it's in the database
             EXISTS=$(npx tsx -e "
-            import prisma from './src/lib/prisma.js';
-            const customer = await prisma.customer.findUnique({
-                where: { id: '$CUSTOMER_ID' }
-            });
-            console.log(customer ? 'YES' : 'NO');
-            await prisma.\$disconnect();
-            " 2>/dev/null)
+            import prisma from './src/lib/prisma';
+            (async () => {
+                const customer = await prisma.customer.findUnique({
+                    where: { id: '$CUSTOMER_ID' }
+                });
+                console.log(customer ? 'YES' : 'NO');
+            })();
+            " )
 
             if [ "$EXISTS" == "YES" ]; then
                 pass "Walk-in customer saved to database"
@@ -303,15 +313,16 @@ test_walkin_generation() {
 
             # Verify customer type is RETAIL
             CUSTOMER_TYPE=$(npx tsx -e "
-            import prisma from './src/lib/prisma.js';
-            const customer = await prisma.customer.findUnique({
-                where: { id: '$CUSTOMER_ID' }
-            });
-            if (customer) {
-                console.log(customer.customerType);
-            }
-            await prisma.\$disconnect();
-            " 2>/dev/null)
+            import prisma from './src/lib/prisma';
+            (async () => {
+                const customer = await prisma.customer.findUnique({
+                    where: { id: '$CUSTOMER_ID' }
+                });
+                if (customer) {
+                    console.log(customer.customerType);
+                }
+            })();
+            " )
 
             if [ "$CUSTOMER_TYPE" == "RETAIL" ]; then
                 pass "Walk-in customer type is RETAIL"

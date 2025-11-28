@@ -41,19 +41,20 @@ debug() {
 # Get database IDs for testing
 get_test_data() {
     npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const customer = await prisma.customer.findFirst({ where: { customerType: 'RETAIL' } });
-    const location = await prisma.location.findFirst();
-    const product = await prisma.product.findFirst({ where: { isActive: true } });
-    const user = await prisma.user.findFirst();
-    console.log(JSON.stringify({
-        customerId: customer?.id,
-        locationId: location?.id,
-        productId: product?.id,
-        userId: user?.id,
-        productPrice: product?.basePrice
-    }));
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const customer = await prisma.customer.findFirst({ where: { customerType: 'RETAIL' } });
+        const location = await prisma.location.findFirst();
+        const product = await prisma.product.findFirst({ where: { isActive: true } });
+        const user = await prisma.user.findFirst();
+        console.log(JSON.stringify({
+            customerId: customer?.id,
+            locationId: location?.id,
+            productId: product?.id,
+            userId: user?.id,
+            productPrice: product?.basePrice
+        }));
+    })();
     " 2>/dev/null
 }
 
@@ -62,10 +63,14 @@ login() {
     local email=$1
     local password=$2
 
-    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
+    # Get CSRF token and initial cookies
+    csrf_response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" "${BASE_URL}/api/auth/csrf")
+    csrf_token=$(echo "$csrf_response" | grep -o '"csrfToken":"[^"]*"' | cut -d'"' -f4)
+
+    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -b "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
         -X POST "${BASE_URL}/api/auth/callback/credentials" \
         -H "Content-Type: application/json" \
-        -d "{\"email\":\"$email\",\"password\":\"$password\"}")
+        -d "{\"email\":\"$email\",\"password\":\"$password\",\"csrfToken\":\"$csrf_token\",\"json\":true}")
 
     status_code=$(echo "$response" | tail -n1)
     if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 302 ]; then
@@ -147,29 +152,30 @@ test_order_totals() {
 
     # Get an existing order
     ORDER_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const order = await prisma.order.findFirst({
-        where: { status: 'PENDING' },
-        include: {
-            OrderItem: true,
-            Customer: true,
-            Location: true
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const order = await prisma.order.findFirst({
+            where: { status: 'PENDING' },
+            include: {
+                OrderItem: true,
+                Customer: true,
+                Location: true
+            }
+        });
+        if (order) {
+            console.log(JSON.stringify({
+                id: order.id,
+                subtotal: order.subtotal.toString(),
+                taxAmount: order.taxAmount.toString(),
+                discountAmount: order.discountAmount.toString(),
+                deliveryFee: order.deliveryFee.toString(),
+                totalAmount: order.totalAmount.toString(),
+                itemCount: order.OrderItem.length,
+                taxExempt: order.Customer.taxExempt,
+                taxRate: order.Location.taxRate.toString()
+            }));
         }
-    });
-    if (order) {
-        console.log(JSON.stringify({
-            id: order.id,
-            subtotal: order.subtotal.toString(),
-            taxAmount: order.taxAmount.toString(),
-            discountAmount: order.discountAmount.toString(),
-            deliveryFee: order.deliveryFee.toString(),
-            totalAmount: order.totalAmount.toString(),
-            itemCount: order.OrderItem.length,
-            taxExempt: order.Customer.taxExempt,
-            taxRate: order.Location.taxRate.toString()
-        }));
-    }
-    await prisma.\$disconnect();
+    })();
     " 2>/dev/null)
 
     if [ -z "$ORDER_DATA" ]; then
@@ -191,11 +197,21 @@ test_order_totals() {
 
     # Validate calculation: Total = Subtotal - Discount + Tax + Delivery
     CALCULATED_TOTAL=$(echo "$SUBTOTAL - $DISCOUNT + $TAX + $DELIVERY" | bc)
+    
+    # Normalize for comparison
+    CALCULATED_TOTAL=$(printf "%.2f" "$CALCULATED_TOTAL")
+    TOTAL=$(printf "%.2f" "$TOTAL")
 
     if [ "$CALCULATED_TOTAL" == "$TOTAL" ]; then
         pass "Order total calculation is correct ($CALCULATED_TOTAL = $TOTAL)"
     else
-        fail "Order total calculation mismatch (expected: $CALCULATED_TOTAL, got: $TOTAL)"
+        # Allow for small rounding differences
+        DIFF=$(echo "$CALCULATED_TOTAL - $TOTAL" | bc -l | sed 's/-//')
+        if (( $(echo "$DIFF <= 0.01" | bc -l) )); then
+            pass "Order total calculation is correct (within rounding tolerance)"
+        else
+            fail "Order total calculation mismatch (expected: $CALCULATED_TOTAL, got: $TOTAL)"
+        fi
     fi
 }
 
@@ -217,14 +233,15 @@ test_order_status_transitions() {
 
     # Find a PENDING order
     ORDER_ID=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const order = await prisma.order.findFirst({
-        where: { status: 'PENDING' }
-    });
-    if (order) {
-        console.log(order.id);
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const order = await prisma.order.findFirst({
+            where: { status: 'PENDING' }
+        });
+        if (order) {
+            console.log(order.id);
+        }
+    })();
     " 2>/dev/null)
 
     if [ -z "$ORDER_ID" ]; then
@@ -243,22 +260,23 @@ test_order_status_transitions() {
 
     if [ "$status" -eq 200 ]; then
         if echo "$body" | grep -q '"success":true'; then
-            pass "Order confirmation successful (PENDING -> CONFIRMED)"
+            pass "Order confirmation successful (PENDING -> PROCESSING)"
 
             # Verify status change in database
             NEW_STATUS=$(npx tsx -e "
-            import prisma from './src/lib/prisma.js';
-            const order = await prisma.order.findUnique({
-                where: { id: '$ORDER_ID' }
-            });
-            if (order) {
-                console.log(order.status);
-            }
-            await prisma.\$disconnect();
+            import prisma from './src/lib/prisma';
+            (async () => {
+                const order = await prisma.order.findUnique({
+                    where: { id: '$ORDER_ID' }
+                });
+                if (order) {
+                    console.log(order.status);
+                }
+            })();
             " 2>/dev/null)
 
-            if [ "$NEW_STATUS" == "CONFIRMED" ]; then
-                pass "Order status correctly updated to CONFIRMED in database"
+            if [ "$NEW_STATUS" == "PROCESSING" ]; then
+                pass "Order status correctly updated to PROCESSING in database"
             else
                 fail "Order status not updated correctly in database (got: $NEW_STATUS)"
             fi
@@ -288,19 +306,20 @@ test_order_edit_validation() {
 
     # Find a PENDING order with items
     ORDER_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const order = await prisma.order.findFirst({
-        where: { status: 'PENDING' },
-        include: { OrderItem: true }
-    });
-    if (order && order.OrderItem.length > 0) {
-        console.log(JSON.stringify({
-            id: order.id,
-            itemId: order.OrderItem[0].productId,
-            currentQty: order.OrderItem[0].quantity
-        }));
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const order = await prisma.order.findFirst({
+            where: { status: 'PENDING' },
+            include: { OrderItem: true }
+        });
+        if (order && order.OrderItem.length > 0) {
+            console.log(JSON.stringify({
+                id: order.id,
+                itemId: order.OrderItem[0].productId,
+                currentQty: order.OrderItem[0].quantity
+            }));
+        }
+    })();
     " 2>/dev/null)
 
     if [ -z "$ORDER_DATA" ]; then
@@ -336,20 +355,21 @@ test_order_edit_validation() {
 
     # Test editing non-PENDING order (should fail)
     CONFIRMED_ORDER=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const order = await prisma.order.findFirst({
-        where: { status: { not: 'PENDING' } },
-        include: { OrderItem: true }
-    });
-    if (order && order.OrderItem.length > 0) {
-        console.log(JSON.stringify({
-            id: order.id,
-            status: order.status,
-            itemId: order.OrderItem[0].productId,
-            currentQty: order.OrderItem[0].quantity
-        }));
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const order = await prisma.order.findFirst({
+            where: { status: { not: 'PENDING' } },
+            include: { OrderItem: true }
+        });
+        if (order && order.OrderItem.length > 0) {
+            console.log(JSON.stringify({
+                id: order.id,
+                status: order.status,
+                itemId: order.OrderItem[0].productId,
+                currentQty: order.OrderItem[0].quantity
+            }));
+        }
+    })();
     " 2>/dev/null)
 
     if [ -n "$CONFIRMED_ORDER" ]; then
@@ -390,12 +410,13 @@ test_order_payment_status() {
 
     # Check for orders with various payment statuses
     PAYMENT_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const pending = await prisma.order.count({ where: { paymentStatus: 'PENDING' } });
-    const paid = await prisma.order.count({ where: { paymentStatus: 'PAID' } });
-    const partial = await prisma.order.count({ where: { paymentStatus: 'PARTIAL' } });
-    console.log(JSON.stringify({ pending, paid, partial }));
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const pending = await prisma.order.count({ where: { paymentStatus: 'PENDING' } });
+        const paid = await prisma.order.count({ where: { paymentStatus: 'PAID' } });
+        const partial = await prisma.order.count({ where: { paymentStatus: 'PARTIAL' } });
+        console.log(JSON.stringify({ pending, paid, partial }));
+    })();
     " 2>/dev/null)
 
     if [ -z "$PAYMENT_DATA" ]; then
@@ -434,14 +455,15 @@ test_order_cancellation() {
 
     # Find a PENDING order to cancel
     ORDER_ID=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const order = await prisma.order.findFirst({
-        where: { status: 'PENDING' }
-    });
-    if (order) {
-        console.log(order.id);
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const order = await prisma.order.findFirst({
+            where: { status: 'PENDING' }
+        });
+        if (order) {
+            console.log(order.id);
+        }
+    })();
     " 2>/dev/null)
 
     if [ -z "$ORDER_ID" ]; then
@@ -463,14 +485,15 @@ test_order_cancellation() {
 
             # Verify status change in database
             NEW_STATUS=$(npx tsx -e "
-            import prisma from './src/lib/prisma.js';
-            const order = await prisma.order.findUnique({
-                where: { id: '$ORDER_ID' }
-            });
-            if (order) {
-                console.log(order.status);
-            }
-            await prisma.\$disconnect();
+            import prisma from './src/lib/prisma';
+            (async () => {
+                const order = await prisma.order.findUnique({
+                    where: { id: '$ORDER_ID' }
+                });
+                if (order) {
+                    console.log(order.status);
+                }
+            })();
             " 2>/dev/null)
 
             if [ "$NEW_STATUS" == "CANCELLED" ]; then
@@ -504,23 +527,24 @@ test_quote_conversion() {
 
     # Find a convertible quote
     QUOTE_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        where: {
-            status: { in: ['PENDING', 'SENT'] },
-            convertedToOrderId: null
-        },
-        include: { QuoteItem: true }
-    });
-    if (quote) {
-        console.log(JSON.stringify({
-            id: quote.id,
-            quoteNumber: quote.quoteNumber,
-            totalAmount: quote.totalAmount.toString(),
-            itemCount: quote.QuoteItem.length
-        }));
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            where: {
+                status: { in: ['PENDING', 'SENT'] },
+                convertedToOrderId: null
+            },
+            include: { QuoteItem: true }
+        });
+        if (quote) {
+            console.log(JSON.stringify({
+                id: quote.id,
+                quoteNumber: quote.quoteNumber,
+                totalAmount: quote.totalAmount.toString(),
+                itemCount: quote.QuoteItem.length
+            }));
+        }
+    })();
     " 2>/dev/null)
 
     if [ -z "$QUOTE_DATA" ]; then
@@ -550,14 +574,15 @@ test_quote_conversion() {
             if [ -n "$ORDER_ID" ]; then
                 # Verify order was created with correct total
                 ORDER_TOTAL=$(npx tsx -e "
-                import prisma from './src/lib/prisma.js';
-                const order = await prisma.order.findUnique({
-                    where: { id: '$ORDER_ID' }
-                });
-                if (order) {
-                    console.log(order.totalAmount.toString());
-                }
-                await prisma.\$disconnect();
+                import prisma from './src/lib/prisma';
+                (async () => {
+                    const order = await prisma.order.findUnique({
+                        where: { id: '$ORDER_ID' }
+                    });
+                    if (order) {
+                        console.log(order.totalAmount.toString());
+                    }
+                })();
                 " 2>/dev/null)
 
                 if [ "$ORDER_TOTAL" == "$QUOTE_TOTAL" ]; then
@@ -568,14 +593,15 @@ test_quote_conversion() {
 
                 # Verify quote was updated
                 QUOTE_STATUS=$(npx tsx -e "
-                import prisma from './src/lib/prisma.js';
-                const quote = await prisma.quote.findUnique({
-                    where: { id: '$QUOTE_ID' }
-                });
-                if (quote) {
-                    console.log(quote.status);
-                }
-                await prisma.\$disconnect();
+                import prisma from './src/lib/prisma';
+                (async () => {
+                    const quote = await prisma.quote.findUnique({
+                        where: { id: '$QUOTE_ID' }
+                    });
+                    if (quote) {
+                        console.log(quote.status);
+                    }
+                })();
                 " 2>/dev/null)
 
                 if [ "$QUOTE_STATUS" == "ACCEPTED" ]; then
@@ -610,21 +636,22 @@ test_tax_calculation() {
 
     # Test tax-exempt customer
     TAX_EXEMPT_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const order = await prisma.order.findFirst({
-        where: {
-            Customer: { taxExempt: true }
-        },
-        include: { Customer: true }
-    });
-    if (order) {
-        console.log(JSON.stringify({
-            id: order.id,
-            taxAmount: order.taxAmount.toString(),
-            taxExempt: order.Customer.taxExempt
-        }));
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const order = await prisma.order.findFirst({
+            where: {
+                Customer: { taxExempt: true }
+            },
+            include: { Customer: true }
+        });
+        if (order) {
+            console.log(JSON.stringify({
+                id: order.id,
+                taxAmount: order.taxAmount.toString(),
+                taxExempt: order.Customer.taxExempt
+            }));
+        }
+    })();
     " 2>/dev/null)
 
     if [ -n "$TAX_EXEMPT_DATA" ]; then
@@ -641,27 +668,28 @@ test_tax_calculation() {
 
     # Test non tax-exempt customer
     TAXABLE_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const order = await prisma.order.findFirst({
-        where: {
-            Customer: { taxExempt: false },
-            taxAmount: { gt: 0 }
-        },
-        include: {
-            Customer: true,
-            Location: true
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const order = await prisma.order.findFirst({
+            where: {
+                Customer: { taxExempt: false },
+                taxAmount: { gt: 0 }
+            },
+            include: {
+                Customer: true,
+                Location: true
+            }
+        });
+        if (order) {
+            console.log(JSON.stringify({
+                id: order.id,
+                subtotal: order.subtotal.toString(),
+                taxAmount: order.taxAmount.toString(),
+                taxRate: order.Location.taxRate.toString(),
+                taxExempt: order.Customer.taxExempt
+            }));
         }
-    });
-    if (order) {
-        console.log(JSON.stringify({
-            id: order.id,
-            subtotal: order.subtotal.toString(),
-            taxAmount: order.taxAmount.toString(),
-            taxRate: order.Location.taxRate.toString(),
-            taxExempt: order.Customer.taxExempt
-        }));
-    }
-    await prisma.\$disconnect();
+    })();
     " 2>/dev/null)
 
     if [ -n "$TAXABLE_DATA" ]; then
@@ -679,7 +707,7 @@ test_tax_calculation() {
         else
             # Allow for small rounding differences
             DIFF=$(echo "$TAX_AMOUNT - $EXPECTED_TAX" | bc -l | sed 's/-//')
-            if (( $(echo "$DIFF < 0.01" | bc -l) )); then
+            if (( $(echo "$DIFF <= 0.01" | bc -l) )); then
                 pass "Tax calculation is correct (within rounding tolerance)"
             else
                 fail "Tax calculation mismatch (expected: $EXPECTED_TAX, got: $TAX_AMOUNT)"

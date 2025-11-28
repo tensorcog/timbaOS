@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { logActivity } from '@/lib/audit-logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { randomUUID } from 'crypto';
 
 export async function POST(
     request: NextRequest,
@@ -66,6 +67,7 @@ export async function POST(
         // Create the order with quote data
         const order = await prisma.order.create({
             data: {
+                id: randomUUID(),
                 orderNumber,
                 customerId: quote.customerId,
                 locationId: quote.locationId,
@@ -80,8 +82,10 @@ export async function POST(
                 paymentStatus: 'PENDING',
                 orderType: 'QUOTE_CONVERSION',
                 fulfillmentType: 'PICKUP', // Default, can be updated later
+                updatedAt: new Date(),
                 OrderItem: {
                     create: quote.QuoteItem.map(item => ({
+                        id: randomUUID(),
                         productId: item.productId,
                         quantity: item.quantity,
                         price: Number(item.unitPrice),

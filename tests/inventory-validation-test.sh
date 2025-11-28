@@ -43,10 +43,14 @@ login() {
     local email=$1
     local password=$2
 
-    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
+    # Get CSRF token and initial cookies
+    csrf_response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" "${BASE_URL}/api/auth/csrf")
+    csrf_token=$(echo "$csrf_response" | grep -o '"csrfToken":"[^"]*"' | cut -d'"' -f4)
+
+    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -b "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
         -X POST "${BASE_URL}/api/auth/callback/credentials" \
         -H "Content-Type: application/json" \
-        -d "{\"email\":\"$email\",\"password\":\"$password\"}")
+        -d "{\"email\":\"$email\",\"password\":\"$password\",\"csrfToken\":\"$csrf_token\",\"json\":true}")
 
     status_code=$(echo "$response" | tail -n1)
     if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 302 ]; then
@@ -94,29 +98,30 @@ test_inventory_levels() {
 
     # Get a location ID
     LOCATION_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const location = await prisma.location.findFirst({
-        include: {
-            LocationInventory: {
-                include: { product: true },
-                take: 1
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const location = await prisma.location.findFirst({
+            include: {
+                LocationInventory: {
+                    include: { Product: true },
+                    take: 1
+                }
             }
+        });
+        if (location && location.LocationInventory.length > 0) {
+            const inv = location.LocationInventory[0];
+            console.log(JSON.stringify({
+                locationId: location.id,
+                locationName: location.name,
+                productId: inv.productId,
+                productName: inv.Product.name,
+                stockLevel: inv.stockLevel,
+                minStockLevel: inv.minStockLevel,
+                maxStockLevel: inv.maxStockLevel
+            }));
         }
-    });
-    if (location && location.LocationInventory.length > 0) {
-        const inv = location.LocationInventory[0];
-        console.log(JSON.stringify({
-            locationId: location.id,
-            locationName: location.name,
-            productId: inv.productId,
-            productName: inv.product.name,
-            stockLevel: inv.stockLevel,
-            minStockLevel: inv.minStockLevel,
-            maxStockLevel: inv.maxStockLevel
-        }));
-    }
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    })();
+    " )
 
     if [ -z "$LOCATION_DATA" ]; then
         fail "No location inventory found in database"
@@ -146,13 +151,14 @@ test_inventory_levels() {
 
     # Verify stock levels are non-negative
     NEGATIVE_STOCK=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const negativeStock = await prisma.locationInventory.count({
-        where: { stockLevel: { lt: 0 } }
-    });
-    console.log(negativeStock);
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const negativeStock = await prisma.locationInventory.count({
+            where: { stockLevel: { lt: 0 } }
+        });
+        console.log(negativeStock);
+    })();
+    " )
 
     if [ "$NEGATIVE_STOCK" -eq 0 ]; then
         pass "No negative stock levels found"
@@ -179,28 +185,29 @@ test_low_stock_detection() {
 
     # Find items with stock below minimum
     LOW_STOCK_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const lowStock = await prisma.locationInventory.findMany({
-        where: {
-            stockLevel: { lte: prisma.locationInventory.fields.minStockLevel }
-        },
-        include: {
-            product: { select: { name: true, sku: true } },
-            location: { select: { name: true } }
-        },
-        take: 5
-    });
-    console.log(JSON.stringify({
-        count: lowStock.length,
-        items: lowStock.map(item => ({
-            product: item.product.name,
-            location: item.location.name,
-            stock: item.stockLevel,
-            min: item.minStockLevel
-        }))
-    }));
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const lowStock = await prisma.locationInventory.findMany({
+            where: {
+                stockLevel: { lte: prisma.locationInventory.fields.minStockLevel }
+            },
+            include: {
+                Product: { select: { name: true, sku: true } },
+                Location: { select: { name: true } }
+            },
+            take: 5
+        });
+        console.log(JSON.stringify({
+            count: lowStock.length,
+            items: lowStock.map(item => ({
+                product: item.Product.name,
+                location: item.Location.name,
+                stock: item.stockLevel,
+                min: item.minStockLevel
+            }))
+        }));
+    })();
+    " )
 
     if [ -z "$LOW_STOCK_DATA" ]; then
         info "Could not fetch low stock data"
@@ -236,28 +243,29 @@ test_inventory_deduction() {
 
     # Get test data for POS checkout
     POS_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const location = await prisma.location.findFirst();
-    const customer = await prisma.customer.findFirst({ where: { customerType: 'RETAIL' } });
-    const inventory = await prisma.locationInventory.findFirst({
-        where: {
-            locationId: location?.id,
-            stockLevel: { gte: 5 }
-        },
-        include: { product: true }
-    });
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const location = await prisma.location.findFirst();
+        const customer = await prisma.customer.findFirst({ where: { customerType: 'RETAIL' } });
+        const inventory = await prisma.locationInventory.findFirst({
+            where: {
+                locationId: location?.id,
+                stockLevel: { gte: 5 }
+            },
+            include: { Product: true }
+        });
 
-    if (location && customer && inventory) {
-        console.log(JSON.stringify({
-            locationId: location.id,
-            customerId: customer.id,
-            productId: inventory.productId,
-            currentStock: inventory.stockLevel,
-            price: inventory.product.basePrice.toString()
-        }));
-    }
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+        if (location && customer && inventory) {
+            console.log(JSON.stringify({
+                locationId: location.id,
+                customerId: customer.id,
+                productId: inventory.productId,
+                currentStock: inventory.stockLevel,
+                price: inventory.Product.basePrice.toString()
+            }));
+        }
+    })();
+    " )
 
     if [ -z "$POS_DATA" ]; then
         info "No suitable inventory found for POS test"
@@ -299,18 +307,19 @@ test_inventory_deduction() {
 
         # Verify inventory was deducted
         NEW_STOCK=$(npx tsx -e "
-        import prisma from './src/lib/prisma.js';
-        const inventory = await prisma.locationInventory.findFirst({
-            where: {
-                locationId: '$LOCATION_ID',
-                productId: '$PRODUCT_ID'
+        import prisma from './src/lib/prisma';
+        (async () => {
+            const inventory = await prisma.locationInventory.findFirst({
+                where: {
+                    locationId: '$LOCATION_ID',
+                    productId: '$PRODUCT_ID'
+                }
+            });
+            if (inventory) {
+                console.log(inventory.stockLevel);
             }
-        });
-        if (inventory) {
-            console.log(inventory.stockLevel);
-        }
-        await prisma.\$disconnect();
-        " 2>/dev/null)
+        })();
+        " )
 
         EXPECTED_STOCK=$((CURRENT_STOCK - 2))
 
@@ -343,29 +352,30 @@ test_multi_location_inventory() {
 
     # Get inventory across multiple locations for same product
     MULTI_LOC_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const product = await prisma.product.findFirst({
-        where: { isActive: true }
-    });
-
-    if (product) {
-        const inventories = await prisma.locationInventory.findMany({
-            where: { productId: product.id },
-            include: { location: { select: { name: true } } }
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const product = await prisma.product.findFirst({
+            where: { isActive: true }
         });
 
-        console.log(JSON.stringify({
-            productId: product.id,
-            productName: product.name,
-            locationCount: inventories.length,
-            inventories: inventories.map(inv => ({
-                location: inv.location.name,
-                stock: inv.stockLevel
-            }))
-        }));
-    }
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+        if (product) {
+            const inventories = await prisma.locationInventory.findMany({
+                where: { productId: product.id },
+                include: { Location: { select: { name: true } } }
+            });
+
+            console.log(JSON.stringify({
+                productId: product.id,
+                productName: product.name,
+                locationCount: inventories.length,
+                inventories: inventories.map(inv => ({
+                    location: inv.Location.name,
+                    stock: inv.stockLevel
+                }))
+            }));
+        }
+    })();
+    " )
 
     if [ -z "$MULTI_LOC_DATA" ]; then
         fail "Could not fetch multi-location inventory data"
@@ -401,13 +411,14 @@ test_inventory_query() {
 
     # Get first location
     LOCATION_ID=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const location = await prisma.location.findFirst();
-    if (location) {
-        console.log(location.id);
-    }
-    await prisma.\$disconnect();
-    " 2>/dev/null)
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const location = await prisma.location.findFirst();
+        if (location) {
+            console.log(location.id);
+        }
+    })();
+    " )
 
     if [ -z "$LOCATION_ID" ]; then
         fail "No location found"

@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { OrderStatus } from '@prisma/client';
 import { currency } from '@/lib/currency';
+import { randomUUID } from 'crypto';
 
 export async function PATCH(
     request: NextRequest,
@@ -63,10 +64,11 @@ export async function PATCH(
             discountAmount = discountAmount.add(discount);
 
             return {
+                id: randomUUID(),
                 productId: item.productId,
                 quantity: item.quantity,
-                price: price.toNumber(),
-                discount: discount.toNumber(),
+                price: price.toPrismaDecimal(),
+                discount: discount.toPrismaDecimal(),
             };
         });
 
@@ -81,10 +83,10 @@ export async function PATCH(
         const updatedOrder = await prisma.order.update({
             where: { id: params.id },
             data: {
-                subtotal: subtotal.toNumber(),
-                discountAmount: discountAmount.toNumber(),
-                taxAmount: taxAmount.toNumber(),
-                totalAmount: totalAmount.toNumber(),
+                subtotal: subtotal.toPrismaDecimal(),
+                discountAmount: discountAmount.toPrismaDecimal(),
+                taxAmount: taxAmount.toPrismaDecimal(),
+                totalAmount: totalAmount.toPrismaDecimal(),
                 deliveryAddress: deliveryAddress || null,
                 OrderItem: {
                     deleteMany: {},
@@ -111,7 +113,7 @@ export async function PATCH(
             changes: {
                 totalAmount: {
                     old: parseFloat(order.totalAmount.toString()),
-                    new: totalAmount.toNumber()
+                    new: totalAmount.toPrismaDecimal()
                 },
                 itemsCount: {
                     old: order.OrderItem.length,

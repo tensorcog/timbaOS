@@ -5,6 +5,7 @@ import { currency } from '@/lib/currency';
 import { posCheckoutSchema, PosCheckoutItem, PosPayment } from '@/lib/validations/pos';
 import { classifyError, logError } from '@/lib/error-handler';
 import { generateEntityNumber } from '@/lib/entity-number-generator';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
     try {
@@ -27,13 +28,21 @@ export async function POST(request: NextRequest) {
             select: { taxRate: true },
         });
 
+        if (!location) {
+            return NextResponse.json(
+                { error: 'Location not found' },
+                { status: 404 }
+            );
+        }
+
         // Get customer for tax exempt status
         const customer = await prisma.customer.findUnique({
             where: { id: customerId },
             select: { taxExempt: true },
         });
 
-        const taxRate = parseFloat(location?.taxRate?.toString() || '0.0825');
+        // Use Decimal directly for tax rate - no conversion needed
+        const taxRateDecimal = location.taxRate;
 
         // Calculate totals using Currency helper for precision
         let subtotal = currency(0);
@@ -50,10 +59,10 @@ export async function POST(request: NextRequest) {
             discountAmount = discountAmount.add(itemDiscount);
         }
 
-        // Calculate tax with proper precision
+        // Calculate tax with proper precision using Decimal tax rate
         const taxAmount = customer?.taxExempt
             ? currency(0)
-            : subtotal.multiply(taxRate);
+            : subtotal.multiply(currency(taxRateDecimal));
 
         const totalAmount = subtotal.add(taxAmount);
 
@@ -65,28 +74,32 @@ export async function POST(request: NextRequest) {
             // Create the order
             const newOrder = await tx.order.create({
                 data: {
+                    id: randomUUID(),
                     orderNumber,
                     locationId,
                     customerId,
+                    updatedAt: new Date(),
                     orderType: OrderType.POS,
                     status: OrderStatus.COMPLETED,
                     paymentStatus: PaymentStatus.PAID,
-                    subtotal: subtotal.toNumber(),
-                    taxAmount: taxAmount.toNumber(),
-                    discountAmount: discountAmount.toNumber(),
-                    totalAmount: totalAmount.toNumber(),
+                    subtotal: subtotal.toPrismaDecimal(),
+                    taxAmount: taxAmount.toPrismaDecimal(),
+                    discountAmount: discountAmount.toPrismaDecimal(),
+                    totalAmount: totalAmount.toPrismaDecimal(),
                     fulfillmentType: FulfillmentType.PICKUP,
                     completedAt: new Date(),
-                    items: {
+                    OrderItem: {
                         create: items.map((item: PosCheckoutItem) => ({
+                            id: randomUUID(),
                             productId: item.productId,
                             quantity: item.quantity,
                             price: item.price,
                             discount: item.discount,
                         })),
                     },
-                    payments: {
+                    Payment: {
                         create: payments.map((payment: PosPayment) => ({
+                            id: randomUUID(),
                             paymentMethod: payment.method,
                             amount: payment.amount,
                             status: PaymentStatus.PAID,
@@ -94,8 +107,8 @@ export async function POST(request: NextRequest) {
                     },
                 },
                 include: {
-                    items: true,
-                    payments: true,
+                    OrderItem: true,
+                    Payment: true,
                 },
             });
 

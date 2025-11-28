@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { randomUUID } from 'crypto';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -36,10 +37,12 @@ export async function POST(request: NextRequest) {
 
         const customer = await prisma.customer.create({
             data: {
+                id: randomUUID(),
                 name: body.name,
                 email: body.email,
                 phone: body.phone || null,
                 customerType: 'RETAIL',
+                updatedAt: new Date(),
             },
             select: {
                 id: true,

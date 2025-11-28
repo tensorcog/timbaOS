@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
                     { name: { contains: query, mode: 'insensitive' } },
                     { sku: { contains: query, mode: 'insensitive' } },
                 ],
-                inventory: {
+                LocationInventory: {
                     some: {
                         locationId,
                         stockLevel: { gt: 0 },
@@ -26,11 +26,11 @@ export async function GET(request: NextRequest) {
                 },
             },
             include: {
-                inventory: {
+                LocationInventory: {
                     where: { locationId },
                     select: { stockLevel: true },
                 },
-                pricing: {
+                LocationPricing: {
                     where: { locationId },
                     select: { price: true },
                 },
@@ -42,10 +42,10 @@ export async function GET(request: NextRequest) {
             id: product.id,
             name: product.name,
             sku: product.sku,
-            price: product.pricing[0]?.price
-                ? parseFloat(product.pricing[0].price.toString())
+            price: product.LocationPricing[0]?.price
+                ? parseFloat(product.LocationPricing[0].price.toString())
                 : parseFloat(product.basePrice.toString()),
-            stockLevel: product.inventory[0]?.stockLevel || 0,
+            stockLevel: product.LocationInventory[0]?.stockLevel || 0,
         }));
 
         return NextResponse.json(results);

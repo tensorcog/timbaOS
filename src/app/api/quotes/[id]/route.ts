@@ -5,6 +5,7 @@ import { updateQuoteSchema } from '@/lib/validations/quote';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { currency } from '@/lib/currency';
+import { randomUUID } from 'crypto';
 
 export async function PATCH(
     request: NextRequest,
@@ -28,8 +29,8 @@ export async function PATCH(
         const quote = await prisma.quote.findUnique({
             where: { id: params.id },
             include: {
-                customer: true,
-                location: true,
+                Customer: true,
+                Location: true,
             },
         });
 
@@ -45,7 +46,7 @@ export async function PATCH(
 
         const userId = session.user.id;
 
-        const taxRate = parseFloat(quote.location.taxRate?.toString() || '0.0825');
+        const taxRate = parseFloat(quote.Location.taxRate?.toString() || '0.0825');
 
         // Calculate new totals using Currency helper
         let subtotal = currency(0);
@@ -62,16 +63,17 @@ export async function PATCH(
             discountAmount = discountAmount.add(discount);
 
             return {
+                id: randomUUID(),
                 productId: item.productId,
                 quantity: item.quantity,
-                unitPrice: unitPrice.toNumber(),
-                discount: discount.toNumber(),
-                subtotal: itemSubtotal.toNumber(),
+                unitPrice: unitPrice.toPrismaDecimal(),
+                discount: discount.toPrismaDecimal(),
+                subtotal: itemSubtotal.toPrismaDecimal(),
             };
         });
 
         const deliveryFee = currency(0); // Delivery fee not editable in edit mode
-        const taxAmount = quote.customer.taxExempt
+        const taxAmount = quote.Customer.taxExempt
             ? currency(0)
             : subtotal.multiply(taxRate);
 
@@ -81,25 +83,25 @@ export async function PATCH(
         const updatedQuote = await prisma.quote.update({
             where: { id: params.id },
             data: {
-                subtotal: subtotal.toNumber(),
-                discountAmount: discountAmount.toNumber(),
-                taxAmount: taxAmount.toNumber(),
-                deliveryFee: deliveryFee.toNumber(),
-                totalAmount: totalAmount.toNumber(),
+                subtotal: subtotal.toPrismaDecimal(),
+                discountAmount: discountAmount.toPrismaDecimal(),
+                taxAmount: taxAmount.toPrismaDecimal(),
+                deliveryFee: deliveryFee.toPrismaDecimal(),
+                totalAmount: totalAmount.toPrismaDecimal(),
                 notes: notes || null,
-                items: {
+                QuoteItem: {
                     deleteMany: {}, // Remove all existing items
                     create: processedItems,
                 },
             },
             include: {
-                items: {
+                QuoteItem: {
                     include: {
-                        product: true,
+                        Product: true,
                     },
                 },
-                customer: true,
-                location: true,
+                Customer: true,
+                Location: true,
             },
         });
 
@@ -112,7 +114,7 @@ export async function PATCH(
             changes: {
                 totalAmount: {
                     old: parseFloat(quote.totalAmount.toString()),
-                    new: totalAmount.toNumber()
+                    new: totalAmount.toPrismaDecimal()
                 },
                 notes: {
                     old: quote.notes,

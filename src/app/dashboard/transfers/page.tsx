@@ -6,15 +6,15 @@ import { TransferActions } from "./transfer-actions";
 export default async function TransfersPage() {
     const transfers = await prisma.inventoryTransfer.findMany({
         include: {
-            Location_InventoryTransfer_originLocationIdToLocation: true,
-            Location_InventoryTransfer_destinationLocationIdToLocation: true,
+            originLocation: true,
+            destinationLocation: true,
             TransferItem: {
                 include: {
                     Product: true,
                 },
             },
-            User_InventoryTransfer_requestedByIdToUser: true,
-            User_InventoryTransfer_approvedByIdToUser: true,
+            requestedBy: true,
+            approvedBy: true,
         },
         orderBy: {
             requestedAt: 'desc',
@@ -80,15 +80,15 @@ export default async function TransfersPage() {
                                         <div className="flex items-center gap-3">
                                             <div className="flex items-center gap-2">
                                                 <div className="px-3 py-1 rounded bg-blue-500/20 text-blue-400 font-semibold text-sm">
-                                                    {transfer.Location_InventoryTransfer_originLocationIdToLocation.code}
+                                                    {transfer.originLocation.code}
                                                 </div>
                                                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 <div className="px-3 py-1 rounded bg-purple-500/20 text-purple-400 font-semibold text-sm">
-                                                    {transfer.Location_InventoryTransfer_destinationLocationIdToLocation.code}
+                                                    {transfer.destinationLocation.code}
                                                 </div>
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                {transfer.Location_InventoryTransfer_originLocationIdToLocation.name} → {transfer.Location_InventoryTransfer_destinationLocationIdToLocation.name}
+                                                {transfer.originLocation.name} → {transfer.destinationLocation.name}
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
@@ -123,7 +123,7 @@ export default async function TransfersPage() {
 
                                     <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
                                         <div>
-                                            Requested by <span className="font-medium">{transfer.User_InventoryTransfer_requestedByIdToUser?.name || 'System'}</span>
+                                            Requested by <span className="font-medium">{transfer.requestedBy?.name || 'System'}</span>
                                             {' on '}{new Date(transfer.requestedAt).toLocaleDateString()}
                                         </div>
                                         {transfer.receivedAt && (

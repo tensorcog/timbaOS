@@ -41,19 +41,20 @@ debug() {
 # Get database IDs for testing
 get_test_data() {
     npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const customer = await prisma.customer.findFirst({ where: { customerType: 'RETAIL' } });
-    const location = await prisma.location.findFirst();
-    const product = await prisma.product.findFirst({ where: { isActive: true } });
-    const user = await prisma.user.findFirst();
-    console.log(JSON.stringify({
-        customerId: customer?.id,
-        locationId: location?.id,
-        productId: product?.id,
-        userId: user?.id,
-        productPrice: product?.basePrice
-    }));
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const customer = await prisma.customer.findFirst({ where: { customerType: 'RETAIL' } });
+        const location = await prisma.location.findFirst();
+        const product = await prisma.product.findFirst({ where: { isActive: true } });
+        const user = await prisma.user.findFirst();
+        console.log(JSON.stringify({
+            customerId: customer?.id,
+            locationId: location?.id,
+            productId: product?.id,
+            userId: user?.id,
+            productPrice: product?.basePrice
+        }));
+    })();
     " 2>/dev/null
 }
 
@@ -62,10 +63,14 @@ login() {
     local email=$1
     local password=$2
 
-    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
+    # Get CSRF token and initial cookies
+    csrf_response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" "${BASE_URL}/api/auth/csrf")
+    csrf_token=$(echo "$csrf_response" | grep -o '"csrfToken":"[^"]*"' | cut -d'"' -f4)
+
+    response=$(curl -s -c "${RESULTS_DIR}/cookies.txt" -b "${RESULTS_DIR}/cookies.txt" -w "\n%{http_code}" \
         -X POST "${BASE_URL}/api/auth/callback/credentials" \
         -H "Content-Type: application/json" \
-        -d "{\"email\":\"$email\",\"password\":\"$password\"}")
+        -d "{\"email\":\"$email\",\"password\":\"$password\",\"csrfToken\":\"$csrf_token\",\"json\":true}")
 
     status_code=$(echo "$response" | tail -n1)
     if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 302 ]; then
@@ -182,29 +187,30 @@ test_quote_totals() {
 
     # Get an existing quote with items
     QUOTE_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        include: {
-            QuoteItem: true,
-            Customer: true,
-            Location: true
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            include: {
+                QuoteItem: true,
+                Customer: true,
+                Location: true
+            }
+        });
+        if (quote) {
+            console.log(JSON.stringify({
+                id: quote.id,
+                quoteNumber: quote.quoteNumber,
+                subtotal: quote.subtotal.toString(),
+                taxAmount: quote.taxAmount.toString(),
+                discountAmount: quote.discountAmount.toString(),
+                deliveryFee: quote.deliveryFee.toString(),
+                totalAmount: quote.totalAmount.toString(),
+                itemCount: quote.QuoteItem.length,
+                taxExempt: quote.Customer.taxExempt,
+                taxRate: quote.Location.taxRate.toString()
+            }));
         }
-    });
-    if (quote) {
-        console.log(JSON.stringify({
-            id: quote.id,
-            quoteNumber: quote.quoteNumber,
-            subtotal: quote.subtotal.toString(),
-            taxAmount: quote.taxAmount.toString(),
-            discountAmount: quote.discountAmount.toString(),
-            deliveryFee: quote.deliveryFee.toString(),
-            totalAmount: quote.totalAmount.toString(),
-            itemCount: quote.QuoteItem.length,
-            taxExempt: quote.Customer.taxExempt,
-            taxRate: quote.Location.taxRate.toString()
-        }));
-    }
-    await prisma.\$disconnect();
+    })();
     " 2>/dev/null)
 
     if [ -z "$QUOTE_DATA" ]; then
@@ -252,15 +258,16 @@ test_quote_status() {
 
     # Get quote status counts
     STATUS_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const draft = await prisma.quote.count({ where: { status: 'DRAFT' } });
-    const pending = await prisma.quote.count({ where: { status: 'PENDING' } });
-    const sent = await prisma.quote.count({ where: { status: 'SENT' } });
-    const accepted = await prisma.quote.count({ where: { status: 'ACCEPTED' } });
-    const rejected = await prisma.quote.count({ where: { status: 'REJECTED' } });
-    const expired = await prisma.quote.count({ where: { status: 'EXPIRED' } });
-    console.log(JSON.stringify({ draft, pending, sent, accepted, rejected, expired }));
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const draft = await prisma.quote.count({ where: { status: 'DRAFT' } });
+        const pending = await prisma.quote.count({ where: { status: 'PENDING' } });
+        const sent = await prisma.quote.count({ where: { status: 'SENT' } });
+        const accepted = await prisma.quote.count({ where: { status: 'ACCEPTED' } });
+        const rejected = await prisma.quote.count({ where: { status: 'REJECTED' } });
+        const expired = await prisma.quote.count({ where: { status: 'EXPIRED' } });
+        console.log(JSON.stringify({ draft, pending, sent, accepted, rejected, expired }));
+    })();
     " 2>/dev/null)
 
     if [ -z "$STATUS_DATA" ]; then
@@ -302,26 +309,27 @@ test_quote_conversion() {
 
     # Find a convertible quote
     QUOTE_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        where: {
-            status: { in: ['PENDING', 'SENT'] },
-            convertedToOrderId: null,
-            validUntil: { gt: new Date() }
-        },
-        include: { QuoteItem: true }
-    });
-    if (quote) {
-        console.log(JSON.stringify({
-            id: quote.id,
-            quoteNumber: quote.quoteNumber,
-            status: quote.status,
-            totalAmount: quote.totalAmount.toString(),
-            itemCount: quote.QuoteItem.length,
-            validUntil: quote.validUntil
-        }));
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            where: {
+                status: { in: ['PENDING', 'SENT'] },
+                convertedToOrderId: null,
+                validUntil: { gt: new Date() }
+            },
+            include: { QuoteItem: true }
+        });
+        if (quote) {
+            console.log(JSON.stringify({
+                id: quote.id,
+                quoteNumber: quote.quoteNumber,
+                status: quote.status,
+                totalAmount: quote.totalAmount.toString(),
+                itemCount: quote.QuoteItem.length,
+                validUntil: quote.validUntil
+            }));
+        }
+    })();
     " 2>/dev/null)
 
     if [ -z "$QUOTE_DATA" ]; then
@@ -352,14 +360,15 @@ test_quote_conversion() {
             if [ -n "$ORDER_ID" ]; then
                 # Verify order total matches quote total
                 ORDER_TOTAL=$(npx tsx -e "
-                import prisma from './src/lib/prisma.js';
-                const order = await prisma.order.findUnique({
-                    where: { id: '$ORDER_ID' }
-                });
-                if (order) {
-                    console.log(order.totalAmount.toString());
-                }
-                await prisma.\$disconnect();
+                import prisma from './src/lib/prisma';
+                (async () => {
+                    const order = await prisma.order.findUnique({
+                        where: { id: '$ORDER_ID' }
+                    });
+                    if (order) {
+                        console.log(order.totalAmount.toString());
+                    }
+                })();
                 " 2>/dev/null)
 
                 if [ "$ORDER_TOTAL" == "$QUOTE_TOTAL" ]; then
@@ -370,14 +379,15 @@ test_quote_conversion() {
 
                 # Verify quote status updated to ACCEPTED
                 NEW_QUOTE_STATUS=$(npx tsx -e "
-                import prisma from './src/lib/prisma.js';
-                const quote = await prisma.quote.findUnique({
-                    where: { id: '$QUOTE_ID' }
-                });
-                if (quote) {
-                    console.log(quote.status);
-                }
-                await prisma.\$disconnect();
+                import prisma from './src/lib/prisma';
+                (async () => {
+                    const quote = await prisma.quote.findUnique({
+                        where: { id: '$QUOTE_ID' }
+                    });
+                    if (quote) {
+                        console.log(quote.status);
+                    }
+                })();
                 " 2>/dev/null)
 
                 if [ "$NEW_QUOTE_STATUS" == "ACCEPTED" ]; then
@@ -388,16 +398,17 @@ test_quote_conversion() {
 
                 # Verify quote has convertedToOrderId set
                 HAS_ORDER_ID=$(npx tsx -e "
-                import prisma from './src/lib/prisma.js';
-                const quote = await prisma.quote.findUnique({
-                    where: { id: '$QUOTE_ID' }
-                });
-                if (quote && quote.convertedToOrderId) {
-                    console.log('YES');
-                } else {
-                    console.log('NO');
-                }
-                await prisma.\$disconnect();
+                import prisma from './src/lib/prisma';
+                (async () => {
+                    const quote = await prisma.quote.findUnique({
+                        where: { id: '$QUOTE_ID' }
+                    });
+                    if (quote && quote.convertedToOrderId) {
+                        console.log('YES');
+                    } else {
+                        console.log('NO');
+                    }
+                })();
                 " 2>/dev/null)
 
                 if [ "$HAS_ORDER_ID" == "YES" ]; then
@@ -433,14 +444,15 @@ test_quote_conversion_rules() {
 
     # Test 1: Cannot convert already converted quote
     CONVERTED_QUOTE=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        where: { convertedToOrderId: { not: null } }
-    });
-    if (quote) {
-        console.log(quote.id);
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            where: { convertedToOrderId: { not: null } }
+        });
+        if (quote) {
+            console.log(quote.id);
+        }
+    })();
     " 2>/dev/null)
 
     if [ -n "$CONVERTED_QUOTE" ]; then
@@ -459,14 +471,15 @@ test_quote_conversion_rules() {
 
     # Test 2: Cannot convert REJECTED quote
     REJECTED_QUOTE=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        where: { status: 'REJECTED' }
-    });
-    if (quote) {
-        console.log(quote.id);
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            where: { status: 'REJECTED' }
+        });
+        if (quote) {
+            console.log(quote.id);
+        }
+    })();
     " 2>/dev/null)
 
     if [ -n "$REJECTED_QUOTE" ]; then
@@ -485,14 +498,15 @@ test_quote_conversion_rules() {
 
     # Test 3: Cannot convert DRAFT quote
     DRAFT_QUOTE=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        where: { status: 'DRAFT' }
-    });
-    if (quote) {
-        console.log(quote.id);
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            where: { status: 'DRAFT' }
+        });
+        if (quote) {
+            console.log(quote.id);
+        }
+    })();
     " 2>/dev/null)
 
     if [ -n "$DRAFT_QUOTE" ]; then
@@ -528,16 +542,17 @@ test_quote_validity() {
 
     # Check for quotes with various validity statuses
     VALIDITY_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const now = new Date();
-    const valid = await prisma.quote.count({
-        where: { validUntil: { gt: now } }
-    });
-    const expired = await prisma.quote.count({
-        where: { validUntil: { lte: now } }
-    });
-    console.log(JSON.stringify({ valid, expired }));
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const now = new Date();
+        const valid = await prisma.quote.count({
+            where: { validUntil: { gt: now } }
+        });
+        const expired = await prisma.quote.count({
+            where: { validUntil: { lte: now } }
+        });
+        console.log(JSON.stringify({ valid, expired }));
+    })();
     " 2>/dev/null)
 
     if [ -z "$VALIDITY_DATA" ]; then
@@ -558,18 +573,19 @@ test_quote_validity() {
 
     # Test that expired quotes cannot be converted
     EXPIRED_QUOTE=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        where: {
-            validUntil: { lte: new Date() },
-            convertedToOrderId: null,
-            status: { in: ['PENDING', 'SENT'] }
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            where: {
+                validUntil: { lte: new Date() },
+                convertedToOrderId: null,
+                status: { in: ['PENDING', 'SENT'] }
+            }
+        });
+        if (quote) {
+            console.log(quote.id);
         }
-    });
-    if (quote) {
-        console.log(quote.id);
-    }
-    await prisma.\$disconnect();
+    })();
     " 2>/dev/null)
 
     if [ -n "$EXPIRED_QUOTE" ]; then
@@ -605,21 +621,22 @@ test_quote_tax_calculation() {
 
     # Test tax-exempt customer
     TAX_EXEMPT_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        where: {
-            Customer: { taxExempt: true }
-        },
-        include: { Customer: true }
-    });
-    if (quote) {
-        console.log(JSON.stringify({
-            id: quote.id,
-            taxAmount: quote.taxAmount.toString(),
-            taxExempt: quote.Customer.taxExempt
-        }));
-    }
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            where: {
+                Customer: { taxExempt: true }
+            },
+            include: { Customer: true }
+        });
+        if (quote) {
+            console.log(JSON.stringify({
+                id: quote.id,
+                taxAmount: quote.taxAmount.toString(),
+                taxExempt: quote.Customer.taxExempt
+            }));
+        }
+    })();
     " 2>/dev/null)
 
     if [ -n "$TAX_EXEMPT_DATA" ]; then
@@ -636,27 +653,28 @@ test_quote_tax_calculation() {
 
     # Test non tax-exempt customer
     TAXABLE_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quote = await prisma.quote.findFirst({
-        where: {
-            Customer: { taxExempt: false },
-            taxAmount: { gt: 0 }
-        },
-        include: {
-            Customer: true,
-            Location: true
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quote = await prisma.quote.findFirst({
+            where: {
+                Customer: { taxExempt: false },
+                taxAmount: { gt: 0 }
+            },
+            include: {
+                Customer: true,
+                Location: true
+            }
+        });
+        if (quote) {
+            console.log(JSON.stringify({
+                id: quote.id,
+                subtotal: quote.subtotal.toString(),
+                taxAmount: quote.taxAmount.toString(),
+                taxRate: quote.Location.taxRate.toString(),
+                taxExempt: quote.Customer.taxExempt
+            }));
         }
-    });
-    if (quote) {
-        console.log(JSON.stringify({
-            id: quote.id,
-            subtotal: quote.subtotal.toString(),
-            taxAmount: quote.taxAmount.toString(),
-            taxRate: quote.Location.taxRate.toString(),
-            taxExempt: quote.Customer.taxExempt
-        }));
-    }
-    await prisma.\$disconnect();
+    })();
     " 2>/dev/null)
 
     if [ -n "$TAXABLE_DATA" ]; then
@@ -777,15 +795,16 @@ test_quote_delivery_fee() {
 
     # Check delivery fee logic
     DELIVERY_DATA=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const withDelivery = await prisma.quote.count({
-        where: { deliveryFee: { gt: 0 } }
-    });
-    const withoutDelivery = await prisma.quote.count({
-        where: { deliveryFee: 0 }
-    });
-    console.log(JSON.stringify({ withDelivery, withoutDelivery }));
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const withDelivery = await prisma.quote.count({
+            where: { deliveryFee: { gt: 0 } }
+        });
+        const withoutDelivery = await prisma.quote.count({
+            where: { deliveryFee: 0 }
+        });
+        console.log(JSON.stringify({ withDelivery, withoutDelivery }));
+    })();
     " 2>/dev/null)
 
     if [ -z "$DELIVERY_DATA" ]; then
@@ -823,18 +842,19 @@ test_quote_number_generation() {
 
     # Get all quote numbers and verify uniqueness
     QUOTE_NUMBERS=$(npx tsx -e "
-    import prisma from './src/lib/prisma.js';
-    const quotes = await prisma.quote.findMany({
-        select: { quoteNumber: true }
-    });
-    const numbers = quotes.map(q => q.quoteNumber);
-    const unique = [...new Set(numbers)];
-    console.log(JSON.stringify({
-        total: numbers.length,
-        unique: unique.length,
-        allUnique: numbers.length === unique.length
-    }));
-    await prisma.\$disconnect();
+    import prisma from './src/lib/prisma';
+    (async () => {
+        const quotes = await prisma.quote.findMany({
+            select: { quoteNumber: true }
+        });
+        const numbers = quotes.map(q => q.quoteNumber);
+        const unique = [...new Set(numbers)];
+        console.log(JSON.stringify({
+            total: numbers.length,
+            unique: unique.length,
+            allUnique: numbers.length === unique.length
+        }));
+    })();
     " 2>/dev/null)
 
     if [ -z "$QUOTE_NUMBERS" ]; then

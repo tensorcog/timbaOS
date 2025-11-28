@@ -1,0 +1,557 @@
+╔════════════════════════════════════════════════════╗
+║  Bill's Supplies - Regression Test Suite          ║
+╚════════════════════════════════════════════════════╝
+
+Started at: Fri Nov 28 03:26:47 CST 2025
+Server URL: http://localhost:3000
+Log file: ./test-results/test-run-20251128_032647.log
+
+[1;33mChecking server status...[0m
+[0;32m✓ Server is running[0m
+
+==================================================
+[0;34mRunning: RBAC Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  RBAC Regression Test Suite           ║
+╔════════════════════════════════════════╗
+
+
+=========================================
+TEST: Unauthenticated User Access
+=========================================
+[1;33mℹ INFO[0m: Testing GET /api/analytics without auth
+[0;32m✓ PASS[0m: Unauthenticated user correctly blocked from analytics
+[1;33mℹ INFO[0m: Testing GET /api/quotes without auth
+[0;32m✓ PASS[0m: Unauthenticated user correctly blocked from quotes
+
+=========================================
+TEST: Admin User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics
+[0;32m✓ PASS[0m: Admin can access analytics endpoint
+[1;33mℹ INFO[0m: Testing GET /api/quotes
+[0;32m✓ PASS[0m: Admin can access quotes endpoint (found 20 quotes)
+
+=========================================
+TEST: Sales User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as sales1@billssupplies.com
+[0;32m✓ PASS[0m: Sales login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics (should be blocked)
+[0;32m✓ PASS[0m: Sales user correctly blocked from analytics
+[1;33mℹ INFO[0m: Testing GET /api/quotes (should only see own quotes)
+[0;32m✓ PASS[0m: Sales can access quotes endpoint (found 15 quotes)
+[0;32m✓ PASS[0m: Sales user sees fewer quotes than admin (15 < 20) - filtering works!
+
+=========================================
+TEST: Manager User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as amherst.manager@billssupplies.com
+[0;32m✓ PASS[0m: Manager login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics (should have access)
+[0;32m✓ PASS[0m: Manager can access analytics endpoint
+[1;33mℹ INFO[0m: Testing GET /api/quotes (should see location-filtered quotes)
+[0;32m✓ PASS[0m: Manager can access quotes endpoint (found 20 quotes)
+[0;32m✓ PASS[0m: Manager sees more/equal quotes than sales (20 >= 15)
+
+=========================================
+TEST: Quote Creation Permissions
+=========================================
+[1;33mℹ INFO[0m: This test validates quote creation permissions
+[0;32m✓ PASS[0m: Quote creation test prepared (requires seed data IDs)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 14[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ RBAC Tests PASSED[0m
+==================================================
+[0;34mRunning: Quote Validation Tests[0m
+==================================================
+╔════════════════════════════════════════════════════╗
+║  Quote Validation Regression Tests                ║
+╚════════════════════════════════════════════════════╝
+
+
+=========================================
+TEST: Quote Creation Validation
+=========================================
+[1;33mℹ INFO[0m: Fetching test data from database...
+[0;34mDEBUG[0m: Test data: {"customerId":"a706cb22-e099-4886-abb9-16bb17d8a81f","locationId":"f4d0250d-1099-4b65-b56c-0861c66f01c8","productId":"38f0ecf1-22e2-4f23-b611-0a86fbda2195","userId":"bb0f2f06-a527-45e7-b098-8f26ebe624fa","productPrice":"14.99"}
+[1;33mℹ INFO[0m: Logging in as sales1@billssupplies.com
+[0;32m✓ PASS[0m: Sales user login successful
+[1;33mℹ INFO[0m: Creating a new quote
+[0;32m✓ PASS[0m: Quote created successfully: Q-1020
+
+=========================================
+TEST: Quote Total Calculation Validation
+=========================================
+[0;34mDEBUG[0m: Quote data: {"id":"de5be065-34b4-431b-9306-d5e2a20a0ad6","quoteNumber":"Q-SEED-001","subtotal":"100","taxAmount":"8.25","discountAmount":"0","deliveryFee":"0","totalAmount":"108.25","itemCount":1,"taxExempt":false,"taxRate":"0.0825"}
+[1;33mℹ INFO[0m: Quote totals - Subtotal: 100, Tax: 8.25, Discount: 0, Delivery: 0, Total: 108.25
+[0;32m✓ PASS[0m: Quote total calculation is correct (108.25 = 108.25)
+
+=========================================
+TEST: Quote Tax Calculation
+=========================================
+[1;33mℹ INFO[0m: No tax-exempt customer quotes found to test
+[0;32m✓ PASS[0m: Quote tax calculation is correct (100 × 0.0825 = 8.25)
+
+=========================================
+TEST: Quote Delivery Fee Calculation
+=========================================
+[1;33mℹ INFO[0m: Delivery fees - With delivery: 0, Without: 5
+[0;32m✓ PASS[0m: Quote delivery fees are being calculated and tracked
+
+=========================================
+TEST: Quote Status Transitions
+=========================================
+[1;33mℹ INFO[0m: Quote status distribution - DRAFT: 0, PENDING: 1, SENT: 0, ACCEPTED: 4, REJECTED: 0, EXPIRED: 0
+[0;32m✓ PASS[0m: Quote statuses are being tracked correctly
+
+=========================================
+TEST: Quote Validity Period
+=========================================
+[1;33mℹ INFO[0m: Quote validity - Valid: 5, Expired: 0
+[0;32m✓ PASS[0m: Quote validity periods are being tracked correctly
+[1;33mℹ INFO[0m: No expired quotes found to test conversion blocking
+
+=========================================
+TEST: Quote Number Generation
+=========================================
+[1;33mℹ INFO[0m: Quote numbers - Total: 5
+[0;32m✓ PASS[0m: All quote numbers are unique
+
+=========================================
+TEST: Quote Access Permissions
+=========================================
+[1;33mℹ INFO[0m: Testing sales user quote filtering
+[0;32m✓ PASS[0m: Sales user can access quotes endpoint (found 20 quotes)
+[1;33mℹ INFO[0m: Testing admin user quote access
+[0;32m✓ PASS[0m: Admin can access quotes endpoint (found 25 quotes)
+[0;32m✓ PASS[0m: Admin sees more/equal quotes than sales user (25 >= 20)
+[1;33mℹ INFO[0m: Testing unauthenticated quote access
+[0;32m✓ PASS[0m: Unauthenticated users correctly blocked from quotes
+
+=========================================
+TEST: Quote to Order Conversion
+=========================================
+[1;33mℹ INFO[0m: Testing conversion for quote: Q-1020 (status: PENDING)
+[0;32m✓ PASS[0m: Quote Q-1020 converted to order successfully
+[0;32m✓ PASS[0m: Converted order has correct total (81.13)
+[0;32m✓ PASS[0m: Quote status correctly updated to ACCEPTED
+[0;32m✓ PASS[0m: Quote correctly linked to order
+
+=========================================
+TEST: Quote Conversion Validation Rules
+=========================================
+[1;33mℹ INFO[0m: Testing that already-converted quotes cannot be re-converted
+[0;32m✓ PASS[0m: Already-converted quotes are correctly blocked from re-conversion
+[1;33mℹ INFO[0m: No rejected quotes found to test
+[1;33mℹ INFO[0m: No draft quotes found to test
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 17[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Quote Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: Order Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Order Validation Regression Tests    ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Order Creation Validation
+=========================================
+[1;33mℹ INFO[0m: Fetching test data from database...
+[0;34mDEBUG[0m: Test data: {"customerId":"a706cb22-e099-4886-abb9-16bb17d8a81f","locationId":"f4d0250d-1099-4b65-b56c-0861c66f01c8","productId":"38f0ecf1-22e2-4f23-b611-0a86fbda2195","userId":"bb0f2f06-a527-45e7-b098-8f26ebe624fa","productPrice":"14.99"}
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[1;33mℹ INFO[0m: Testing order creation via quote conversion
+[0;32m✓ PASS[0m: Order creation test prepared (using existing conversion flow)
+
+=========================================
+TEST: Order Total Calculation Validation
+=========================================
+[1;33mℹ INFO[0m: Testing order total calculations with various scenarios
+[0;34mDEBUG[0m: Order data: {"id":"55f14f1a-8cd6-4dc3-b7c5-84345fd0cd45","subtotal":"3219.95","taxAmount":"265.65","discountAmount":"0","deliveryFee":"0","totalAmount":"3485.6","itemCount":4,"taxExempt":false,"taxRate":"0.0825"}
+[1;33mℹ INFO[0m: Order totals - Subtotal: 3219.95, Tax: 265.65, Discount: 0, Delivery: 0, Total: 3485.6
+[0;32m✓ PASS[0m: Order total calculation is correct (3485.60 = 3485.60)
+
+=========================================
+TEST: Tax Calculation Validation
+=========================================
+[0;32m✓ PASS[0m: Tax-exempt customers have zero tax amount
+[0;32m✓ PASS[0m: Tax calculation is correct (4360.8 × 0.0825 = 359.77)
+
+=========================================
+TEST: Order Payment Status Validation
+=========================================
+[1;33mℹ INFO[0m: Payment status distribution - PENDING: 773, PAID: 2236, PARTIAL: 0
+[0;32m✓ PASS[0m: Order payment statuses are being tracked correctly
+
+=========================================
+TEST: Order Edit Validation
+=========================================
+[1;33mℹ INFO[0m: Testing order edit for order: 55f14f1a-8cd6-4dc3-b7c5-84345fd0cd45
+[1;33mℹ INFO[0m: Attempting to update quantity from 14 to 15
+[0;32m✓ PASS[0m: PENDING order can be edited successfully
+[1;33mℹ INFO[0m: Testing that PROCESSING orders cannot be edited
+[0;32m✓ PASS[0m: PROCESSING orders are correctly blocked from editing
+
+=========================================
+TEST: Order Status Transitions
+=========================================
+[1;33mℹ INFO[0m: Testing status transition for order: 407c3968-9c2e-43de-b4f0-05d8366b2f9f
+[1;33mℹ INFO[0m: Testing PENDING -> CONFIRMED transition via /api/orders/407c3968-9c2e-43de-b4f0-05d8366b2f9f/confirm
+[0;32m✓ PASS[0m: Order confirmation successful (PENDING -> PROCESSING)
+[0;32m✓ PASS[0m: Order status correctly updated to PROCESSING in database
+
+=========================================
+TEST: Order Cancellation Validation
+=========================================
+[1;33mℹ INFO[0m: Testing order cancellation for order: 55f14f1a-8cd6-4dc3-b7c5-84345fd0cd45
+[0;32m✓ PASS[0m: Order cancellation successful
+[0;32m✓ PASS[0m: Order status correctly updated to CANCELLED in database
+
+=========================================
+TEST: Quote to Order Conversion Validation
+=========================================
+[1;33mℹ INFO[0m: No convertible quotes found to test conversion
+[0;32m✓ PASS[0m: Quote conversion test skipped (no suitable quotes)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 13[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Order Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: Inventory Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Inventory Validation Regression Tests║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Inventory Levels Tracking
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[0;34mDEBUG[0m: Location data: {"locationId":"f4d0250d-1099-4b65-b56c-0861c66f01c8","locationName":"Bills Supplies - Orchard Park","productId":"4e8837e9-f39e-42f1-90f4-7a4a891b2547","productName":"Faucet","stockLevel":25}
+[1;33mℹ INFO[0m: Testing inventory for location: Bills Supplies - Orchard Park (Stock: 25)
+[0;32m✓ PASS[0m: Inventory data retrieved successfully (found 400 items)
+[0;32m✓ PASS[0m: No negative stock levels found
+
+=========================================
+TEST: Low Stock Detection
+=========================================
+[1;33mℹ INFO[0m: Found 5 items with low stock
+[0;32m✓ PASS[0m: Low stock detection is working (found 5 items)
+
+=========================================
+TEST: Inventory Deduction After POS Sale
+=========================================
+[1;33mℹ INFO[0m: Current stock level: 158
+[1;33mℹ INFO[0m: Attempting POS checkout with 2 items
+[0;32m✓ PASS[0m: POS checkout successful
+[0;32m✓ PASS[0m: Inventory correctly deducted (was: 158, now: 156, expected: 156)
+
+=========================================
+TEST: Multi-Location Inventory
+=========================================
+[1;33mℹ INFO[0m: Product found in 5 locations
+[0;32m✓ PASS[0m: Multi-location inventory tracking is working (found in 5 locations)
+
+=========================================
+TEST: Inventory Query Performance
+=========================================
+[1;33mℹ INFO[0m: Inventory query took 39ms
+[0;32m✓ PASS[0m: Inventory query performance is acceptable (39ms)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 8[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Inventory Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: POS Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  POS Validation Regression Tests      ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: POS Checkout Flow
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[0;34mDEBUG[0m: Test data: {"locationId":"f4d0250d-1099-4b65-b56c-0861c66f01c8","customerId":"a706cb22-e099-4886-abb9-16bb17d8a81f","productId":"38f0ecf1-22e2-4f23-b611-0a86fbda2195","price":"14.99"}
+[1;33mℹ INFO[0m: Testing POS checkout for product: 
+[0;32m✓ PASS[0m: POS checkout successful: ORD-1018
+[0;32m✓ PASS[0m: Order type correctly set to POS
+[0;32m✓ PASS[0m: Payment status correctly set to PAID
+[0;32m✓ PASS[0m: Order status correctly set to COMPLETED
+
+=========================================
+TEST: Walk-in Customer Creation
+=========================================
+[0;32m✓ PASS[0m: Walk-in customer created: Walk-in 1764322029076
+[0;32m✓ PASS[0m: Walk-in customer name format is correct
+
+=========================================
+TEST: Multiple Payment Methods (Split)
+=========================================
+[1;33mℹ INFO[0m: No suitable test data found
+[0;32m✓ PASS[0m: Multiple payment test skipped (no data)
+
+=========================================
+TEST: POS Tax Calculation
+=========================================
+[1;33mℹ INFO[0m: No taxable customer found
+[0;32m✓ PASS[0m: POS tax test skipped (no taxable customer)
+
+=========================================
+TEST: POS Products Endpoint
+=========================================
+[0;32m✓ PASS[0m: POS products endpoint accessible (found 50 products)
+[0;32m✓ PASS[0m: Products include required fields (name, price)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 11[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ POS Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: Customer Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Customer Validation Regression Tests ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Customer Types (RETAIL vs WHOLESALE)
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[1;33mℹ INFO[0m: Customer types - RETAIL: 156, WHOLESALE: 60
+[0;32m✓ PASS[0m: Customer types are being tracked correctly
+
+=========================================
+TEST: Tax-Exempt Customer Status
+=========================================
+[1;33mℹ INFO[0m: Tax status - Exempt: 16, Non-exempt: 240
+[0;32m✓ PASS[0m: Tax-exempt status is being tracked correctly
+
+=========================================
+TEST: Customer Listing
+=========================================
+[0;32m✓ PASS[0m: Customer listing accessible (found 10 customers)
+[0;32m✓ PASS[0m: Customers include required fields (name, email)
+
+=========================================
+TEST: Customer Email Uniqueness
+=========================================
+[0;32m✓ PASS[0m: No duplicate customer emails found
+
+=========================================
+TEST: Walk-in Customer Generation
+=========================================
+[0;32m✓ PASS[0m: Walk-in customer created successfully: Walk-in 1764322032066
+[0;32m✓ PASS[0m: Walk-in customer saved to database
+[0;32m✓ PASS[0m: Walk-in customer type is RETAIL
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 8[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Customer Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: Product Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Product Validation Regression Tests  ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Product Listing
+=========================================
+[1;33mℹ INFO[0m: Logging in as sales1@billssupplies.com
+[0;32m✓ PASS[0m: Product listing accessible (found 50 products)
+[0;32m✓ PASS[0m: Products include required fields (name, sku, price)
+
+=========================================
+TEST: Product Categories
+=========================================
+[1;33mℹ INFO[0m: Found 9 unique categories across 200 products
+[0;32m✓ PASS[0m: Product categories are being tracked (9 categories)
+
+=========================================
+TEST: SKU Uniqueness
+=========================================
+[0;32m✓ PASS[0m: No duplicate SKUs found
+
+=========================================
+TEST: Active/Inactive Product Status
+=========================================
+[1;33mℹ INFO[0m: Product status - Active: 200, Inactive: 0
+[0;32m✓ PASS[0m: Product active status is being tracked correctly
+
+=========================================
+TEST: Product Pricing
+=========================================
+[1;33mℹ INFO[0m: Product has base price: 14.99
+[0;32m✓ PASS[0m: Product has valid base price (14.99)
+[0;32m✓ PASS[0m: Product cost tracking is available
+
+=========================================
+TEST: Location-Specific Pricing
+=========================================
+[1;33mℹ INFO[0m: No location-specific pricing found (using base prices only)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 7[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Product Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: Audit Log Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Audit Log Validation Regression Tests║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Quote Audit Log Retrieval
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[1;33mℹ INFO[0m: Testing audit logs for quote: de5be065-34b4-431b-9306-d5e2a20a0ad6
+[0;32m✓ PASS[0m: Audit logs retrieved successfully (found 0 logs)
+[1;33mℹ INFO[0m: Skipping field validation (no logs found)
+
+=========================================
+TEST: Order Audit Log Retrieval
+=========================================
+[1;33mℹ INFO[0m: Testing audit logs for order: 31d1a240-dc2d-43c1-b286-d14ae5359c83
+[0;32m✓ PASS[0m: Order audit logs retrieved successfully (found 0 logs)
+
+=========================================
+TEST: User Attribution in Audit Logs
+=========================================
+[0;32m✓ PASS[0m: Audit logs include user attribution (5 logs with users)
+
+=========================================
+TEST: Audit Log Timestamp Accuracy
+=========================================
+[0;32m✓ PASS[0m: Audit log timestamps are being recorded (found 10 recent logs)
+
+=========================================
+TEST: Audit Log Action Types
+=========================================
+[1;33mℹ INFO[0m: Found 4 unique action types across 22 logs
+[0;32m✓ PASS[0m: Audit logs capture various action types (4 types)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 5[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Audit Log Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: Export Validation Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  Export Validation Regression Tests   ║
+╚════════════════════════════════════════╝
+
+
+=========================================
+TEST: Export Endpoint Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[1;33mℹ INFO[0m: Export endpoint status: 400 (may not be implemented yet)
+
+=========================================
+TEST: Export RBAC (Role-Based Access)
+=========================================
+[1;33mℹ INFO[0m: Testing export access as sales user
+[1;33mℹ INFO[0m: Export endpoint returned status: 400
+[1;33mℹ INFO[0m: Testing export access as manager
+[1;33mℹ INFO[0m: Manager export access status: 400
+
+=========================================
+TEST: Analytics Data for Export
+=========================================
+[0;32m✓ PASS[0m: Analytics data is accessible for export
+[0;32m✓ PASS[0m: Analytics data includes key exportable metrics
+
+=========================================
+TEST: Export Data Completeness
+=========================================
+[1;33mℹ INFO[0m: Data available for export - Quotes: 5, Orders: 3011, Customers: 257, Products: 200
+[0;32m✓ PASS[0m: All data types available for export
+
+=========================================
+TEST: Export Performance
+=========================================
+[1;33mℹ INFO[0m: Export/analytics query took 471ms
+[0;32m✓ PASS[0m: Export performance is acceptable (471ms < 10s)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 5[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Export Validation Tests PASSED[0m
+==================================================
+[0;34mRunning: API Conversion Tests[0m
+==================================================
+Logging in as admin...
+[1;33mNo suitable quote found for conversion test[0m
+[0;32m✓ API Conversion Tests PASSED[0m
+
+==================================================
+TEST SUITE SUMMARY
+==================================================
+[0;32mTest Suites Passed: 10[0m
+[0;31mTest Suites Failed: 0[0m
+==================================================
+Completed at: Fri Nov 28 03:27:21 CST 2025
+
+[0;32m✓ ALL TEST SUITES PASSED[0m
+
+Full results saved to: ./test-results/test-run-20251128_032647.log

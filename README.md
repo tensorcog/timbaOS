@@ -131,7 +131,11 @@ spruce-killer/
 │   │   ├── agent-core.ts            # Base agent class
 │   │   └── prisma.ts                # Prisma client
 │   └── styles/
-├── MIGRATION.md               # Migration guide
+├── docs/                      # Documentation
+│   ├── MIGRATION.md           # Migration guide
+│   ├── IMPLEMENTATION_SUMMARY.md
+│   ├── QUICKSTART.md
+│   └── SCHEMA_IMPROVEMENTS.md
 └── README.md                  # This file
 ```
 
@@ -241,7 +245,7 @@ Transfer statuses: PENDING → IN_TRANSIT → RECEIVED
 5. Map location codes (if multi-location)
 6. Preview and import
 
-See [MIGRATION.md](./MIGRATION.md) for detailed instructions.
+See [MIGRATION.md](./docs/MIGRATION.md) for detailed instructions.
 
 ---
 
@@ -429,7 +433,7 @@ This project is proprietary software. All rights reserved.
 ## Support
 
 For questions or issues:
-- Check [MIGRATION.md](./MIGRATION.md) for setup help
+- Check [MIGRATION.md](./docs/MIGRATION.md) for setup help
 - Review Prisma docs: https://www.prisma.io/docs
 - Review Next.js docs: https://nextjs.org/docs
 

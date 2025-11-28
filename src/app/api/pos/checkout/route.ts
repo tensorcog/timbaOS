@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { OrderType, OrderStatus, PaymentStatus, FulfillmentType } from '@prisma/client';
+import { currency } from '@/lib/currency';
 
 export async function POST(request: NextRequest) {
     try {
@@ -21,13 +22,27 @@ export async function POST(request: NextRequest) {
 
         const taxRate = parseFloat(location?.taxRate?.toString() || '0.0825');
 
-        // Calculate totals
-        const subtotal = items.reduce((sum: number, item: any) => {
-            return sum + (item.price * item.quantity - (item.discount || 0));
-        }, 0);
+        // Calculate totals using Currency helper for precision
+        let subtotal = currency(0);
+        let discountAmount = currency(0);
 
-        const taxAmount = customer?.taxExempt ? 0 : subtotal * taxRate;
-        const totalAmount = subtotal + taxAmount;
+        // Process items with proper currency handling
+        for (const item of items) {
+            const itemPrice = currency(item.price);
+            const itemQuantity = item.quantity;
+            const itemDiscount = currency(item.discount || 0);
+
+            const itemLineTotal = itemPrice.multiply(itemQuantity).subtract(itemDiscount);
+            subtotal = subtotal.add(itemLineTotal);
+            discountAmount = discountAmount.add(itemDiscount);
+        }
+
+        // Calculate tax with proper precision
+        const taxAmount = customer?.taxExempt
+            ? currency(0)
+            : subtotal.multiply(taxRate);
+
+        const totalAmount = subtotal.add(taxAmount);
 
         // Create order with transaction
         const order = await prisma.$transaction(async (tx) => {
@@ -40,10 +55,10 @@ export async function POST(request: NextRequest) {
                     orderType: OrderType.POS,
                     status: OrderStatus.COMPLETED,
                     paymentStatus: PaymentStatus.PAID,
-                    subtotal,
-                    taxAmount,
-                    discountAmount: items.reduce((sum: number, item: any) => sum + (item.discount || 0), 0),
-                    totalAmount,
+                    subtotal: subtotal.toNumber(),
+                    taxAmount: taxAmount.toNumber(),
+                    discountAmount: discountAmount.toNumber(),
+                    totalAmount: totalAmount.toNumber(),
                     fulfillmentType: FulfillmentType.PICKUP,
                     completedAt: new Date(),
                     items: {

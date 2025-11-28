@@ -121,6 +121,15 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                         Admin
                                     </Link>
                                 )}
+                                {(userRole === 'SUPER_ADMIN' || userRole === 'LOCATION_ADMIN') && (
+                                    <Link
+                                        href="/dashboard/admin/users"
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    >
+                                        <Users className="h-4 w-4" />
+                                        Employees
+                                    </Link>
+                                )}
                             </nav>
                         </div>
                     </div>

@@ -1,0 +1,227 @@
+
+Running 13 tests using 8 workers
+
+[1A[2K[1/13] [chromium] › tests/e2e/order.spec.ts:99:9 › Order Validation › Order Payment Status Validation
+[1A[2K[2/13] [chromium] › tests/e2e/order.spec.ts:109:9 › Order Validation › Order Cancellation Validation
+[1A[2K[3/13] [chromium] › tests/e2e/order.spec.ts:205:9 › Order Validation › Tax Calculation Validation
+[1A[2K[4/13] [chromium] › tests/e2e/order.spec.ts:13:9 › Order Validation › Order Creation Validation
+[1A[2K[5/13] [chromium] › tests/e2e/order.spec.ts:128:9 › Order Validation › Quote to Order Conversion Validation
+[1A[2K[6/13] [chromium] › tests/e2e/order.spec.ts:46:9 › Order Validation › Order Status Transitions (Confirm)
+[1A[2K[7/13] [chromium] › tests/e2e/order.spec.ts:66:9 › Order Validation › Order Edit Validation
+[1A[2K[8/13] [chromium] › tests/e2e/order.spec.ts:24:9 › Order Validation › Order Total Calculation Validation
+[1A[2K[9/13] [chromium] › tests/e2e/pos.spec.ts:13:9 › POS Validation › POS Checkout Flow
+[1A[2K[10/13] [chromium] › tests/e2e/pos.spec.ts:57:9 › POS Validation › Walk-in Customer Creation
+[1A[2K[11/13] [chromium] › tests/e2e/pos.spec.ts:65:9 › POS Validation › Multiple Payment Methods (Split)
+[1A[2K[chromium] › tests/e2e/order.spec.ts:128:9 › Order Validation › Quote to Order Conversion Validation
+No convertible quotes found, creating one...
+
+[1A[2K[12/13] [chromium] › tests/e2e/pos.spec.ts:134:9 › POS Validation › POS Tax Calculation
+[1A[2K[chromium] › tests/e2e/pos.spec.ts:65:9 › POS Validation › Multiple Payment Methods (Split)
+Checkout Data: {
+  "customerId": "a706cb22-e099-4886-abb9-16bb17d8a81f",
+  "locationId": "f4d0250d-1099-4b65-b56c-0861c66f01c8",
+  "items": [
+    {
+      "productId": "prod-1764340524341",
+      "quantity": 2,
+      "price": 100,
+      "discount": 0
+    }
+  ],
+  "payments": [
+    {
+      "method": "CASH",
+      "amount": 100
+    },
+    {
+      "method": "CARD",
+      "amount": 100
+    }
+  ]
+}
+
+[1A[2K[13/13] [chromium] › tests/e2e/pos.spec.ts:179:9 › POS Validation › POS Products Endpoint
+[1A[2KPOS Checkout failed: 400
+
+[1A[2K{"error":"Invalid input","details":{"_errors":[],"payments":{"1":{"_errors":[],"method":{"_errors":["Invalid option: expected one of \"CASH\"|\"CREDIT_CARD\"|\"DEBIT_CARD\"|\"CHECK\"|\"ACCOUNT\"|\"WIRE_TRANSFER\""]}},"_errors":[]}}}
+
+[1A[2K  1) [chromium] › tests/e2e/order.spec.ts:46:9 › Order Validation › Order Status Transitions (Confirm) 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      56 |
+      57 |         const res = await helper.post(`/api/orders/${order.id}/confirm`, {});
+    > 58 |         expect(res.ok()).toBeTruthy();
+         |                          ^
+      59 |         const body = await res.json();
+      60 |         expect(body.success).toBeTruthy();
+      61 |
+        at /home/monty/spruce-killer/tests/e2e/order.spec.ts:58:26
+
+
+[1A[2K  2) [chromium] › tests/e2e/pos.spec.ts:65:9 › POS Validation › Multiple Payment Methods (Split) ───
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      121 |             console.log(await res.text());
+      122 |         }
+    > 123 |         expect(res.ok()).toBeTruthy();
+          |                          ^
+      124 |         const body = await res.json();
+      125 |
+      126 |         const payments = await prisma.payment.count({ where: { orderId: body.id } });
+        at /home/monty/spruce-killer/tests/e2e/pos.spec.ts:123:26
+
+
+[1A[2K[chromium] › tests/e2e/order.spec.ts:128:9 › Order Validation › Quote to Order Conversion Validation
+Conversion Response Body: {
+  "success": true,
+  "order": {
+    "id": "e06a2438-22e4-4947-b621-bf2382e54203",
+    "orderNumber": "ORD-003051",
+    "locationId": "f4d0250d-1099-4b65-b56c-0861c66f01c8",
+    "customerId": "a706cb22-e099-4886-abb9-16bb17d8a81f",
+    "totalAmount": "81.13",
+    "deliveryAddress": "Auto-created for conversion test",
+    "deliveryDate": null,
+    "deliveryFee": "0",
+    "salesRepId": "d8d46d4b-a3a3-4c7f-bd8a-355cd3a77179",
+    "createdAt": "2025-11-28T14:35:24.525Z",
+    "updatedAt": "2025-11-28T14:35:24.524Z",
+    "completedAt": null,
+    "discountAmount": "0",
+    "subtotal": "74.95",
+    "taxAmount": "6.18",
+    "status": "PENDING",
+    "fulfillmentType": "PICKUP",
+    "orderType": "QUOTE_CONVERSION",
+    "paymentStatus": "PENDING",
+    "OrderItem": [
+      {
+        "id": "529f2119-4fd6-4ec7-b7a0-daef1fbd46f3",
+        "orderId": "e06a2438-22e4-4947-b621-bf2382e54203",
+        "productId": "38f0ecf1-22e2-4f23-b611-0a86fbda2195",
+        "quantity": 5,
+        "price": "14.99",
+        "discount": "0",
+        "Product": {
+          "id": "38f0ecf1-22e2-4f23-b611-0a86fbda2195",
+          "name": "2x8x10 Pressure Treated",
+          "description": "Pressure Treated lumber for framing and construction",
+          "sku": "LMB-1000",
+          "basePrice": "14.99",
+          "category": "Lumber",
+          "uom": "EA",
+          "isActive": true,
+          "createdAt": "2025-11-28T09:11:07.729Z",
+          "updatedAt": "2025-11-28T09:11:07.728Z"
+        }
+      }
+    ],
+    "Customer": {
+      "id": "a706cb22-e099-4886-abb9-16bb17d8a81f",
+      "name": "Seed Customer",
+      "email": "seed.customer@example.com",
+      "phone": null,
+      "address": null,
+      "accountNumber": null,
+      "creditLimit": "0",
+      "taxExempt": false,
+      "taxId": null,
+      "createdAt": "2025-11-28T09:11:23.516Z",
+      "updatedAt": "2025-11-28T09:11:23.515Z",
+      "loyaltyPoints": 0,
+      "customerType": "RETAIL"
+    },
+    "Location": {
+      "id": "f4d0250d-1099-4b65-b56c-0861c66f01c8",
+      "code": "ORCHARDPARK",
+      "name": "Bills Supplies - Orchard Park",
+      "address": "5680 Abbott Road, Orchard Park, NY 14127",
+      "phone": "716-555-0400",
+      "email": "orchardpark@billssupplies.com",
+      "timezone": "America/New_York",
+      "isActive": true,
+      "isWarehouse": false,
+      "managerId": "465f5f68-5698-4bdd-b94a-aa663543a21f",
+      "createdAt": "2025-11-28T09:11:07.707Z",
+      "updatedAt": "2025-11-28T09:11:07.706Z",
+      "taxRate": "0.0825"
+    }
+  },
+  "message": "Quote Q-1031 successfully converted to order ORD-003051"
+}
+
+[1A[2KConverted Order ID: undefined
+
+[1A[2K  3) [chromium] › tests/e2e/order.spec.ts:128:9 › Order Validation › Quote to Order Conversion Validation 
+
+    PrismaClientValidationError: 
+    Invalid `prisma.order.findUnique()` invocation in
+    /home/monty/spruce-killer/tests/e2e/order.spec.ts:198:42
+
+      195 
+      196 const orderId = body.id;
+      197 console.log(`Converted Order ID: ${orderId}`);
+    → 198 const order = await prisma.order.findUnique({
+            where: {
+              id: undefined,
+          ?   orderNumber?: String,
+          ?   AND?: OrderWhereInput | OrderWhereInput[],
+          ?   OR?: OrderWhereInput[],
+          ?   NOT?: OrderWhereInput | OrderWhereInput[],
+          ?   locationId?: StringFilter | String,
+          ?   customerId?: StringFilter | String,
+          ?   totalAmount?: DecimalFilter | Decimal,
+          ?   deliveryAddress?: StringNullableFilter | String | Null,
+          ?   deliveryDate?: DateTimeNullableFilter | DateTime | Null,
+          ?   deliveryFee?: DecimalFilter | Decimal,
+          ?   salesRepId?: StringNullableFilter | String | Null,
+          ?   createdAt?: DateTimeFilter | DateTime,
+          ?   updatedAt?: DateTimeFilter | DateTime,
+          ?   completedAt?: DateTimeNullableFilter | DateTime | Null,
+          ?   discountAmount?: DecimalFilter | Decimal,
+          ?   subtotal?: DecimalFilter | Decimal,
+          ?   taxAmount?: DecimalFilter | Decimal,
+          ?   status?: EnumOrderStatusFilter | OrderStatus,
+          ?   fulfillmentType?: EnumFulfillmentTypeFilter | FulfillmentType,
+          ?   orderType?: EnumOrderTypeFilter | OrderType,
+          ?   paymentStatus?: EnumPaymentStatusFilter | PaymentStatus,
+          ?   Customer?: CustomerRelationFilter | CustomerWhereInput,
+          ?   Location?: LocationRelationFilter | LocationWhereInput,
+          ?   User?: UserNullableRelationFilter | UserWhereInput | Null,
+          ?   OrderItem?: OrderItemListRelationFilter,
+          ?   Payment?: PaymentListRelationFilter,
+          ?   Quote?: QuoteNullableRelationFilter | QuoteWhereInput | Null
+            }
+          })
+
+    Argument `where` of type OrderWhereUniqueInput needs at least one of `id` or `orderNumber` arguments. Available options are marked with ?.
+
+      196 |         const orderId = body.id;
+      197 |         console.log(`Converted Order ID: ${orderId}`);
+    > 198 |         const order = await prisma.order.findUnique({ where: { id: orderId } });
+          |                                          ^
+      199 |         expect(Number(order?.totalAmount)).toBe(Number(quote.totalAmount));
+      200 |
+      201 |         const updatedQuote = await prisma.quote.findUnique({ where: { id: quote.id } });
+        at /home/monty/spruce-killer/tests/e2e/order.spec.ts:198:42
+        at wn (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:29:1363)
+        at $n.handleRequestError (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:121:6958)
+        at $n.handleAndLogRequestError (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:121:6623)
+        at $n.request (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:121:6307)
+        at l (/home/monty/spruce-killer/node_modules/@prisma/client/runtime/library.js:130:9633)
+        at /home/monty/spruce-killer/tests/e2e/order.spec.ts:198:23
+
+
+[1A[2K  3 failed
+    [chromium] › tests/e2e/order.spec.ts:46:9 › Order Validation › Order Status Transitions (Confirm) 
+    [chromium] › tests/e2e/order.spec.ts:128:9 › Order Validation › Quote to Order Conversion Validation 
+    [chromium] › tests/e2e/pos.spec.ts:65:9 › POS Validation › Multiple Payment Methods (Split) ────
+  10 passed (1.6s)
+
+[36m  Serving HTML report at http://localhost:50251. Press Ctrl+C to quit.[39m

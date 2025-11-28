@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CreditCard, DollarSign, Check, Wallet, X } from 'lucide-react';
+import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 
 interface CartItem {
     productId: string;
@@ -32,16 +34,49 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
     const [paymentAmount, setPaymentAmount] = useState('');
     const [cashTendered, setCashTendered] = useState('');
     const [processing, setProcessing] = useState(false);
+    const [taxRate, setTaxRate] = useState<Decimal>(new Decimal(0.0825));
 
-    // Calculate totals (simplified - should match cart calculation)
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity - item.discount), 0);
-    const total = subtotal; // Tax calculation would be added here
-    const paidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
-    const remaining = total - paidAmount;
+    // Fetch tax rate for location
+    useEffect(() => {
+        fetch(`/api/locations/${locationId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.taxRate) {
+                    setTaxRate(new Decimal(data.taxRate));
+                }
+            })
+            .catch(() => setTaxRate(new Decimal(0.0825)));
+    }, [locationId]);
+
+    // Calculate totals using Currency helper for precision
+    let subtotal = currency(0);
+    for (const item of cart) {
+        const itemPrice = currency(item.price);
+        const itemQuantity = item.quantity;
+        const itemDiscount = currency(item.discount);
+        const itemLineTotal = itemPrice.multiply(itemQuantity).subtract(itemDiscount);
+        subtotal = subtotal.add(itemLineTotal);
+    }
+
+    // Calculate tax with proper precision
+    const taxAmount = customer.taxExempt
+        ? currency(0)
+        : subtotal.multiply(currency(taxRate));
+
+    const total = subtotal.add(taxAmount);
+
+    // Calculate paid amount using Currency
+    let paidAmount = currency(0);
+    for (const p of payments) {
+        paidAmount = paidAmount.add(currency(p.amount));
+    }
+
+    const remaining = total.subtract(paidAmount);
+    const remainingNum = parseFloat(remaining.toString());
 
     const addPayment = () => {
         const amount = parseFloat(paymentAmount);
-        if (amount > 0 && amount <= remaining) {
+        if (amount > 0 && amount <= remainingNum) {
             setPayments([...payments, { method: selectedMethod, amount }]);
             setPaymentAmount('');
         }
@@ -52,7 +87,7 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
     };
 
     const completeTransaction = async () => {
-        if (remaining > 0.01) {
+        if (remainingNum > 0.01) {
             alert('Payment incomplete');
             return;
         }
@@ -92,7 +127,7 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
     };
 
     const change = selectedMethod === 'CASH' && cashTendered
-        ? parseFloat(cashTendered) - remaining
+        ? parseFloat(cashTendered) - remainingNum
         : 0;
 
     return (
@@ -109,10 +144,10 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                     {/* Total Due */}
                     <div className="mb-6 p-6 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border">
                         <div className="text-sm text-muted-foreground mb-1">Amount Due</div>
-                        <div className="text-4xl font-bold">${remaining.toFixed(2)}</div>
-                        {paidAmount > 0 && (
+                        <div className="text-4xl font-bold">${remaining.toString()}</div>
+                        {parseFloat(paidAmount.toString()) > 0 && (
                             <div className="text-sm text-muted-foreground mt-2">
-                                Paid: ${paidAmount.toFixed(2)} of ${total.toFixed(2)}
+                                Paid: ${paidAmount.toString()} of ${total.toString()}
                             </div>
                         )}
                     </div>
@@ -128,8 +163,8 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                                         key={method.id}
                                         onClick={() => setSelectedMethod(method.id)}
                                         className={`p-3 rounded-lg border flex flex-col items-center gap-2 transition-colors ${selectedMethod === method.id
-                                                ? 'bg-purple-500/20 border-purple-500'
-                                                : 'hover:bg-muted'
+                                            ? 'bg-purple-500/20 border-purple-500'
+                                            : 'hover:bg-muted'
                                             }`}
                                     >
                                         <Icon className="h-5 w-5" />
@@ -141,7 +176,7 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                     </div>
 
                     {/* Cash Tendered */}
-                    {selectedMethod === 'CASH' && remaining > 0 && (
+                    {selectedMethod === 'CASH' && remainingNum > 0 && (
                         <div className="mb-6">
                             <label className="text-sm font-medium mb-2 block">Cash Tendered</label>
                             <input
@@ -161,7 +196,7 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                     )}
 
                     {/* Payment Amount (for split payments) */}
-                    {remaining > 0 && (
+                    {remainingNum > 0 && (
                         <div className="mb-6">
                             <label className="text-sm font-medium mb-2 block">Amount</label>
                             <div className="flex gap-2">
@@ -171,10 +206,10 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                                     value={paymentAmount}
                                     onChange={(e) => setPaymentAmount(e.target.value)}
                                     className="flex-1 px-4 py-3 rounded-lg border bg-background"
-                                    placeholder={remaining.toFixed(2)}
+                                    placeholder={remaining.toString()}
                                 />
                                 <button
-                                    onClick={() => setPaymentAmount(remaining.toFixed(2))}
+                                    onClick={() => setPaymentAmount(remaining.toString())}
                                     className="px-4 py-2 rounded-lg border hover:bg-muted"
                                 >
                                     Exact
@@ -215,10 +250,10 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                     {/* Complete Button */}
                     <button
                         onClick={completeTransaction}
-                        disabled={remaining > 0.01 || processing}
+                        disabled={remainingNum > 0.01 || processing}
                         className="w-full py-4 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-bold text-lg hover:from-purple-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {processing ? 'Processing...' : remaining > 0.01 ? `$${remaining.toFixed(2)} Remaining` : 'Complete Transaction'}
+                        {processing ? 'Processing...' : remainingNum > 0.01 ? `$${remaining.toString()} Remaining` : 'Complete Transaction'}
                     </button>
                 </div>
             </div>

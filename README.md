@@ -16,11 +16,11 @@ timbaOS is a next-generation enterprise resource planning system specifically de
 - **Product Catalog** - Master product catalog with location-specific pricing
 - **Inter-Location Transfers** - Move inventory between locations with approval workflow
 
-### AI-Powered Automation
-- **StockWatcher Agent** - Autonomous inventory monitoring with low-stock alerts
-- **Location-Specific Agents** - Individual agents monitoring each store location
-- **Global Analytics Agent** - Cross-location performance analysis
-- **Smart Transfer Suggestions** - AI-recommended inventory rebalancing (coming soon)
+### Automated Monitoring
+- **StockWatcher** - Automated inventory monitoring with threshold-based low-stock alerts
+- **Location-Specific Monitoring** - Individual monitoring for each store location
+- **Global Analytics** - Cross-location performance reporting
+- **Transfer Management** - Manual inventory transfers between locations
 
 ### Multi-Location Features
 - **Per-Location Inventory** - Separate stock tracking for each location
@@ -182,30 +182,30 @@ timbaOS uses a sophisticated multi-location architecture:
 
 Example: A 2x4x8 pine board exists once in the product catalog, but has separate inventory records for "Main Yard" (450 units) and "Westside Branch" (320 units).
 
-### 2. AI Agents
+### 2. Automated Inventory Monitoring
 
-AI agents autonomously monitor and analyze your business:
+Automated monitoring helps track inventory levels:
 
-**Inventory Agent (StockWatcher)**
-- Monitors stock levels vs reorder points
-- Identifies items needing restocking
-- Operates per-location or globally
-- Returns actionable restock suggestions
+**StockWatcher**
+- Monitors stock levels against configured reorder points
+- Identifies items below threshold that need restocking
+- Can operate per-location or across all locations
+- Returns restock recommendations based on simple rules
 
-**Agent Architecture**
+**Implementation**
 ```typescript
 class InventoryAgent extends BaseAgent {
   async run(locationId?: string): Promise<AgentResult> {
-    // Find items below reorder point
-    // Return recommendations
+    // Query items where stockLevel < reorderPoint
+    // Return items that need restocking
   }
 }
 ```
 
-**Future Agents** (Roadmap)
-- TransferSuggestionAgent - Suggest inter-location transfers
-- PricingAgent - Monitor competitor pricing
-- DemandForecastAgent - Predict future inventory needs
+**Future Enhancements** (Roadmap)
+- Automated transfer suggestions between locations
+- Purchase order generation
+- Historical trend analysis
 
 ### 3. Location Selector
 
@@ -258,14 +258,16 @@ After running `npm run seed`, you get:
 - **WEST** - Westside Branch (450 West Avenue)
 - **WARE** - Distribution Warehouse (1000 Industrial Parkway)
 
-### Users
+### Users (from seed file)
 ```
-admin@timbaos.com          - SUPER_ADMIN
-main.manager@timbaos.com   - LOCATION_ADMIN (Main Yard)
-west.manager@timbaos.com   - LOCATION_ADMIN (Westside Branch)
-sales@timbaos.com          - SALES (Main + West access)
+Email: admin@billssupplies.com     - Role: SUPER_ADMIN
+Email: main.manager@billssupplies.com - Role: LOCATION_ADMIN (Main Yard)
+Email: west.manager@billssupplies.com - Role: LOCATION_ADMIN (Westside Branch)
+Email: sales@billssupplies.com       - Role: SALES (Main + West access)
 
-Password: hashed_password_here (change in production!)
+Password for all: password (bcrypt hashed in database)
+
+⚠️ These credentials only work with a freshly seeded database!
 ```
 
 ### Products
@@ -398,19 +400,32 @@ DATABASE_URL="postgresql://user:password@localhost:5432/pine_db?schema=public"
 
 ⚠️ **Important Security Considerations:**
 
-1. **Authentication**: The current version does NOT include authentication. Implement NextAuth.js or similar before production.
+1. **Authentication**: This application uses NextAuth.js for authentication:
+   - Session-based authentication with Prisma adapter
+   - Password hashing with bcryptjs
+   - Protected routes via middleware
+   - Seed file includes test users with password "password" (bcrypt hashed)
 
-2. **Password Hashing**: Seed data uses plain text passwords. Use bcrypt in production:
-```bash
-npm install bcrypt
-npm install --save-dev @types/bcrypt
-```
+2. **Current Implementation**:
+   - ✅ NextAuth configured with Credentials provider
+   - ✅ Passwords hashed with bcrypt
+   - ✅ Session management via database
+   - ✅ Protected dashboard routes
+   - ⚠️ API routes need additional RBAC enforcement
 
-3. **Environment Variables**: Never commit `.env` files. Use proper secrets management.
+3. **Before Production**:
+   - Change all default passwords
+   - Add rate limiting to login endpoint
+   - Implement proper RBAC checks on all API routes
+   - Enable HTTPS/SSL
+   - Use proper secrets management for `NEXTAUTH_SECRET`
 
-4. **API Security**: Add authentication middleware to all API routes.
-
-5. **RBAC**: Implement proper role-based access control checks in API routes.
+4. **Environment Variables**: Never commit `.env` files. Required variables:
+   ```
+   DATABASE_URL="postgresql://..."
+   NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
+   NEXTAUTH_URL="http://localhost:3000"
+   ```
 
 ---
 

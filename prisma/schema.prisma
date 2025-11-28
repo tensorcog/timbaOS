@@ -85,25 +85,25 @@ model Customer {
 }
 
 model InventoryTransfer {
-  id                    String         @id
-  transferNumber        String         @unique
-  originLocationId      String
-  destinationLocationId String
-  notes                 String?
-  requestedAt           DateTime       @default(now())
-  approvedAt            DateTime?
-  shippedAt             DateTime?
-  receivedAt            DateTime?
-  approvedById          String?
-  createdAt             DateTime       @default(now())
-  requestedById         String
-  updatedAt             DateTime
-  status                TransferStatus @default(PENDING)
-  approvedBy            User?          @relation("TransferApprovedBy", fields: [approvedById], references: [id])
-  destinationLocation   Location       @relation("TransferDestination", fields: [destinationLocationId], references: [id])
-  originLocation        Location       @relation("TransferOrigin", fields: [originLocationId], references: [id])
-  requestedBy           User           @relation("TransferRequestedBy", fields: [requestedById], references: [id])
-  TransferItem          TransferItem[]
+  id                                                         String         @id
+  transferNumber                                             String         @unique
+  originLocationId                                           String
+  destinationLocationId                                      String
+  notes                                                      String?
+  requestedAt                                                DateTime       @default(now())
+  approvedAt                                                 DateTime?
+  shippedAt                                                  DateTime?
+  receivedAt                                                 DateTime?
+  approvedById                                               String?
+  createdAt                                                  DateTime       @default(now())
+  requestedById                                              String
+  updatedAt                                                  DateTime
+  status                                                     TransferStatus @default(PENDING)
+  approvedBy        User?          @relation("InventoryTransfer_approvedByIdToUser", fields: [approvedById], references: [id])
+  destinationLocation Location       @relation("InventoryTransfer_destinationLocationIdToLocation", fields: [destinationLocationId], references: [id])
+  originLocation      Location       @relation("InventoryTransfer_originLocationIdToLocation", fields: [originLocationId], references: [id])
+  requestedBy         User           @relation("InventoryTransfer_requestedByIdToUser", fields: [requestedById], references: [id])
+  TransferItem                                               TransferItem[]
 
   @@index([approvedById])
   @@index([destinationLocationId])
@@ -113,28 +113,28 @@ model InventoryTransfer {
 }
 
 model Location {
-  id                String              @id
-  code              String              @unique
-  name              String
-  address           String
-  phone             String?
-  email             String?
-  timezone          String              @default("America/New_York")
-  isActive          Boolean             @default(true)
-  isWarehouse       Boolean             @default(false)
-  managerId         String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime
-  taxRate           Decimal             @default(0.0825) @db.Decimal(5, 4)
-  Agent             Agent[]
-  transfersToHere   InventoryTransfer[] @relation("TransferDestination")
-  transfersFromHere InventoryTransfer[] @relation("TransferOrigin")
-  User              User?               @relation(fields: [managerId], references: [id])
-  LocationInventory LocationInventory[]
-  LocationPricing   LocationPricing[]
-  Order             Order[]
-  Quote             Quote[]
-  UserLocation      UserLocation[]
+  id                                                                  String              @id
+  code                                                                String              @unique
+  name                                                                String
+  address                                                             String
+  phone                                                               String?
+  email                                                               String?
+  timezone                                                            String              @default("America/New_York")
+  isActive                                                            Boolean             @default(true)
+  isWarehouse                                                         Boolean             @default(false)
+  managerId                                                           String?
+  createdAt                                                           DateTime            @default(now())
+  updatedAt                                                           DateTime
+  taxRate                                                             Decimal             @default(0.0825) @db.Decimal(5, 4)
+  Agent                                                               Agent[]
+  transfersToHere   InventoryTransfer[] @relation("InventoryTransfer_destinationLocationIdToLocation")
+  transfersFromHere InventoryTransfer[] @relation("InventoryTransfer_originLocationIdToLocation")
+  User                                                                User?               @relation(fields: [managerId], references: [id])
+  LocationInventory                                                   LocationInventory[]
+  LocationPricing                                                     LocationPricing[]
+  Order                                                               Order[]
+  Quote                                                               Quote[]
+  UserLocation                                                        UserLocation[]
 
   @@index([code])
   @@index([isActive])
@@ -234,6 +234,11 @@ model OrderItem {
   @@index([productId])
 }
 
+model OrderSequence {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}
+
 model Payment {
   id            String        @id
   orderId       String
@@ -250,23 +255,23 @@ model Payment {
 }
 
 model Product {
-  id                String                  @id
-  name              String
-  description       String?
-  sku               String                  @unique
-  basePrice         Decimal                 @db.Decimal(12, 2)
-  category          String
-  uom               String                  @default("EA")
-  isActive          Boolean                 @default(true)
-  createdAt         DateTime                @default(now())
-  updatedAt         DateTime
-  LocationInventory LocationInventory[]
-  LocationPricing   LocationPricing[]
-  OrderItem         OrderItem[]
-  recommendations   ProductRecommendation[] @relation("ProductRecommendations")
-  recommendedFor    ProductRecommendation[] @relation("RecommendedFor")
-  QuoteItem         QuoteItem[]
-  TransferItem      TransferItem[]
+  id                                                                        String                  @id
+  name                                                                      String
+  description                                                               String?
+  sku                                                                       String                  @unique
+  basePrice                                                                 Decimal                 @db.Decimal(12, 2)
+  category                                                                  String
+  uom                                                                       String                  @default("EA")
+  isActive                                                                  Boolean                 @default(true)
+  createdAt                                                                 DateTime                @default(now())
+  updatedAt                                                                 DateTime
+  LocationInventory                                                         LocationInventory[]
+  LocationPricing                                                           LocationPricing[]
+  OrderItem                                                                 OrderItem[]
+  recommendations        ProductRecommendation[] @relation("ProductRecommendation_productIdToProduct")
+  recommendedBy          ProductRecommendation[] @relation("ProductRecommendation_recommendedProductIdToProduct")
+  QuoteItem                                                                 QuoteItem[]
+  TransferItem                                                              TransferItem[]
 
   @@index([category])
   @@index([isActive])
@@ -274,15 +279,15 @@ model Product {
 }
 
 model ProductRecommendation {
-  id                   String   @id
-  productId            String
-  recommendedProductId String
-  strength             Float
-  reason               String
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime
-  product              Product  @relation("ProductRecommendations", fields: [productId], references: [id], onDelete: Cascade)
-  recommendedProduct   Product  @relation("RecommendedFor", fields: [recommendedProductId], references: [id], onDelete: Cascade)
+  id                                                          String   @id
+  productId                                                   String
+  recommendedProductId                                        String
+  strength                                                    Float
+  reason                                                      String
+  createdAt                                                   DateTime @default(now())
+  updatedAt                                                   DateTime
+  product            Product  @relation("ProductRecommendation_productIdToProduct", fields: [productId], references: [id], onDelete: Cascade)
+  recommendedProduct Product  @relation("ProductRecommendation_recommendedProductIdToProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
 
   @@unique([productId, recommendedProductId])
   @@index([productId])
@@ -343,11 +348,6 @@ model QuoteSequence {
   createdAt DateTime @default(now())
 }
 
-model OrderSequence {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-}
-
 model Session {
   id           String   @id
   sessionToken String   @unique
@@ -380,23 +380,23 @@ model TransferItem {
 }
 
 model User {
-  id                 String              @id
-  email              String              @unique
-  name               String
-  password           String
-  isActive           Boolean             @default(true)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime
-  role               UserRole
-  Account            Account[]
-  AuditLog           AuditLog[]
-  transfersApproved  InventoryTransfer[] @relation("TransferApprovedBy")
-  transfersRequested InventoryTransfer[] @relation("TransferRequestedBy")
-  Location           Location[]
-  Order              Order[]
-  Quote              Quote[]
-  Session            Session[]
-  UserLocation       UserLocation[]
+  id                                                      String              @id
+  email                                                   String              @unique
+  name                                                    String
+  password                                                String
+  isActive                                                Boolean             @default(true)
+  createdAt                                               DateTime            @default(now())
+  updatedAt                                               DateTime
+  role                                                    UserRole
+  Account                                                 Account[]
+  AuditLog                                                AuditLog[]
+  transfersApproved  InventoryTransfer[] @relation("InventoryTransfer_approvedByIdToUser")
+  transfersRequested InventoryTransfer[] @relation("InventoryTransfer_requestedByIdToUser")
+  Location                                                Location[]
+  Order                                                   Order[]
+  Quote                                                   Quote[]
+  Session                                                 Session[]
+  UserLocation                                            UserLocation[]
 
   @@index([email])
   @@index([isActive])

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Trash2, ShoppingCart, Percent } from 'lucide-react';
+import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 
 interface CartItem {
     productId: string;
@@ -31,27 +33,37 @@ export function POSCart({
     onRemoveItem,
     onCheckout,
 }: POSCartProps) {
-    const [taxRate, setTaxRate] = useState(0.0825);
+    const [taxRate, setTaxRate] = useState<Decimal>(new Decimal(0.0825));
     const [orderDiscount, setOrderDiscount] = useState(0);
 
     useEffect(() => {
         // Fetch tax rate for location
         fetch(`/api/locations/${locationId}`)
             .then(res => res.json())
-            .then(data => setTaxRate(parseFloat(data.taxRate) || 0.0825))
-            .catch(() => setTaxRate(0.0825));
+            .then(data => {
+                if (data.taxRate) {
+                    setTaxRate(new Decimal(data.taxRate));
+                }
+            })
+            .catch(() => setTaxRate(new Decimal(0.0825)));
     }, [locationId]);
 
-    const subtotal = items.reduce((sum, item) => {
-        const itemTotal = item.price * item.quantity;
-        const itemDiscount = item.discount;
-        return sum + (itemTotal - itemDiscount);
-    }, 0);
+    // Calculate subtotal using Currency helper
+    let subtotal = currency(0);
+    for (const item of items) {
+        const itemPrice = currency(item.price);
+        const itemQuantity = item.quantity;
+        const itemDiscount = currency(item.discount);
+        const itemTotal = itemPrice.multiply(itemQuantity).subtract(itemDiscount);
+        subtotal = subtotal.add(itemTotal);
+    }
 
-    const discountAmount = orderDiscount;
-    const taxableAmount = customer?.taxExempt ? 0 : (subtotal - discountAmount);
-    const taxAmount = taxableAmount * taxRate;
-    const total = subtotal - discountAmount + taxAmount;
+    const discountAmount = currency(orderDiscount);
+    const taxableAmount = customer?.taxExempt
+        ? currency(0)
+        : subtotal.subtract(discountAmount);
+    const taxAmount = taxableAmount.multiply(currency(taxRate));
+    const total = subtotal.subtract(discountAmount).add(taxAmount);
 
     return (
         <div className="rounded-xl border bg-card p-6 flex flex-col h-full">
@@ -152,12 +164,12 @@ export function POSCart({
                 <div className="space-y-2 mb-4 p-4 rounded-lg bg-muted/30">
                     <div className="flex justify-between text-sm">
                         <span>Subtotal:</span>
-                        <span>${subtotal.toFixed(2)}</span>
+                        <span>${subtotal.toString()}</span>
                     </div>
-                    {discountAmount > 0 && (
+                    {parseFloat(discountAmount.toString()) > 0 && (
                         <div className="flex justify-between text-sm text-green-600">
                             <span>Discount:</span>
-                            <span>-${discountAmount.toFixed(2)}</span>
+                            <span>-${discountAmount.toString()}</span>
                         </div>
                     )}
                     {customer?.taxExempt ? (
@@ -167,13 +179,13 @@ export function POSCart({
                         </div>
                     ) : (
                         <div className="flex justify-between text-sm">
-                            <span>Tax ({(taxRate * 100).toFixed(2)}%):</span>
-                            <span>${taxAmount.toFixed(2)}</span>
+                            <span>Tax ({parseFloat(taxRate.toString()) * 100}%):</span>
+                            <span>${taxAmount.toString()}</span>
                         </div>
                     )}
                     <div className="flex justify-between text-lg font-bold pt-2 border-t">
                         <span>Total:</span>
-                        <span>${total.toFixed(2)}</span>
+                        <span>${total.toString()}</span>
                     </div>
                 </div>
             )}

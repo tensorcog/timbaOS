@@ -4,6 +4,7 @@ import { OrderType, OrderStatus, PaymentStatus, FulfillmentType } from '@prisma/
 import { currency } from '@/lib/currency';
 import { posCheckoutSchema, PosCheckoutItem, PosPayment } from '@/lib/validations/pos';
 import { classifyError, logError } from '@/lib/error-handler';
+import { generateEntityNumber } from '@/lib/entity-number-generator';
 
 export async function POST(request: NextRequest) {
     try {
@@ -58,9 +59,8 @@ export async function POST(request: NextRequest) {
 
         // Create order with transaction
         const order = await prisma.$transaction(async (tx) => {
-            // Generate Order Number using Sequence (prevents race conditions)
-            const sequence = await tx.orderSequence.create({ data: {} });
-            const orderNumber = `ORD-${1000 + sequence.id}`;
+            // Generate Order Number using centralized helper
+            const orderNumber = await generateEntityNumber('ORDER', tx);
 
             // Create the order
             const newOrder = await tx.order.create({

@@ -1702,3 +1702,771 @@ Require stack:
     '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
   ]
 }
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/app/login/page.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderPageComponent (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:1910:24)
+    at async NextNodeServer.renderToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:1962:32)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:272:17)
+    at async NextNodeServer.handleRequestImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:818:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async NextNodeServer.renderToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2019:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:272:17)
+    at async NextNodeServer.handleRequestImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:818:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/app/login/page.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderPageComponent (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:1910:24)
+    at async NextNodeServer.renderToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:1962:32)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:272:17)
+    at async NextNodeServer.handleRequestImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:818:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async NextNodeServer.renderToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2019:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:272:17)
+    at async NextNodeServer.handleRequestImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:818:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}
+ ⨯ Error: Cannot find module '/home/monty/spruce-killer/.next/server/pages/_error.js'
+Require stack:
+- /home/monty/spruce-killer/node_modules/next/dist/server/require.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/next.js
+- /home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js
+- /home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:55:36
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at mod.require (/home/monty/spruce-killer/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:182:18)
+    at requirePage (/home/monty/spruce-killer/node_modules/next/dist/server/require.js:109:84)
+    at /home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/load-components.js:103:26)
+    at async NextNodeServer.findPageComponentsImpl (/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js:714:36)
+    at async NextNodeServer.renderErrorToResponseImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2131:26)
+    at async pipe.req.req (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:2056:30)
+    at async NextNodeServer.pipeImpl (/home/monty/spruce-killer/node_modules/next/dist/server/base-server.js:922:25)
+    at async invokeRender (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:350:32)
+    at async requestHandlerImpl (/home/monty/spruce-killer/node_modules/next/dist/server/lib/router-server.js:383:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/monty/spruce-killer/node_modules/next/dist/server/require.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/next.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/server/lib/start-server.js',
+    '/home/monty/spruce-killer/node_modules/next/dist/cli/next-start.js'
+  ]
+}

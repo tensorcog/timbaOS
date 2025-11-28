@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Plus, Trash2, Calculator } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 interface Customer {
     id: string;
@@ -124,7 +125,9 @@ export function QuoteForm({ customers, products, locations }: QuoteFormProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedCustomer || !selectedLocation || items.length === 0) {
-            alert('Please select a customer, location, and add at least one item');
+            toast.error('Please select a customer, location, and add at least one item', {
+                duration: 5000,
+            });
             return;
         }
 
@@ -149,15 +152,21 @@ export function QuoteForm({ customers, products, locations }: QuoteFormProps) {
             });
 
             if (response.ok) {
+                toast.success('Quote created successfully!');
                 router.push('/dashboard/quotes');
             } else {
                 const data = await response.json();
-                alert(data.error || 'Failed to create quote');
+                const errorMsg = data.error || 'Failed to create quote';
+                toast.error(`Quote creation failed: ${errorMsg}`, {
+                    duration: 6000,
+                });
                 console.error('Quote creation failed:', data);
             }
         } catch (error) {
             console.error('Quote creation error:', error);
-            alert('Failed to create quote');
+            toast.error('Failed to create quote. Please try again.', {
+                duration: 5000,
+            });
         } finally {
             setSubmitting(false);
         }

@@ -10,6 +10,7 @@ import { checkLocationAccess } from '@/lib/permissions';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
+    let session;
     try {
         const body = await request.json();
 
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get authenticated user
-        const session = await getServerSession(authOptions);
+        session = await getServerSession(authOptions);
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -179,6 +180,22 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(quote);
     } catch (error) {
         console.error('Quote creation error:', error);
+
+        // Check if it's a Prisma foreign key constraint error
+        if (error && typeof error === 'object' && 'code' in error) {
+            const prismaError = error as any;
+            if (prismaError.code === 'P2003') {
+                const field = prismaError.meta?.field_name || 'unknown field';
+                console.error(`Foreign key constraint violation on: ${field}`);
+                console.error(`User ID attempting to create quote: ${session?.user?.id}`);
+
+                return NextResponse.json({
+                    error: 'Database constraint error. Please ensure you are logged in with a valid account.',
+                    details: `Constraint violated: ${field}`
+                }, { status: 500 });
+            }
+        }
+
         return NextResponse.json({ error: 'Failed to create quote' }, { status: 500 });
     }
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package } from "lucide-react"
 
@@ -17,14 +18,45 @@ interface AnalyticsData {
   previousMonthOrders: number
 }
 
+interface Location {
+  id: string
+  name: string
+  code: string
+}
+
 export default function AnalyticsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const locationId = searchParams.get('locationId')
+
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [locations, setLocations] = useState<Location[]>([])
+  const [selectedLocation, setSelectedLocation] = useState<string>(locationId || 'all')
+
+  useEffect(() => {
+    async function fetchLocations() {
+      try {
+        const response = await fetch('/api/locations')
+        if (response.ok) {
+          const data = await response.json()
+          setLocations(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch locations:', error)
+      }
+    }
+    fetchLocations()
+  }, [])
 
   useEffect(() => {
     async function fetchAnalytics() {
+      setLoading(true)
       try {
-        const response = await fetch("/api/analytics")
+        const url = selectedLocation && selectedLocation !== 'all'
+          ? `/api/analytics?locationId=${selectedLocation}`
+          : '/api/analytics'
+        const response = await fetch(url)
         const analyticsData = await response.json()
         setData(analyticsData)
       } catch (error) {
@@ -34,7 +66,17 @@ export default function AnalyticsPage() {
       }
     }
     fetchAnalytics()
-  }, [])
+  }, [selectedLocation])
+
+  const handleLocationChange = (value: string) => {
+    setSelectedLocation(value)
+    // Update URL with query parameter
+    if (value === 'all') {
+      router.push('/dashboard/analytics')
+    } else {
+      router.push(`/dashboard/analytics?locationId=${value}`)
+    }
+  }
 
   if (loading) {
     return (
@@ -69,10 +111,29 @@ export default function AnalyticsPage() {
     orange: "#f97316",
   }
 
+  const selectedLocationName = selectedLocation === 'all'
+    ? 'All Locations'
+    : locations.find(l => l.id === selectedLocation)?.name || 'All Locations'
+
   return (
     <>
-      <div className="flex items-center">
-        <h1 className="text-lg font-semibold md:text-2xl">Analytics</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-lg font-semibold md:text-2xl">Analytics</h1>
+          <p className="text-sm text-muted-foreground mt-1">{selectedLocationName}</p>
+        </div>
+        <select
+          value={selectedLocation}
+          onChange={(e) => handleLocationChange(e.target.value)}
+          className="px-4 py-2 rounded-lg border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="all">All Locations</option>
+          {locations.map((location) => (
+            <option key={location.id} value={location.id}>
+              {location.name} ({location.code})
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* KPI Cards */}

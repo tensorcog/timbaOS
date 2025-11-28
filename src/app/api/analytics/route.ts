@@ -24,10 +24,33 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Get optional locationId query parameter
+    const searchParams = request.nextUrl.searchParams;
+    const locationIdParam = searchParams.get('locationId');
+
     // Build location filter
-    const locationFilter = (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN)
-      ? {} // Admins see all
-      : { locationId: { in: userLocationIds } }; // Managers see only their locations
+    let locationFilter: any = {};
+
+    if (locationIdParam) {
+      // If specific location is requested, check if user has access
+      if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN) {
+        // Admins can view any location
+        locationFilter = { locationId: locationIdParam };
+      } else if (userLocationIds.includes(locationIdParam)) {
+        // Managers can only view their own locations
+        locationFilter = { locationId: locationIdParam };
+      } else {
+        return NextResponse.json(
+          { error: 'Forbidden - No access to this location' },
+          { status: 403 }
+        );
+      }
+    } else {
+      // If no specific location, use role-based filtering
+      locationFilter = (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN)
+        ? {} // Admins see all
+        : { locationId: { in: userLocationIds } }; // Managers see only their locations
+    }
 
     // Fetch all orders with related data (filtered by location)
     const orders = await prisma.order.findMany({

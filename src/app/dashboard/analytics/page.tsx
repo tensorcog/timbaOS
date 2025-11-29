@@ -28,13 +28,20 @@ interface Location {
 export default function AnalyticsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const locationId = searchParams.get('locationId')
   const { currentLocation } = useLocation()
 
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [locations, setLocations] = useState<Location[]>([])
-  const [selectedLocation, setSelectedLocation] = useState<string>(locationId || '')
+
+  /**
+   * Single Source of Truth: URL Search Parameters
+   * - 'all' = show all locations
+   * - <locationId> = show specific location  
+   * - null = show current location from context
+   */
+  const locationParam = searchParams.get('location')
+  const effectiveLocation = locationParam || currentLocation?.id || ''
 
   useEffect(() => {
     async function fetchLocations() {
@@ -51,21 +58,21 @@ export default function AnalyticsPage() {
     fetchLocations()
   }, [])
 
-  // Sync with current location from context when not explicitly showing all locations
-  useEffect(() => {
-    // Only sync if we're not showing all AND we haven't explicitly selected a location
-    if (currentLocation && selectedLocation !== 'all' && !locationId) {
-      setSelectedLocation(currentLocation.id);
-    }
-  }, [currentLocation?.id]);
-
+  /**
+   * Fetch analytics data whenever the effective location changes
+   * URL parameter takes precedence over context
+   */
   useEffect(() => {
     async function fetchAnalytics() {
       setLoading(true)
       try {
-        const url = selectedLocation && selectedLocation !== 'all'
-          ? `/api/analytics?locationId=${selectedLocation}`
-          : '/api/analytics'
+        // Build URL based on location selection
+        const url = locationParam === 'all'
+          ? '/api/analytics'  // No parameter = all locations for admins
+          : effectiveLocation
+            ? `/api/analytics?locationId=${effectiveLocation}`
+            : '/api/analytics'
+        
         const response = await fetch(url)
         const analyticsData = await response.json()
         setData(analyticsData)
@@ -75,16 +82,24 @@ export default function AnalyticsPage() {
         setLoading(false)
       }
     }
-    fetchAnalytics()
-  }, [selectedLocation])
 
-  const handleLocationChange = (value: string) => {
-    setSelectedLocation(value)
-    // Update URL with query parameter
-    if (value === 'all') {
+    // Only fetch if we have a location or explicitly showing all
+    if (effectiveLocation || locationParam === 'all') {
+      fetchAnalytics()
+    }
+  }, [locationParam, effectiveLocation])
+
+  /**
+   * Handle location change by updating URL
+   * This becomes the single source of truth
+   */
+  const handleShowAllToggle = () => {
+    if (locationParam === 'all') {
+      // Switch back to current location
       router.push('/dashboard/analytics')
     } else {
-      router.push(`/dashboard/analytics?locationId=${value}`)
+      // Switch to all locations
+      router.push('/dashboard/analytics?location=all')
     }
   }
 
@@ -121,9 +136,9 @@ export default function AnalyticsPage() {
     orange: "#f97316",
   }
 
-  const selectedLocationName = selectedLocation === 'all'
+  const selectedLocationName = locationParam === 'all'
     ? 'All Locations'
-    : currentLocation?.name || 'Loading...'
+    : locations.find(loc => loc.id === effectiveLocation)?.name || currentLocation?.name || 'Loading...'
 
   return (
     <>
@@ -133,14 +148,14 @@ export default function AnalyticsPage() {
           <p className="text-sm text-muted-foreground mt-1">{selectedLocationName}</p>
         </div>
         <button
-          onClick={() => handleLocationChange(selectedLocation === 'all' ? '' : 'all')}
+          onClick={handleShowAllToggle}
           className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-            selectedLocation === 'all'
+            locationParam === 'all'
               ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-primary'
               : 'bg-background hover:bg-muted'
           }`}
         >
-          {selectedLocation === 'all' ? '✓ All Locations' : 'Show All Locations'}
+          {locationParam === 'all' ? '✓ All Locations' : 'Show All Locations'}
         </button>
       </div>
 

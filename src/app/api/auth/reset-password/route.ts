@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { rateLimit, RateLimitPresets } from '@/lib/rate-limiter';
 
 export async function POST(request: NextRequest) {
+    // Apply rate limiting to prevent brute force attacks
+    const rateLimitResult = await rateLimit(request, RateLimitPresets.AUTH);
+    if (rateLimitResult.limited) {
+        return rateLimitResult.response!;
+    }
+
     try {
         const body = await request.json();
         const { token, password } = body;

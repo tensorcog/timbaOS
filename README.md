@@ -41,12 +41,14 @@ timbaOS is a next-generation enterprise resource planning system specifically de
 ## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Styling**: Tailwind CSS
+- **Language**: TypeScript with strict mode
+- **Database**: PostgreSQL 14+ with Prisma ORM
+- **Authentication**: NextAuth.js with JWT sessions
+- **Styling**: Tailwind CSS with custom gradient system
 - **Icons**: Lucide React
-- **UI Components**: Custom components with gradient design system
+- **Testing**: Jest (unit) + Playwright (E2E)
+- **Security**: Rate limiting, RBAC, input validation
+- **Financial Precision**: Decimal.js for accurate calculations
 
 ---
 
@@ -613,14 +615,34 @@ timbaOS implements comprehensive security measures:
 
 If you discover a security vulnerability, please email security@example.com. Do not open a public issue.
 
-### Recent Security Improvements
+### Recent Security & Quality Improvements
 
-- Fixed: Plain-text password migration backdoor removed (2025-11-28)
-- Fixed: POS checkout now requires authentication (2025-11-28)
-- Fixed: Debug mode now conditional on NODE_ENV (2025-11-28)
-- Fixed: Type-safe Session objects throughout (2025-11-28)
-- Added: Inventory validation in POS checkout (2025-11-28)
-- Added: Database CHECK constraint for non-negative inventory (2025-11-28)
+**Security** (2025-11-29):
+- ✅ Added rate limiting to authentication endpoints (5 req/min)
+- ✅ Implemented rate limiting middleware for API abuse prevention
+- ✅ Added soft deletes for critical business records (compliance)
+- ✅ Fixed plain-text password migration backdoor (removed)
+- ✅ Added POS checkout authentication requirement
+- ✅ Conditional debug mode based on NODE_ENV
+- ✅ Type-safe Session objects throughout codebase
+- ✅ Inventory validation before POS checkout
+- ✅ Database CHECK constraint for non-negative inventory
+
+**Testing & Quality** (2025-11-29):
+- ✅ 81 unit tests with high coverage
+- ✅ Comprehensive Currency class tests (61 tests, 100% coverage)
+- ✅ Permission system tests (20 tests)
+- ✅ 80% coverage threshold enforced
+
+**Database & Performance** (2025-11-29):
+- ✅ Composite indexes for audit log queries
+- ✅ Soft delete support (Customer, Order, Quote, Invoice)
+- ✅ Optimized query performance
+
+**Documentation** (2025-11-29):
+- ✅ Comprehensive API documentation (docs/API.md)
+- ✅ Complete setup guide
+- ✅ Security best practices documented
 
 ---
 

@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
+import { rateLimit, RateLimitPresets } from '@/lib/rate-limiter';
 
 export async function POST(request: NextRequest) {
+    // Apply strict rate limiting to prevent abuse
+    const rateLimitResult = await rateLimit(request, RateLimitPresets.AUTH);
+    if (rateLimitResult.limited) {
+        return rateLimitResult.response!;
+    }
+
     try {
         const body = await request.json();
         const { email } = body;

@@ -51,12 +51,13 @@ export default function AnalyticsPage() {
     fetchLocations()
   }, [])
 
-  // Sync with current location from context when not showing all locations
+  // Sync with current location from context when not explicitly showing all locations
   useEffect(() => {
-    if (currentLocation && selectedLocation !== 'all') {
-      setSelectedLocation(currentLocation.id)
+    // Only sync if we're not showing all AND we haven't explicitly selected a location
+    if (currentLocation && selectedLocation !== 'all' && !locationId) {
+      setSelectedLocation(currentLocation.id);
     }
-  }, [currentLocation?.id])
+  }, [currentLocation?.id]);
 
   useEffect(() => {
     async function fetchAnalytics() {

@@ -2,6 +2,13 @@
 
 **Modern ERP System for Lumber Yards & Building Material Suppliers**
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
+[![Tests](https://img.shields.io/badge/tests-180%20passing-success.svg)](./src/lib/__tests__)
+[![Coverage](https://img.shields.io/badge/coverage-80%25+-success.svg)](./jest.config.js)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](./LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
 timbaOS is a next-generation enterprise resource planning system specifically designed for lumber yards, building material suppliers, and hardware stores. Built with modern web technologies and featuring AI-powered automation for multi-location businesses.
 
 ---
@@ -629,8 +636,10 @@ If you discover a security vulnerability, please email security@example.com. Do 
 - ✅ Database CHECK constraint for non-negative inventory
 
 **Testing & Quality** (2025-11-29):
-- ✅ 81 unit tests with high coverage
-- ✅ Comprehensive Currency class tests (61 tests, 100% coverage)
+- ✅ 180 comprehensive unit tests across 5 test suites
+- ✅ Currency class tests (61 tests, 100% coverage)
+- ✅ Error handler tests (37 tests, all edge cases)
+- ✅ Validation schema tests (105 tests for POS and quotes)
 - ✅ Permission system tests (20 tests)
 - ✅ 80% coverage threshold enforced
 
@@ -641,18 +650,31 @@ If you discover a security vulnerability, please email security@example.com. Do 
 
 **Documentation** (2025-11-29):
 - ✅ Comprehensive API documentation (docs/API.md)
+- ✅ Production logging guide (docs/LOGGING.md)
+- ✅ Security policy (SECURITY.md)
 - ✅ Complete setup guide
-- ✅ Security best practices documented
+- ✅ JSDoc comments throughout codebase
 
 ---
 
 ## Contributing
 
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on:
+
+- Code of conduct and standards
+- Development workflow
+- Testing requirements
+- Pull request process
+- Common tasks and examples
+
+**Quick Start**:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
@@ -662,10 +684,22 @@ This project is proprietary software. All rights reserved.
 
 ---
 
+## Documentation
+
+Comprehensive guides and references:
+
+- **[API Documentation](./docs/API.md)** - Complete REST API reference with examples
+- **[Logging Guide](./docs/LOGGING.md)** - Production logging and monitoring
+- **[Migration Guide](./docs/MIGRATION.md)** - Database migrations and setup
+- **[Security Policy](./SECURITY.md)** - Vulnerability reporting and security practices
+- **[Contributing Guide](./CONTRIBUTING.md)** - How to contribute to the project
+
+---
+
 ## Support
 
 For questions or issues:
-- Check [MIGRATION.md](./docs/MIGRATION.md) for setup help
+- Check documentation above for detailed guides
 - Review Prisma docs: https://www.prisma.io/docs
 - Review Next.js docs: https://nextjs.org/docs
 

@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import Decimal from 'decimal.js';
 import { createInvoiceSchema, formatZodErrors, invoiceQuerySchema } from '@/lib/validations/invoice';
 import { z } from 'zod';
+import { calculateDueDate, getLocationTimezone } from '@/lib/utils/timezone';
 
 // GET /api/invoices - List invoices with filters
 export async function GET(request: NextRequest) {
@@ -252,14 +253,17 @@ export async function POST(request: NextRequest) {
 
         const totalAmount = taxableAmount.plus(taxAmount);
 
-        // Calculate due date
+        // FIXED: Calculate due date with proper timezone handling
+        // Get location timezone for accurate due date calculation
+        const locationTimezone = await getLocationTimezone(locationId);
+        
         const invoiceDueDate = dueDate 
             ? new Date(dueDate)
-            : (() => {
-                const date = new Date();
-                date.setDate(date.getDate() + (paymentTermDays || customer.paymentTermDays));
-                return date;
-            })();
+            : calculateDueDate(
+                new Date(), // invoice date (now)
+                paymentTermDays || customer.paymentTermDays,
+                locationTimezone
+              );
 
         // Generate invoice number (counter-based)
         const lastInvoice = await prisma.invoice.findFirst({

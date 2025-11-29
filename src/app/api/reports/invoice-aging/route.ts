@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { UserRole } from '@prisma/client';
 import Decimal from 'decimal.js';
 import { z } from 'zod';
+import { calculateDaysOverdue, getLocationTimezone } from '@/lib/utils/timezone';
 
 // Validation schema for query parameters
 const agingReportQuerySchema = z.object({
@@ -131,9 +132,14 @@ export async function GET(request: NextRequest) {
       }
 
       const balanceDue = new Decimal(invoice.balanceDue);
-      const daysOverdue = Math.floor(
-        (today.getTime() - new Date(invoice.dueDate).getTime()) / (1000 * 60 * 60 * 24)
-      );
+      
+      // FIXED: Use timezone-aware calculation for accurate overdue days
+      // Get location timezone for this invoice
+      const locationTimezone = invoice.Location?.id 
+        ? await getLocationTimezone(invoice.Location.id)
+        : 'America/Chicago'; // default
+        
+      const daysOverdue = calculateDaysOverdue(new Date(invoice.dueDate), locationTimezone);
 
       // Categorize  by aging bucket
       if (daysOverdue < 0) {

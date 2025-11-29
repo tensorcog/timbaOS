@@ -21,6 +21,7 @@
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "decimal.js": "^10.6.0",
     "exceljs": "^4.4.0",
     "js-cookie": "^3.0.5",

@@ -70,23 +70,31 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
     fi
 fi
 
-# Check if port 3000 is already in use
+# Kill any process using port 3000
 if command -v lsof &> /dev/null; then
-    if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1; then
-        echo -e "${RED}✗ Port 3000 is already in use${NC}"
-        echo "Please stop the process using port 3000 or configure a different port"
-        exit 1
+    PORT_PIDS=$(lsof -Pi :3000 -sTCP:LISTEN -t 2>/dev/null || true)
+    if [ -n "$PORT_PIDS" ]; then
+        echo -e "${YELLOW}⚠ Port 3000 is in use by PIDs: $PORT_PIDS${NC}"
+        echo -e "${BLUE}Killing processes on port 3000...${NC}"
+        echo "$PORT_PIDS" | xargs kill -9 2>/dev/null || true
+        sleep 1  # Give processes time to die
+        echo -e "${GREEN}✓ Port 3000 cleared${NC}"
+    else
+        echo -e "${GREEN}✓ Port 3000 is available${NC}"
     fi
-    echo -e "${GREEN}✓ Port 3000 is available${NC}"
-elif command -v netstat &> /dev/null; then
-    if netstat -tuln 2>/dev/null | grep -q ':3000 '; then
-        echo -e "${RED}✗ Port 3000 is already in use${NC}"
-        echo "Please stop the process using port 3000 or configure a different port"
-        exit 1
+elif command -v fuser &> /dev/null; then
+    # Alternative method using fuser
+    if fuser 3000/tcp &>/dev/null; then
+        echo -e "${YELLOW}⚠ Port 3000 is in use${NC}"
+        echo -e "${BLUE}Killing processes on port 3000...${NC}"
+        fuser -k 3000/tcp 2>/dev/null || true
+        sleep 1
+        echo -e "${GREEN}✓ Port 3000 cleared${NC}"
+    else
+        echo -e "${GREEN}✓ Port 3000 is available${NC}"
     fi
-    echo -e "${GREEN}✓ Port 3000 is available${NC}"
 else
-    echo -e "${YELLOW}⚠ Cannot check port availability (lsof/netstat not found)${NC}"
+    echo -e "${YELLOW}⚠ Cannot kill port processes (lsof/fuser not found)${NC}"
 fi
 
 echo ""

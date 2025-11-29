@@ -1,0 +1,299 @@
+[1A[2K[2m[WebServer] [22m [33m[1m⚠[22m[39m Port 3000 is in use, trying 3001 instead.
+
+
+Running 12 tests using 8 workers
+
+[1A[2K[1/12] [chromium] › tests/e2e/invoice.spec.ts:14:9 › Invoice Management › Invoice Creation
+[1A[2K[2/12] [chromium] › tests/e2e/invoice.spec.ts:96:9 › Invoice Management › Tax Exempt Invoice Creation
+[1A[2K[3/12] [chromium] › tests/e2e/invoice.spec.ts:125:9 › Invoice Management › Quote to Invoice Conversion
+[1A[2K[4/12] [chromium] › tests/e2e/invoice.spec.ts:55:9 › Invoice Management › Invoice Total Calculation
+[1A[2K[5/12] [chromium] › tests/e2e/invoice.spec.ts:172:9 › Invoice Management › Order to Invoice Conversion
+[1A[2K[6/12] [chromium] › tests/e2e/invoice.spec.ts:347:9 › Invoice Management › Credit Hold Validation
+[1A[2K[7/12] [chromium] › tests/e2e/invoice.spec.ts:286:9 › Invoice Management › Payment Recording - Partial Payment
+[1A[2K[8/12] [chromium] › tests/e2e/invoice.spec.ts:223:9 › Invoice Management › Payment Recording - Full Payment
+[1A[2K[2m[WebServer] [22m[next-auth][warn][DEBUG_ENABLED] 
+[2m[WebServer] [22mhttps://next-auth.js.org/warnings#debug_enabled
+
+[1A[2K[2m[WebServer] [22m[next-auth][warn][DEBUG_ENABLED] 
+[2m[WebServer] [22mhttps://next-auth.js.org/warnings#debug_enabled
+
+[1A[2K[2m[WebServer] [22mError: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+
+[1A[2K[2m[WebServer] [22mError: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+
+[1A[2K[chromium] › tests/e2e/invoice.spec.ts:14:9 › Invoice Management › Invoice Creation
+Invoice creation failed: 400
+
+[1A[2KResponse: {"error":"Customer account is on credit hold"}
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+
+[1A[2K  1) [chromium] › tests/e2e/invoice.spec.ts:14:9 › Invoice Management › Invoice Creation ───────────
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      41 |             const text = await res.text();
+      42 |             console.log('Response:', text.substring(0, 500));
+    > 43 |             expect(res.ok()).toBeTruthy();
+         |                              ^
+      44 |             return;
+      45 |         }
+      46 |
+        at /home/monty/timbaos/tests/e2e/invoice.spec.ts:43:30
+
+
+[1A[2K[chromium] › tests/e2e/invoice.spec.ts:172:9 › Invoice Management › Order to Invoice Conversion
+Order to invoice conversion failed: 400
+
+[1A[2K{"error":"Customer account is on credit hold"}
+
+[1A[2K  2) [chromium] › tests/e2e/invoice.spec.ts:55:9 › Invoice Management › Invoice Total Calculation ──
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      81 |         });
+      82 |
+    > 83 |         expect(res.ok()).toBeTruthy();
+         |                          ^
+      84 |         const invoice = await res.json();
+      85 |
+      86 |         const expectedSubtotal = (quantity * unitPrice) - discount;
+        at /home/monty/timbaos/tests/e2e/invoice.spec.ts:83:26
+
+
+[1A[2K[9/12] [chromium] › tests/e2e/invoice.spec.ts:431:9 › Invoice Management › Draft Invoice Update
+[1A[2K  3) [chromium] › tests/e2e/invoice.spec.ts:172:9 › Invoice Management › Order to Invoice Conversion 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      213 |         }
+      214 |
+    > 215 |         expect(invoiceRes.ok()).toBeTruthy();
+          |                                 ^
+      216 |         const invoice = await invoiceRes.json();
+      217 |
+      218 |         expect(invoice.orderId).toBe(order.id);
+        at /home/monty/timbaos/tests/e2e/invoice.spec.ts:215:33
+
+
+[1A[2K[2m[WebServer] [22m[next-auth][warn][DEBUG_ENABLED] 
+[2m[WebServer] [22mhttps://next-auth.js.org/warnings#debug_enabled
+
+[1A[2K[2m[WebServer] [22mError: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+
+[1A[2K[chromium] › tests/e2e/invoice.spec.ts:286:9 › Invoice Management › Payment Recording - Partial Payment
+Partial payment failed: 400
+
+[1A[2K[chromium] › tests/e2e/invoice.spec.ts:223:9 › Invoice Management › Payment Recording - Full Payment
+Payment recording failed: 400
+
+[1A[2K[2m[WebServer] [22mError: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+
+[1A[2K[chromium] › tests/e2e/invoice.spec.ts:286:9 › Invoice Management › Payment Recording - Partial Payment
+{ error: [32m'Missing required fields'[39m }
+
+[1A[2K[chromium] › tests/e2e/invoice.spec.ts:223:9 › Invoice Management › Payment Recording - Full Payment
+{ error: [32m'Missing required fields'[39m }
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+
+[1A[2K  4) [chromium] › tests/e2e/invoice.spec.ts:286:9 › Invoice Management › Payment Recording - Partial Payment 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      331 |         }
+      332 |
+    > 333 |         expect(paymentRes.ok()).toBeTruthy();
+          |                                 ^
+      334 |         const payment = await paymentRes.json();
+      335 |
+      336 |         expect(Number(payment.appliedAmount)).toBeCloseTo(partialAmount, 2);
+        at /home/monty/timbaos/tests/e2e/invoice.spec.ts:333:33
+
+
+[1A[2K  5) [chromium] › tests/e2e/invoice.spec.ts:223:9 › Invoice Management › Payment Recording - Full Payment 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      267 |         }
+      268 |
+    > 269 |         expect(paymentRes.ok()).toBeTruthy();
+          |                                 ^
+      270 |         const payment = await paymentRes.json();
+      271 |
+      272 |         expect(Number(payment.amount)).toBe(totalAmount);
+        at /home/monty/timbaos/tests/e2e/invoice.spec.ts:269:33
+
+
+[1A[2K[10/12] [chromium] › tests/e2e/invoice.spec.ts:393:9 › Invoice Management › Invoice List Retrieval
+[1A[2K[11/12] [chromium] › tests/e2e/invoice.spec.ts:409:9 › Invoice Management › Invoice Detail Retrieval
+[1A[2K[12/12] [chromium] › tests/e2e/invoice.spec.ts:471:9 › Invoice Management › Payment Method Validation
+[1A[2K[2m[WebServer] [22m[next-auth][warn][DEBUG_ENABLED] 
+[2m[WebServer] [22mhttps://next-auth.js.org/warnings#debug_enabled
+
+[1A[2K[2m[WebServer] [22mError: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: Cannot find module '/home/monty/timbaos/.next/server/vendor-chunks/lib/worker.js'
+[2m[WebServer] [22m[90m    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)[39m
+[2m[WebServer] [22m[90m    at Module._load (node:internal/modules/cjs/loader:1038:27)[39m
+[2m[WebServer] [22m[90m    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/main/worker_thread:192:26)[39m
+[2m[WebServer] [22m[90m    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:831:20)[39m
+[2m[WebServer] [22m[90m    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m {
+[2m[WebServer] [22m  code: [32m'MODULE_NOT_FOUND'[39m,
+[2m[WebServer] [22m  requireStack: []
+[2m[WebServer] [22m}
+
+[1A[2K[2m[WebServer] [22mError: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+
+[1A[2K[2m[WebServer] [22m [31m[1m⨯[22m[39m uncaughtException: Error: the worker thread exited
+[2m[WebServer] [22m    at Worker.onWorkerExit (webpack-internal:///(rsc)/./node_modules/[4mthread-stream[24m/index.js:201:32)
+[2m[WebServer] [22m[90m    at Worker.emit (node:events:524:28)[39m
+[2m[WebServer] [22m[90m    at [kOnExit] (node:internal/worker:322:10)[39m
+[2m[WebServer] [22m[90m    at Worker.<computed>.onexit (node:internal/worker:230:20)[39m
+[2m[WebServer] [22m[90m    at Worker.callbackTrampoline (node:internal/async_hooks:130:17)[39m
+
+[1A[2K  5 failed
+    [chromium] › tests/e2e/invoice.spec.ts:14:9 › Invoice Management › Invoice Creation ────────────
+    [chromium] › tests/e2e/invoice.spec.ts:55:9 › Invoice Management › Invoice Total Calculation ───
+    [chromium] › tests/e2e/invoice.spec.ts:172:9 › Invoice Management › Order to Invoice Conversion 
+    [chromium] › tests/e2e/invoice.spec.ts:223:9 › Invoice Management › Payment Recording - Full Payment 
+    [chromium] › tests/e2e/invoice.spec.ts:286:9 › Invoice Management › Payment Recording - Partial Payment 
+  7 passed (2.4m)
+
+[36m  Serving HTML report at http://localhost:51817. Press Ctrl+C to quit.[39m

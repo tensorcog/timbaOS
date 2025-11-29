@@ -85,6 +85,15 @@ test.describe('POS Validation', () => {
                         updatedAt: new Date(),
                         createdAt: new Date()
                     }]
+                },
+                LocationInventory: {
+                    create: [{
+                        id: `li-${Date.now()}`,
+                        locationId: location!.id,
+                        stockLevel: 100,
+                        updatedAt: new Date(),
+                        createdAt: new Date()
+                    }]
                 }
             }
         });

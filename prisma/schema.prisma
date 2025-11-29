@@ -270,8 +270,8 @@ model Product {
   LocationInventory                                                         LocationInventory[]
   LocationPricing                                                           LocationPricing[]
   OrderItem                                                                 OrderItem[]
-  ProductRecommendation_ProductRecommendation_productIdToProduct            ProductRecommendation[] @relation("ProductRecommendation_productIdToProduct")
-  ProductRecommendation_ProductRecommendation_recommendedProductIdToProduct ProductRecommendation[] @relation("ProductRecommendation_recommendedProductIdToProduct")
+  sourceProductRecommendations      ProductRecommendation[] @relation("ProductRecommendation_productIdToProduct")
+  recommendedProductRecommendations ProductRecommendation[] @relation("ProductRecommendation_recommendedProductIdToProduct")
   QuoteItem                                                                 QuoteItem[]
   InvoiceItem                                                               InvoiceItem[]
   TransferItem                                                              TransferItem[]
@@ -289,8 +289,8 @@ model ProductRecommendation {
   reason                                                      String
   createdAt                                                   DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  Product_ProductRecommendation_productIdToProduct            Product  @relation("ProductRecommendation_productIdToProduct", fields: [productId], references: [id], onDelete: Cascade)
-  Product_ProductRecommendation_recommendedProductIdToProduct Product  @relation("ProductRecommendation_recommendedProductIdToProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
+  sourceProduct      Product @relation("ProductRecommendation_productIdToProduct", fields: [productId], references: [id], onDelete: Cascade)
+  recommendedProduct Product @relation("ProductRecommendation_recommendedProductIdToProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
 
   @@unique([productId, recommendedProductId])
   @@index([productId])

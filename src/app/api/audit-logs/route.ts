@@ -30,7 +30,13 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        return NextResponse.json(logs);
+        const formattedLogs = logs.map(log => ({
+            ...log,
+            user: log.User,
+            User: undefined, // Remove the original key
+        }));
+
+        return NextResponse.json(formattedLogs);
     } catch (error) {
         logApiError('Audit log fetch error:', error);
         return NextResponse.json({ error: 'Failed to fetch audit logs' }, { status: 500 });

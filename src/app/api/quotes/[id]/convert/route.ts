@@ -61,9 +61,9 @@ export async function POST(
             );
         }
 
-        // Generate order number using existing pattern
+        // Generate order number using existing pattern with random suffix to prevent race conditions
         const orderCount = await prisma.order.count();
-        const orderNumber = `ORD-${String(orderCount + 1).padStart(6, '0')}`;
+        const orderNumber = `ORD-${String(orderCount + 1).padStart(6, '0')}-${randomUUID().substring(0, 4)}`;
 
         // Create the order with quote data
         const order = await prisma.order.create({

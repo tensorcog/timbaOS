@@ -3,6 +3,8 @@ import {
     hasRole,
     filterByUserLocations,
     filterByOwnership,
+    canManageLocation,
+    canEditResource,
 } from '../permissions';
 
 describe('Permissions', () => {
@@ -198,65 +200,71 @@ describe('Permissions', () => {
     });
 
     describe('canManageLocation', () => {
-        it('should return false if user is not associated with the location', async () => {
-            (prisma.userLocation.findUnique as jest.Mock).mockResolvedValue(null);
-
-            const result = await canManageLocation('user1', 'loc1');
+        it('should return false if user is not associated with the location', () => {
+            const result = canManageLocation(UserRole.SALES, [], 'loc1');
             expect(result).toBe(false);
         });
 
-        it('should return true if user is associated with the location and has LOCATION_ADMIN role', async () => {
-            (prisma.userLocation.findUnique as jest.Mock).mockResolvedValue({
-                id: 'ul1',
-                userId: 'user1',
-                locationId: 'loc1',
-            });
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-                role: UserRole.LOCATION_ADMIN,
-            });
-
-            const result = await canManageLocation('user1', 'loc1');
+        it('should return true if user is associated with the location and has LOCATION_ADMIN role', () => {
+            const result = canManageLocation(UserRole.LOCATION_ADMIN, ['loc1'], 'loc1');
             expect(result).toBe(true);
         });
 
-        it('should return true if user is SUPER_ADMIN regardless of location association', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-                role: UserRole.SUPER_ADMIN,
-            });
-            (prisma.userLocation.findUnique as jest.Mock).mockResolvedValue(null); // Not associated
-
-            const result = await canManageLocation('user1', 'loc1');
+        it('should return true if user is SUPER_ADMIN regardless of location association', () => {
+            const result = canManageLocation(UserRole.SUPER_ADMIN, [], 'loc1');
             expect(result).toBe(true);
         });
 
-        it('should return false if user is associated with location but has insufficient role', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-                role: UserRole.MANAGER,
-            });
-
-            (prisma.userLocation.findUnique as jest.Mock).mockResolvedValue({
-                id: 'ul1',
-                userId: 'user1',
-                locationId: 'loc1',
-            });
-
-            const result = await canManageLocation('user1', 'loc1');
+        it('should return false if user is associated with location but has insufficient role', () => {
+            // SALES role cannot manage location even if associated
+            const result = canManageLocation(UserRole.SALES, ['loc1'], 'loc1');
             expect(result).toBe(false);
+        });
+
+        it('should return true if user is MANAGER and associated with location', () => {
+            const result = canManageLocation(UserRole.MANAGER, ['loc1'], 'loc1');
+            expect(result).toBe(true);
         });
     });
 
     describe('canEditResource', () => {
-        it('should allow super admin to edit any resource', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-                role: UserRole.SUPER_ADMIN,
-            });
-
-            const result = await canEditResource('user1', {
-                id: 'resource1',
-                salesRepId: 'user2',
-                createdById: 'user3',
-            });
+        it('should allow super admin to edit any resource', () => {
+            const result = canEditResource(
+                UserRole.SUPER_ADMIN,
+                'user1',
+                [],
+                {
+                    createdById: 'user3',
+                    salesRepId: 'user2',
+                }
+            );
             expect(result).toBe(true);
+        });
+
+        it('should allow sales user to edit their own resource', () => {
+            const result = canEditResource(
+                UserRole.SALES,
+                'user1',
+                ['loc1'],
+                {
+                    createdById: 'user1',
+                    salesRepId: 'user2',
+                }
+            );
+            expect(result).toBe(true);
+        });
+
+        it('should deny sales user from editing others resource', () => {
+            const result = canEditResource(
+                UserRole.SALES,
+                'user1',
+                ['loc1'],
+                {
+                    createdById: 'user2',
+                    salesRepId: 'user3',
+                }
+            );
+            expect(result).toBe(false);
         });
     });
 

@@ -345,23 +345,21 @@ test.describe('Invoice Management', () => {
     });
 
     test('Credit Hold Validation', async () => {
-        // Find or create a customer with credit hold
-        let customer = await prisma.customer.findFirst({ where: { creditHold: true } });
-
-        if (!customer) {
-            customer = await prisma.customer.findFirst();
-            if (customer) {
-                await prisma.customer.update({
-                    where: { id: customer.id },
-                    data: { creditHold: true }
-                });
+        // Create a dedicated customer with credit hold
+        const customer = await prisma.customer.create({
+            data: {
+                id: `cust-hold-${Date.now()}`,
+                name: 'Credit Hold Test Customer',
+                email: `hold-${Date.now()}@test.com`,
+                creditHold: true,
+                updatedAt: new Date()
             }
-        }
+        });
 
         const location = await prisma.location.findFirst();
         const product = await prisma.product.findFirst({ where: { isActive: true } });
 
-        if (!customer || !location || !product) {
+        if (!location || !product) {
             console.log('Missing test data for credit hold test');
             test.skip();
             return;
@@ -383,11 +381,8 @@ test.describe('Invoice Management', () => {
         const error = await res.json();
         expect(error.error).toContain('credit hold');
 
-        // Clean up - remove credit hold
-        await prisma.customer.update({
-            where: { id: customer.id },
-            data: { creditHold: false }
-        });
+        // Clean up
+        await prisma.customer.delete({ where: { id: customer.id } });
     });
 
     test('Invoice List Retrieval', async () => {

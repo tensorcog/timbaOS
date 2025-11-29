@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -65,7 +66,7 @@ export async function PATCH(
         const { password: _, ...result } = user;
         return NextResponse.json(result);
     } catch (error) {
-        console.error("[USER_PATCH]", error);
+        logApiError("[USER_PATCH]", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 }
@@ -97,7 +98,7 @@ export async function DELETE(
 
         return NextResponse.json(user);
     } catch (error) {
-        console.error("[USER_DELETE]", error);
+        logApiError("[USER_DELETE]", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 }

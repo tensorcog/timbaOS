@@ -4,13 +4,50 @@ import { Prisma } from '@prisma/client';
 const SOFT_DELETE_MODELS = ['Customer', 'Order', 'Quote', 'Invoice'];
 
 /**
- * Prisma middleware to automatically filter out soft-deleted records
+ * Soft Delete Middleware for Prisma
  * 
- * This middleware intercepts queries for models with deletedAt fields
- * and automatically adds a filter to exclude soft-deleted records.
+ * IMPORTANT: This middleware automatically modifies query behavior for models with soft deletes.
  * 
- * To query soft-deleted records explicitly, use:
- * { deletedAt: { not: null } }
+ * ## Behavioral Changes:
+ * 
+ * 1. **findUnique → findFirst conversion**
+ *    - Automatically converts `findUnique` to `findFirst` with `deletedAt: null` filter
+ *    - WARNING: Breaks unique constraint violation detection
+ *    - Example: Creating duplicate SKUs won't throw errors as expected
+ * 
+ * 2. **delete → soft delete**
+ *    - Converts `delete` operations to `update` with `deletedAt: new Date()`
+ *    - Records are never actually deleted from database
+ * 
+ * 3. **Automatic filtering**
+ *    - All find operations automatically filter `deletedAt: null`
+ *    - Soft-deleted records are invisible by default
+ * 
+ * ## Usage Examples:
+ * 
+ * ```typescript
+ * // Query non-deleted records (default behavior)
+ * const customers = await prisma.customer.findMany({});
+ * 
+ * // Query soft-deleted records explicitly
+ * const deleted = await prisma.customer.findMany({
+ *   where: { deletedAt: { not: null } }
+ * });
+ * 
+ * // Query ALL records (including deleted)
+ * const all = await prisma.customer.findMany({
+ *   where: { OR: [{ deletedAt: null }, { deletedAt: { not: null } }] }
+ * });
+ * 
+ * // Soft delete a record
+ * await prisma.customer.delete({ where: { id: 'xxx' } });
+ * // Actually executes: update with deletedAt: new Date()
+ * 
+ * // Hard delete (bypass middleware)
+ * await prisma.$executeRaw`DELETE FROM "Customer" WHERE id = ${id}`;
+ * ```
+ * 
+ * @returns Prisma middleware function
  */
 export function softDeleteMiddleware(): Prisma.Middleware {
     return async (params, next) => {

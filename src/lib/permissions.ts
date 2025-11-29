@@ -1,65 +1,37 @@
-import prisma from './prisma';
 import { UserRole } from '@prisma/client';
 
 /**
  * Check if a user has access to a specific location
+ * Uses JWT session data instead of querying database
  */
-export async function checkLocationAccess(
-    userId: string,
+export function checkLocationAccess(
+    userLocationIds: string[],
     locationId: string
-): Promise<boolean> {
-    const userLocation = await prisma.userLocation.findUnique({
-        where: {
-            userId_locationId: {
-                userId,
-                locationId,
-            },
-        },
-    });
-
-    return !!userLocation;
-}
-
-/**
- * Get all location IDs a user has access to
- */
-export async function getUserLocations(userId: string): Promise<string[]> {
-    const userLocations = await prisma.userLocation.findMany({
-        where: { userId },
-        select: { locationId: true },
-    });
-
-    return userLocations.map(ul => ul.locationId);
+): boolean {
+    return userLocationIds.includes(locationId);
 }
 
 /**
  * Check if a user can manage a specific location
+ * For administrative roles, returns true immediately
+ * For others, checks if location is in their assigned list
  */
-export async function canManageLocation(
-    userId: string,
+export function canManageLocation(
+    userRole: UserRole,
+    userLocationIds: string[],
     locationId: string
-): Promise<boolean> {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true },
-    });
-
+): boolean {
     // Super admins and location admins can manage all locations
-    if (user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.LOCATION_ADMIN) {
+    if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN) {
         return true;
     }
 
-    // Check if user has manager permission for this location
-    const userLocation = await prisma.userLocation.findUnique({
-        where: {
-            userId_locationId: {
-                userId,
-                locationId,
-            },
-        },
-    });
+    // Managers can only manage their assigned locations
+    if (userRole === UserRole.MANAGER) {
+        return userLocationIds.includes(locationId);
+    }
 
-    return userLocation?.canManage || false;
+    return false;
 }
 
 /**
@@ -79,32 +51,30 @@ export function hasRole(userRole: UserRole, requiredRole: UserRole): boolean {
 
 /**
  * Check if a user can edit a resource (quote, order, etc.)
+ * Uses session data instead of querying database
  */
-export async function canEditResource(
+export function canEditResource(
+    userRole: UserRole,
     userId: string,
+    userLocationIds: string[],
     resource: {
         createdById?: string | null;
         salesRepId?: string | null;
         locationId?: string;
     }
-): Promise<boolean> {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true },
-    });
-
-    if (!user) return false;
-
+): boolean {
     // Super admins and location admins can edit everything
-    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.LOCATION_ADMIN) return true;
+    if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN) {
+        return true;
+    }
 
     // Managers can edit resources in their locations
-    if (user.role === UserRole.MANAGER && resource.locationId) {
-        return await canManageLocation(userId, resource.locationId);
+    if (userRole === UserRole.MANAGER && resource.locationId) {
+        return userLocationIds.includes(resource.locationId);
     }
 
     // Sales can only edit their own resources
-    if (user.role === UserRole.SALES) {
+    if (userRole === UserRole.SALES) {
         return resource.createdById === userId || resource.salesRepId === userId;
     }
 
@@ -114,26 +84,19 @@ export async function canEditResource(
 /**
  * Check if a user can approve transfers
  */
-export async function canApproveTransfer(userId: string): Promise<boolean> {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true },
-    });
-
-    return user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.LOCATION_ADMIN || user?.role === UserRole.MANAGER;
+export function canApproveTransfer(userRole: UserRole): boolean {
+    return userRole === UserRole.SUPER_ADMIN ||
+        userRole === UserRole.LOCATION_ADMIN ||
+        userRole === UserRole.MANAGER;
 }
 
 /**
  * Check if a user can access analytics
  */
-export async function canAccessAnalytics(userId: string): Promise<boolean> {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true },
-    });
-
-    // Only admins and managers can access full analytics
-    return user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.LOCATION_ADMIN || user?.role === UserRole.MANAGER;
+export function canAccessAnalytics(userRole: UserRole): boolean {
+    return userRole === UserRole.SUPER_ADMIN ||
+        userRole === UserRole.LOCATION_ADMIN ||
+        userRole === UserRole.MANAGER;
 }
 
 /**

@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { logActivity } from '@/lib/audit-logger';
@@ -130,7 +131,7 @@ export async function PATCH(
             message: 'Order updated successfully'
         });
     } catch (error) {
-        console.error('Order update error:', error);
+        logApiError('Order update error:', error);
         return NextResponse.json(
             { error: 'Failed to update order', details: error instanceof Error ? error.message : 'Unknown' },
             { status: 500 }

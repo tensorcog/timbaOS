@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { logActivity } from '@/lib/audit-logger';
@@ -130,7 +131,7 @@ export async function PATCH(
 
         return NextResponse.json(updatedQuote);
     } catch (error) {
-        console.error('Quote update error:', error);
+        logApiError('Quote update error:', error);
         return NextResponse.json({ error: 'Failed to update quote' }, { status: 500 });
     }
 }

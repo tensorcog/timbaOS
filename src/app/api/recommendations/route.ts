@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
                 },
             },
             include: {
-                recommendedProduct: {
+                Product_ProductRecommendation_recommendedProductIdToProduct: {
                     include: {
                         LocationInventory: {
                             select: {
@@ -40,8 +41,9 @@ export async function GET(request: NextRequest) {
         const filteredRecommendations = recommendations
             .filter(rec => !productIds.includes(rec.recommendedProductId))
             .filter(rec => {
-                const totalStock = rec.recommendedProduct.LocationInventory.reduce(
-                    (sum, inv) => sum + inv.stockLevel,
+                const product = rec.Product_ProductRecommendation_recommendedProductIdToProduct;
+                const totalStock = product.LocationInventory.reduce(
+                    (sum: number, inv: { stockLevel: number }) => sum + inv.stockLevel,
                     0
                 );
                 return totalStock > 0;
@@ -58,20 +60,23 @@ export async function GET(request: NextRequest) {
 
         const result = Array.from(uniqueRecommendations.values())
             .slice(0, 5)
-            .map(rec => ({
-                product: {
-                    id: rec.recommendedProduct.id,
-                    name: rec.recommendedProduct.name,
-                    sku: rec.recommendedProduct.sku,
-                    price: parseFloat(rec.recommendedProduct.basePrice.toString()),
-                },
-                strength: rec.strength,
-                reason: rec.reason,
-            }));
+            .map(rec => {
+                const product = rec.Product_ProductRecommendation_recommendedProductIdToProduct;
+                return {
+                    product: {
+                        id: product.id,
+                        name: product.name,
+                        sku: product.sku,
+                        price: parseFloat(product.basePrice.toString()),
+                    },
+                    strength: rec.strength,
+                    reason: rec.reason,
+                };
+            });
 
         return NextResponse.json(result);
     } catch (error) {
-        console.error('Recommendation fetch error:', error);
+        logApiError('Recommendation fetch error:', error);
         return NextResponse.json({ error: 'Failed to fetch recommendations' }, { status: 500 });
     }
 }

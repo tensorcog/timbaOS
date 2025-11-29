@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(results);
     } catch (error) {
-        console.error('Product search error:', error);
+        logApiError('Product search error:', error);
         return NextResponse.json({ error: 'Search failed' }, { status: 500 });
     }
 }

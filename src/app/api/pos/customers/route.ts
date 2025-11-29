@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { randomUUID } from 'crypto';
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(customers);
     } catch (error) {
-        console.error('Customer search error:', error);
+        logApiError('Customer search error:', error);
         return NextResponse.json({ error: 'Search failed' }, { status: 500 });
     }
 }
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(customer);
     } catch (error) {
-        console.error('Customer creation error:', error);
+        logApiError('Customer creation error:', error);
         return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
     }
 }

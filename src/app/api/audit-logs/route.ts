@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(logs);
     } catch (error) {
-        console.error('Audit log fetch error:', error);
+        logApiError('Audit log fetch error:', error);
         return NextResponse.json({ error: 'Failed to fetch audit logs' }, { status: 500 });
     }
 }

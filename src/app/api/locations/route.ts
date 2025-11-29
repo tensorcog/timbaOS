@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -15,7 +16,7 @@ export async function GET() {
 
         return NextResponse.json(locations);
     } catch (error) {
-        console.error('Error fetching locations:', error);
+        logApiError('Error fetching locations:', error);
         return NextResponse.json({ error: 'Failed to fetch locations' }, { status: 500 });
     }
 }

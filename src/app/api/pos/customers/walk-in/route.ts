@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { randomUUID } from 'crypto';
@@ -22,7 +23,7 @@ export async function POST() {
 
         return NextResponse.json(customer);
     } catch (error) {
-        console.error('Walk-in customer creation error:', error);
+        logApiError('Walk-in customer creation error:', error);
         return NextResponse.json({ error: 'Failed to create walk-in customer' }, { status: 500 });
     }
 }

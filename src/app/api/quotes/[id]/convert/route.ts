@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { logActivity } from '@/lib/audit-logger';
@@ -151,7 +152,7 @@ export async function POST(
         });
 
     } catch (error) {
-        console.error('Quote conversion error:', error);
+        logApiError('Quote conversion error:', error);
         console.error('Error details:', {
             name: error instanceof Error ? error.name : 'Unknown',
             message: error instanceof Error ? error.message : 'Unknown error',

@@ -197,6 +197,69 @@ describe('Permissions', () => {
         });
     });
 
+    describe('canManageLocation', () => {
+        it('should return false if user is not associated with the location', async () => {
+            (prisma.userLocation.findUnique as jest.Mock).mockResolvedValue(null);
+
+            const result = await canManageLocation('user1', 'loc1');
+            expect(result).toBe(false);
+        });
+
+        it('should return true if user is associated with the location and has LOCATION_ADMIN role', async () => {
+            (prisma.userLocation.findUnique as jest.Mock).mockResolvedValue({
+                id: 'ul1',
+                userId: 'user1',
+                locationId: 'loc1',
+            });
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                role: UserRole.LOCATION_ADMIN,
+            });
+
+            const result = await canManageLocation('user1', 'loc1');
+            expect(result).toBe(true);
+        });
+
+        it('should return true if user is SUPER_ADMIN regardless of location association', async () => {
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                role: UserRole.SUPER_ADMIN,
+            });
+            (prisma.userLocation.findUnique as jest.Mock).mockResolvedValue(null); // Not associated
+
+            const result = await canManageLocation('user1', 'loc1');
+            expect(result).toBe(true);
+        });
+
+        it('should return false if user is associated with location but has insufficient role', async () => {
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                role: UserRole.MANAGER,
+            });
+
+            (prisma.userLocation.findUnique as jest.Mock).mockResolvedValue({
+                id: 'ul1',
+                userId: 'user1',
+                locationId: 'loc1',
+            });
+
+            const result = await canManageLocation('user1', 'loc1');
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('canEditResource', () => {
+        it('should allow super admin to edit any resource', async () => {
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                role: UserRole.SUPER_ADMIN,
+            });
+
+            const result = await canEditResource('user1', {
+                id: 'resource1',
+                salesRepId: 'user2',
+                createdById: 'user3',
+            });
+            expect(result).toBe(true);
+        });
+    });
+
     describe('Role Hierarchy', () => {
         it('should maintain correct hierarchy order', () => {
             const roles = [

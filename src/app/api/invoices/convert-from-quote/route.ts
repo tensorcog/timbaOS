@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
@@ -157,7 +158,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(invoice, { status: 201 });
     } catch (error) {
-        console.error('Failed to convert quote to invoice:', error);
+        logApiError('Failed to convert quote to invoice:', error);
         return NextResponse.json(
             { error: 'Failed to convert quote to invoice' },
             { status: 500 }

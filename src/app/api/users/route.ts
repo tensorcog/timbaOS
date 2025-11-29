@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -39,7 +40,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json(users);
     } catch (error) {
-        console.error("[USERS_GET]", error);
+        logApiError("[USERS_GET]", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 }
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json(result);
     } catch (error) {
-        console.error("[USERS_POST]", error);
+        logApiError("[USERS_POST]", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 }

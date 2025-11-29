@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(preferences);
     } catch (error) {
-        console.error('Error fetching preferences:', error);
+        logApiError('Error fetching preferences:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -102,7 +103,7 @@ export async function PATCH(request: NextRequest) {
 
         return NextResponse.json(preferences);
     } catch (error) {
-        console.error('Error updating preferences:', error);
+        logApiError('Error updating preferences:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

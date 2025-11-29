@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { startOfMonth, subMonths, format } from "date-fns"

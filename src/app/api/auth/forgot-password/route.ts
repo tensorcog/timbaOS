@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendPasswordResetEmail } from '@/lib/email';
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
             });
 
             if (!result.success) {
-                console.error('Failed to send password reset email:', result.error);
+                logApiError('Failed to send password reset email:', result.error);
                 // Still return success to user to prevent enumeration
             }
         }
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error) {
-        console.error('Forgot password error:', error);
+        logApiError('Forgot password error:', error);
         return NextResponse.json(
             { error: 'An error occurred processing your request' },
             { status: 500 }

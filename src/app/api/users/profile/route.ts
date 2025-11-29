@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(user);
     } catch (error) {
-        console.error('Error fetching profile:', error);
+        logApiError('Error fetching profile:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -116,7 +117,7 @@ export async function PATCH(request: NextRequest) {
 
         return NextResponse.json(updatedUser);
     } catch (error) {
-        console.error('Error updating profile:', error);
+        logApiError('Error updating profile:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

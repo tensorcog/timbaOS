@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(invoices);
     } catch (error) {
-        console.error('Failed to fetch invoices:', error);
+        logApiError('Failed to fetch invoices:', error);
         return NextResponse.json(
             { error: 'Failed to fetch invoices' },
             { status: 500 }
@@ -274,7 +275,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(invoice, { status: 201 });
     } catch (error) {
-        console.error('Failed to create invoice:', error);
+        logApiError('Failed to create invoice:', error);
         return NextResponse.json(
             { error: 'Failed to create invoice' },
             { status: 500 }

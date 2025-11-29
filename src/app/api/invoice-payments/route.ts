@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(result, { status: 201 });
     } catch (error) {
-        console.error('Failed to record payment:', error);
+        logApiError('Failed to record payment:', error);
         return NextResponse.json(
             { error: 'Failed to record payment' },
             { status: 500 }
@@ -282,7 +283,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(payments);
     } catch (error) {
-        console.error('Failed to fetch payments:', error);
+        logApiError('Failed to fetch payments:', error);
         return NextResponse.json(
             { error: 'Failed to fetch payments' },
             { status: 500 }

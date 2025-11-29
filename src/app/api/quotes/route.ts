@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/api-logger';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { logActivity } from '@/lib/audit-logger';
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(quote);
     } catch (error) {
-        console.error('Quote creation error:', error);
+        logApiError('Quote creation error:', error);
 
         // Check if it's a Prisma foreign key constraint error
         if (error && typeof error === 'object' && 'code' in error) {
@@ -247,7 +248,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(quotes);
     } catch (error) {
-        console.error('Quote fetch error:', error);
+        logApiError('Quote fetch error:', error);
         return NextResponse.json({ error: 'Failed to fetch quotes' }, { status: 500 });
     }
 }

@@ -67,33 +67,79 @@ test_get_walk_in_customer() {
 }
 
 test_pos_checkout_single_payment() {
-    echo ""; echo "========================================="; echo "TEST: POS Checkout (Single Payment)"; echo "========================================="
+    echo ""; echo "========================================="; echo "TEST: POS Checkout (Enhanced Validation)"; echo "========================================="
     
     # Get product and customer
     response=$(api_request "GET" "/api/pos/products" "")
     product_body=$(echo "$response" | head -n-1)
-    product_id=$(echo "$product_body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+    product_id=$(echo "$product_body" | jq -r '.[0].id // empty')
+    product_price=$(echo "$product_body" | jq -r '.[0].basePrice // empty')
     
     customer_id=""
     [ -f "${RESULTS_DIR}/walkin_customer_id.txt" ] && customer_id=$(cat "${RESULTS_DIR}/walkin_customer_id.txt")
     
-    if [ -z "$product_id" ] || [ -z "$customer_id" ]; then
-        fail "Missing product or customer ID for checkout test"
+    if [ -z "$product_id" ] || [ -z "$customer_id" ] || [ -z "$product_price" ]; then
+        fail "Missing product, price, or customer ID for checkout test"
         return 1
     fi
     
-    checkout_data="{\"customerId\":\"$customer_id\",\"items\":[{\"productId\":\"$product_id\",\"quantity\":1}],\"payments\":[{\"method\":\"CASH\",\"amount\":10.00}]}"
+    info "Testing POS checkout: Product $product_id at \$$product_price"
     
-    info "Testing POS checkout with single payment"
+    checkout_data="{
+        \"customerId\":\"$customer_id\",
+        \"items\":[{\"productId\":\"$product_id\",\"quantity\":1,\"price\":$product_price,\"discount\":0}],
+        \"payments\":[{\"method\":\"CASH\",\"amount\":$product_price}]
+    }"
+    
     response=$(api_request "POST" "/api/pos/checkout" "$checkout_data")
-    status=$(echo "$response" | tail -n1); body=$(echo "$response" | head -n-1)
+    status=$(echo "$response" | tail -n1)
+    body=$(echo "$response" | head -n-1)
     
-    if [ "$status" -eq 200 ] || [ "$status" -eq 201 ]; then
-        pass "POS checkout successful"
-    else
-        info "Checkout response: $body"
+    # 1. Validate HTTP status
+    if [ "$status" -ne 200 ] && [ "$status" -ne 201 ]; then
         fail "POS checkout failed (status: $status)"
+        info "Response: $body"
+        return 1
     fi
+    
+    # 2. Extract order details
+    order_id=$(echo "$body" |jq -r '.id // empty')
+    order_number=$(echo "$body" | jq -r '.orderNumber // empty')
+    order_status=$(echo "$body" | jq -r '.status // empty')
+    payment_status=$(echo "$body" | jq -r '.paymentStatus // empty')
+    order_total=$(echo "$body" | jq -r '.totalAmount // empty')
+    
+    # 3. Field presence validation
+    [ -n "$order_id" ] || { fail "Missing order ID"; return 1; }
+    [ -n "$order_number" ] || { fail "Missing order number"; return 1; }
+    
+    # 4. Business rule: POS orders should be COMPLETED immediately
+    if [ "$order_status" != "COMPLETED" ]; then
+        fail "POS order should be COMPLETED, got: $order_status"
+        return 1
+    fi
+    
+    # 5. Business rule: Paid orders should have payment status PAID
+    if [ "$payment_status" != "PAID" ]; then
+        fail "Payment status should be PAID, got: $payment_status"
+        return 1
+    fi
+    
+    # 6. Format validation: Order number should match pattern ORD-XXXX
+    if ! echo "$order_number" | grep -qE '^ORD-[0-9]{4,}$'; then
+        fail "Invalid order number format: $order_number"
+        return 1
+    fi
+    
+    # 7. Calculation validation: Total should match input
+    expected_total=$(echo "scale=2; $product_price / 1" | bc)
+    actual_total=$(echo "scale=2; $order_total / 1" | bc)
+    if [ "$expected_total" != "$actual_total" ]; then
+        fail "Total mismatch (expected: $expected_total, got: $actual_total)"
+        return 1
+    fi
+    
+    pass "POS checkout complete with correct business logic (Order: $order_number, Status: $order_status, Total: \$$order_total)"
 }
 
 test_pos_checkout_split_payment() {

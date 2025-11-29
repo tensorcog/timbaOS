@@ -133,12 +133,12 @@ test_list_quotes() {
 }
 
 #############################################
-# TEST 2: Create Quote
+# TEST 2: Create Quote (Enhanced with Business Logic)
 #############################################
 test_create_quote() {
     echo ""
     echo "========================================="
-    echo "TEST: Create Quote"
+    echo "TEST: Create Quote (Enhanced Validation)"
     echo "========================================="
     
     # Get test data first
@@ -158,19 +158,53 @@ test_create_quote() {
     status=$(echo "$response" | tail -n1)
     body=$(echo "$response" | head -n-1)
     
-    if [ "$status" -eq 201 ] || [ "$status" -eq 200 ]; then
-        QUOTE_ID=$(echo "$body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-        
-        if [ -n "$QUOTE_ID" ]; then
-            pass "Quote created successfully (ID: $QUOTE_ID)"
-            echo "$QUOTE_ID" > "${RESULTS_DIR}/test_quote_id.txt"
-        else
-            fail "Quote created but ID not found in response"
-        fi
-    else
-        fail "Failed to create quote (status: $status)"
+    # 1. Validate HTTP status
+    if [ "$status" -ne 201 ] && [ "$status" -ne 200 ]; then
+        fail "Wrong HTTP status: $status (expected 201)"
         info "Response: $body"
+        return 1
     fi
+    
+    # 2. Validate response structure - extract all critical fields
+    QUOTE_ID=$(echo "$body" | jq -r '.id // empty')
+    quote_number=$(echo "$body" | jq -r '.quoteNumber // empty')
+    quote_status=$(echo "$body" | jq -r '.status // empty')
+    quote_total=$(echo "$body" | jq -r '.totalAmount // empty')
+    quote_customer=$(echo "$body" | jq -r '.customerId // empty')
+    quote_location=$(echo "$body" | jq -r '.locationId // empty')
+    
+    # 3. Field presence validation
+    [ -n "$QUOTE_ID" ] || { fail "Missing quote ID in response"; return 1; }
+    [ -n "$quote_number" ] || { fail "Missing quote number in response"; return 1; }
+    [ -n "$quote_status" ] || { fail "Missing status in response"; return 1; }
+    [ -n "$quote_total" ] || { fail "Missing totalAmount in response"; return 1; }
+    
+    # 4. Business rule: New quotes must be in DRAFT status
+    if [ "$quote_status" != "DRAFT" ]; then
+        fail "New quote should be DRAFT, got: $quote_status"
+        return 1
+    fi
+    
+    # 5. Format validation: Quote number should match pattern Q-XXXX
+    if ! echo "$quote_number" | grep -qE '^Q-[0-9]{4,}$'; then
+        fail "Invalid quote number format: $quote_number (expected Q-XXXX)"
+        return 1
+    fi
+    
+    # 6. Calculation validation: Empty items should result in $0.00 total
+    expected_total="0.00"
+    actual_total=$(echo "scale=2; $quote_total / 1" | bc)
+    if [ "$actual_total" != "$expected_total" ]; then
+        fail "Empty quote total should be 0.00, got: $actual_total"
+        return 1
+    fi
+    
+    # 7. Relationship validation
+    [ "$quote_customer" = "$CUSTOMER_ID" ] || { fail "Customer ID mismatch"; return 1; }
+    [ "$quote_location" = "$LOCATION_ID" ] || { fail "Location ID mismatch"; return 1; }
+    
+    pass "Quote created with correct business logic (ID: $QUOTE_ID, Number: $quote_number, Status: $quote_status)"
+    echo "$QUOTE_ID" > "${RESULTS_DIR}/test_quote_id.txt"
 }
 
 #############################################
@@ -216,12 +250,12 @@ test_get_quote() {
 }
 
 #############################################
-# TEST 4: Update Quote
+# TEST 4: Update Quote (Enhanced)
 #############################################
 test_update_quote() {
     echo ""
     echo "========================================="
-    echo "TEST: Update Quote"
+    echo "TEST: Update Quote (Enhanced Validation)"
     echo "========================================="
     
     if [ -z "$QUOTE_ID" ] && [ -f "${RESULTS_DIR}/test_quote_id.txt" ]; then
@@ -235,24 +269,44 @@ test_update_quote() {
     
     info "Updating quote $QUOTE_ID"
     
+    test_note="Updated by automation test at $(date +%s)"
     update_data="{
-        \"notes\": \"Updated by automation test at $(date)\"
+        \"notes\": \"$test_note\"
     }"
     
     response=$(api_request "PATCH" "/api/quotes/$QUOTE_ID" "$update_data")
     status=$(echo "$response" | tail -n1)
     body=$(echo "$response" | head -n-1)
     
-    if [ "$status" -eq 200 ]; then
-        if echo "$body" | grep -q "Updated by automation"; then
-            pass "Quote updated successfully"
-        else
-            pass "Quote update returned 200 (verification skipped)"
-        fi
-    else
+    # 1. Validate HTTP status
+    if [ "$status" -ne 200 ]; then
         fail "Failed to update quote (status: $status)"
         info "Response: $body"
+        return 1
     fi
+    
+    # 2. Validate response contains updated data
+    returned_notes=$(echo "$body" | jq -r '.notes // empty')
+    if [ "$returned_notes" != "$test_note" ]; then
+        fail "Update didn't persist (expected: $test_note, got: $returned_notes)"
+        return 1
+    fi
+    
+    # 3. Verify quote ID unchanged
+    returned_id=$(echo "$body" | jq -r '.id // empty')
+    if [ "$returned_id" != "$QUOTE_ID" ]; then
+        fail "Quote ID changed after update!"
+        return 1
+    fi
+    
+    # 4. Status should still be DRAFT (partial update shouldn't change status)
+    returned_status=$(echo "$body" | jq -r '.status // empty')
+    if [ "$returned_status" != "DRAFT" ]; then
+        fail "Status changed unexpectedly: $returned_status"
+        return 1
+    fi
+    
+    pass "Quote updated successfully and changes verified"
 }
 
 #############################################

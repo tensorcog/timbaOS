@@ -55,6 +55,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
                 session.user.locationIds = (token.locationIds as string[]) || [];
+                session.user.tokenVersion = (token.tokenVersion as number) ?? 0;
             }
             return session;
         },
@@ -64,6 +65,14 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
+
+                // Fetch user details including tokenVersion
+                const userWithVersion = await prisma.user.findUnique({
+                    where: { id: user.id },
+                    select: { tokenVersion: true },
+                });
+
+                token.tokenVersion = userWithVersion?.tokenVersion ?? 0;
 
                 // Fetch user's assigned locations only on login
                 const userLocations = await prisma.userLocation.findMany({

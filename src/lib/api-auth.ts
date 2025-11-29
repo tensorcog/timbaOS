@@ -3,6 +3,7 @@ import { getServerSession, Session } from 'next-auth';
 import { authOptions } from './auth';
 import { UserRole } from '@prisma/client';
 import { checkLocationAccess, hasRole } from './permissions';
+import prisma from './prisma';
 
 /**
  * Middleware to check if user is authenticated and has required role
@@ -19,6 +20,28 @@ export async function requireAuth(
     if (!session?.user?.id) {
         return {
             error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+        };
+    }
+
+    // Check if JWT token version matches current user version
+    // This invalidates tokens when permissions/locations change
+    const currentUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { tokenVersion: true, isActive: true },
+    });
+
+    if (!currentUser?.isActive) {
+        return {
+            error: NextResponse.json({ error: 'Account deactivated' }, { status: 401 }),
+        };
+    }
+
+    if (currentUser.tokenVersion !== session.user.tokenVersion) {
+        return {
+            error: NextResponse.json(
+                { error: 'Session expired - please log in again', code: 'TOKEN_VERSION_MISMATCH' },
+                { status: 401 }
+            ),
         };
     }
 

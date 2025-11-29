@@ -6,6 +6,8 @@ import { authOptions } from '@/lib/auth';
 import { UserRole, InvoiceStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import Decimal from 'decimal.js';
+import { createInvoiceSchema, formatZodErrors, invoiceQuerySchema } from '@/lib/validations/invoice';
+import { z } from 'zod';
 
 // GET /api/invoices - List invoices with filters
 export async function GET(request: NextRequest) {
@@ -26,13 +28,28 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get query parameters for filtering
+        // Get and validate query parameters
         const searchParams = request.nextUrl.searchParams;
-        const status = searchParams.get('status');
-        const customerId = searchParams.get('customerId');
-        const locationId = searchParams.get('locationId');
-        const startDate = searchParams.get('startDate');
-        const endDate = searchParams.get('endDate');
+        
+        // Validate query parameters
+        const queryValidation = invoiceQuerySchema.safeParse({
+            status: searchParams.get('status'),
+            customerId: searchParams.get('customerId'),
+            locationId: searchParams.get('locationId'),
+            startDate: searchParams.get('startDate'),
+            endDate: searchParams.get('endDate'),
+            limit: searchParams.get('limit'),
+            offset: searchParams.get('offset'),
+        });
+
+        if (!queryValidation.success) {
+            return NextResponse.json(
+                { error: 'Invalid query parameters', details: formatZodErrors(queryValidation.error.issues) },
+                { status: 400 }
+            );
+        }
+
+        const { status, customerId, locationId, startDate, endDate, limit, offset } = queryValidation.data;
 
         // Build filters
         const filters: any = {};
@@ -126,25 +143,30 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Parse and validate request body
         const body = await request.json();
-        const {
-            customerId,
-            locationId,
-            items,
-            notes,
-            terms,
-            paymentTermDays,
-            orderId,
-            quoteId,
-        } = body;
-
-        // Validate required fields
-        if (!customerId || !locationId || !items || items.length === 0) {
+        
+        const validation = createInvoiceSchema.safeParse(body);
+        if (!validation.success) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { error: 'Invalid invoice data', details: formatZodErrors(validation.error.issues) },
                 { status: 400 }
             );
         }
+
+        const {
+            customerId,
+            locationId,
+            orderId,
+            quoteId,
+            items,
+            dueDate,
+            paymentTermDays,
+            notes,
+            terms,
+            discountAmount,
+            deliveryFee,
+        } = validation.data;
 
         // Check location access
         if (userRole === UserRole.MANAGER && !userLocationIds.includes(locationId)) {
@@ -189,51 +211,68 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Calculate totals
-        let subtotal = new Decimal(0);
-        let discountAmount = new Decimal(0);
+        // Calculate totals from items
+        let itemsSubtotal = new Decimal(0);
+        let itemsDiscount = new Decimal(0);
 
-        const processedItems = items.map((item: any) => {
+        const invoiceItems = items.map((item) => {
+            const quantity = new Decimal(item.quantity);
             const unitPrice = new Decimal(item.unitPrice);
-            const quantity = item.quantity;
-            const discount = new Decimal(item.discount || 0);
+            const itemDiscount = new Decimal(item.discount || 0);
 
-            const itemSubtotal = unitPrice.times(quantity).minus(discount);
-
-            subtotal = subtotal.plus(itemSubtotal);
-            discountAmount = discountAmount.plus(discount);
+            const subtotal = quantity.times(unitPrice).minus(itemDiscount);
+            itemsSubtotal = itemsSubtotal.plus(subtotal);
+            itemsDiscount = itemsDiscount.plus(itemDiscount);
 
             return {
                 id: randomUUID(),
                 productId: item.productId,
-                description: item.description || '',
-                quantity: quantity,
-                unitPrice: unitPrice.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
-                discount: discount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
-                subtotal: itemSubtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                description: item.description || null,
+                quantity,
+                unitPrice,
+                discount: itemDiscount,
+                subtotal,
             };
         });
 
+        // Calculate invoice totals
+        const invoiceSubtotal = itemsSubtotal;
+        const invoiceDiscountAmount = new Decimal(discountAmount || 0);
+        const invoiceDeliveryFee = new Decimal(deliveryFee || 0);
+
         // Calculate tax
-        const taxRate = parseFloat(location.taxRate?.toString() || '0');
-        const taxAmount = customer.taxExempt ? new Decimal(0) : subtotal.times(taxRate);
+        const taxableAmount = invoiceSubtotal
+            .minus(invoiceDiscountAmount)
+            .plus(invoiceDeliveryFee);
 
-        // Delivery fee (if provided in body)
-        const deliveryFee = new Decimal(body.deliveryFee || 0);
+        const taxRate = new Decimal(location.taxRate || 0);
+        const taxAmount = customer.taxExempt
+            ? new Decimal(0)
+            : taxableAmount.times(taxRate);
 
-        const totalAmount = subtotal.plus(taxAmount).plus(deliveryFee);
-
-        // Generate invoice number using sequence
-        const sequence = await prisma.invoiceSequence.create({ data: {} });
-        const year = new Date().getFullYear();
-        const month = String(new Date().getMonth() + 1).padStart(2, '0');
-        const seqNum = String(sequence.id).padStart(4, '0');
-        const invoiceNumber = `INV-${year}${month}-${seqNum}`;
+        const totalAmount = taxableAmount.plus(taxAmount);
 
         // Calculate due date
-        const termDays = paymentTermDays || customer.paymentTermDays || 30;
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + termDays);
+        const invoiceDueDate = dueDate 
+            ? new Date(dueDate)
+            : (() => {
+                const date = new Date();
+                date.setDate(date.getDate() + (paymentTermDays || customer.paymentTermDays));
+                return date;
+            })();
+
+        // Generate invoice number (counter-based)
+        const lastInvoice = await prisma.invoice.findFirst({
+            where: { locationId },
+            orderBy: { createdAt: 'desc' },
+            select: { invoiceNumber: true },
+        });
+
+        const nextNumber = lastInvoice
+            ? parseInt(lastInvoice.invoiceNumber.split('-').pop() || '0') + 1
+            : 1;
+
+        const invoiceNumber = `INV-${location.id.substring(0, 4).toUpperCase()}-${nextNumber.toString().padStart(6, '0')}`;
 
         // Create invoice
         const invoice = await prisma.invoice.create({
@@ -245,31 +284,31 @@ export async function POST(request: NextRequest) {
                 orderId: orderId || null,
                 quoteId: quoteId || null,
                 invoiceDate: new Date(),
-                dueDate,
-                status: InvoiceStatus.DRAFT,
-                subtotal: subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
-                taxAmount: taxAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
-                discountAmount: discountAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
-                deliveryFee: deliveryFee.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
-                totalAmount: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
-                paidAmount: new Decimal(0).toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
-                balanceDue: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                dueDate: invoiceDueDate,
+                status: 'DRAFT',
+                subtotal: invoiceSubtotal.toDecimalPlaces(2),
+                taxAmount: taxAmount.toDecimalPlaces(2),
+                discountAmount: invoiceDiscountAmount.toDecimalPlaces(2),
+                deliveryFee: invoiceDeliveryFee.toDecimalPlaces(2),
+                totalAmount: totalAmount.toDecimalPlaces(2),
+                paidAmount: new Decimal(0),
+                balanceDue: totalAmount.toDecimalPlaces(2),
+                paymentTermDays: paymentTermDays || customer.paymentTermDays,
                 notes: notes || null,
-                terms: terms || 'Payment due within specified terms. Late payments may incur fees.',
-                paymentTermDays: termDays,
+                terms: terms || null,
                 createdById: session.user.id,
                 InvoiceItem: {
-                    create: processedItems,
+                    create: invoiceItems,
                 },
             },
             include: {
+                Customer: true,
+                Location: true,
                 InvoiceItem: {
                     include: {
                         Product: true,
                     },
                 },
-                Customer: true,
-                Location: true,
             },
         });
 

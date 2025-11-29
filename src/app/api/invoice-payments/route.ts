@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { UserRole, InvoiceStatus, InvoicePaymentMethod } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import Decimal from 'decimal.js';
+import { createPaymentSchema, formatZodErrors } from '@/lib/validations/invoice';
 
 // POST /api/invoice-payments - Record payment for invoice
 export async function POST(request: NextRequest) {
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
         const userRole = session.user.role as UserRole;
         const userLocationIds = session.user.locationIds || [];
 
-        // Only managers and admins can record payments
+        // Only managers  and admins can record payments
         if (userRole === UserRole.SALES || userRole === UserRole.WAREHOUSE) {
             return NextResponse.json(
                 { error: 'Forbidden - Insufficient permissions' },
@@ -26,7 +27,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Parse and validate request body
         const body = await request.json();
+        
+        const validation = createPaymentSchema.safeParse(body);
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: 'Invalid payment data', details: formatZodErrors(validation.error.issues) },
+                { status: 400 }
+            );
+        }
+
         const {
             invoiceId,
             customerId,
@@ -35,24 +46,9 @@ export async function POST(request: NextRequest) {
             referenceNumber,
             notes,
             paymentDate,
-        } = body;
-
-        // Validate required fields
-        if (!customerId || !amount || !paymentMethod) {
-            return NextResponse.json(
-                { error: 'Missing required fields' },
-                { status: 400 }
-            );
-        }
+        } = validation.data;
 
         const paymentAmount = new Decimal(amount);
-
-        if (paymentAmount.toNumber() <= 0) {
-            return NextResponse.json(
-                { error: 'Payment amount must be greater than zero' },
-                { status: 400 }
-            );
-        }
 
         // If invoice ID provided, validate it
         let invoice = null;

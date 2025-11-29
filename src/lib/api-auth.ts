@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { getServerSession, Session } from 'next-auth';
 import { authOptions } from './auth';
 import { UserRole } from '@prisma/client';
 import { checkLocationAccess, hasRole } from './permissions';
@@ -13,7 +13,7 @@ export async function requireAuth(
         roles?: UserRole[];
         locationId?: string;
     }
-): Promise<{ error?: NextResponse; session?: any }> {
+): Promise<{ error?: NextResponse; session?: Session }> {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -52,7 +52,7 @@ export async function requireAuth(
  * Check if user can access a location (either has direct access or is admin)
  */
 export function canAccessLocation(
-    session: any,
+    session: Session,
     locationId: string
 ): boolean {
     const userRole = session.user.role as UserRole;
@@ -69,7 +69,7 @@ export function canAccessLocation(
 /**
  * Filter query conditions by user's location access
  */
-export function getLocationFilter(session: any): { locationId?: { in: string[] } } {
+export function getLocationFilter(session: Session): { locationId?: { in: string[] } } {
     const userRole = session.user.role as UserRole;
 
     // Admins see all locations
@@ -89,7 +89,7 @@ export function getLocationFilter(session: any): { locationId?: { in: string[] }
  * Check if user owns a resource (created it or is assigned as sales rep)
  */
 export function isResourceOwner(
-    session: any,
+    session: Session,
     resource: {
         createdById?: string | null;
         salesRepId?: string | null;

@@ -52,47 +52,101 @@ timbaOS is a next-generation enterprise resource planning system specifically de
 
 ## Quick Start
 
-### 1. Installation
+### Prerequisites
+
+- Node.js 20.x or higher
+- PostgreSQL 14.x or higher
+- npm or yarn package manager
+
+### 1. Clone and Install
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd spruce-killer
+git clone https://github.com/tensorcog/timbaOS.git
+cd timbaOS
 
-# Run the setup script
-bash setup.sh
-
-# Or manual install:
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use 20
+# Install Node.js dependencies
 npm install
 ```
 
-### 2. Database Setup
+### 2. Environment Configuration
+
+Create a `.env` file in the project root by copying the example:
 
 ```bash
-# Configure your database URL in .env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/pine_db?schema=public"
+cp .env.example .env
+```
 
-# Reset database and seed with sample data
-npx prisma migrate reset --force
+Edit `.env` with your configuration:
+
+```bash
+# Database Connection
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/timbaos_db?schema=public"
+
+# NextAuth Configuration
+# Generate with: openssl rand -base64 32
+NEXTAUTH_SECRET="your-generated-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Optional: Email Service (for notifications)
+# RESEND_API_KEY="re_xxxxxxxxxxxx"
+```
+
+**Important**:
+- Never commit your `.env` file to git
+- Generate a secure `NEXTAUTH_SECRET` using `openssl rand -base64 32`
+- Use a strong password for your database
+
+### 3. Database Setup
+
+```bash
+# Create the database (if not exists)
+createdb timbaos_db
+
+# Run migrations to create tables
+npx prisma migrate deploy
+
+# Generate Prisma Client
 npx prisma generate
+
+# Seed database with sample data (optional)
 npm run seed
 ```
 
-### 3. Run the Application
+### 4. Run the Application
 
 ```bash
-# Development mode
+# Development mode (with hot reload)
 npm run dev
 
-# Production
+# Production build and start
 npm run build
 npm start
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
 ```
 
 Visit `http://localhost:3000`
+
+### 5. Login with Seed Data
+
+After seeding, you can log in with these test accounts:
+
+```
+Email: admin@billssupplies.com
+Password: password
+Role: SUPER_ADMIN
+
+Email: main.manager@billssupplies.com
+Password: password
+Role: LOCATION_ADMIN
+```
+
+⚠️ **Change all default passwords before deploying to production!**
 
 ---
 
@@ -300,14 +354,22 @@ Body: { locationId?: string }
 
 ## Development
 
-### Running Locally
+### Available Scripts
 
 ```bash
-npm run dev       # Start dev server on port 3000
-npm run build     # Build for production
-npm run start     # Start production server
-npm run lint      # Run ESLint
-npm run seed      # Seed database
+# Development
+npm run dev         # Start dev server on port 3000
+npm run build       # Build for production
+npm run start       # Start production server
+npm run lint        # Run ESLint
+
+# Testing
+npm test            # Run unit tests
+npm run test:watch  # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+
+# Database
+npm run seed        # Seed database with sample data
 ```
 
 ### Database Commands
@@ -315,9 +377,66 @@ npm run seed      # Seed database
 ```bash
 npx prisma studio              # Open Prisma Studio (GUI)
 npx prisma migrate dev         # Create new migration
-npx prisma migrate reset       # Reset database
+npx prisma migrate deploy      # Apply migrations (production)
+npx prisma migrate reset       # Reset database and run seeds
 npx prisma generate            # Generate Prisma client
-npx prisma db push             # Push schema without migration
+npx prisma db push             # Push schema without migration (dev only)
+```
+
+### Testing
+
+timbaOS uses Jest for unit testing and Playwright for E2E testing.
+
+**Unit Tests**:
+```bash
+# Run all unit tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+```
+
+Coverage is configured with an 80% threshold for:
+- Statements
+- Branches
+- Functions
+- Lines
+
+**E2E Tests**:
+```bash
+# Run Playwright tests
+npx playwright test
+
+# Run tests in UI mode
+npx playwright test --ui
+
+# Run specific test file
+npx playwright test tests/e2e/invoice.spec.ts
+```
+
+### Writing Tests
+
+Place unit tests in `__tests__` directories:
+```
+src/lib/
+├── currency.ts
+└── __tests__/
+    └── currency.test.ts
+```
+
+Example test structure:
+```typescript
+import { currency } from '../currency';
+
+describe('Currency', () => {
+  it('should add two values correctly', () => {
+    const result = currency(10).add(5);
+    expect(result.toString()).toBe('15.00');
+  });
+});
 ```
 
 ### Adding a New Location
@@ -386,46 +505,122 @@ await prisma.locationInventory.create({
 
 ## Environment Variables
 
-```bash
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/pine_db?schema=public"
+All environment variables should be configured in a `.env` file (never commit this file!).
 
-# NextJS (auto-generated)
-# No additional env vars required for basic setup
+### Required Variables
+
+```bash
+# Database Connection
+# Format: postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA
+DATABASE_URL="postgresql://postgres:password@localhost:5432/timbaos_db?schema=public"
+
+# NextAuth Authentication
+# Generate with: openssl rand -base64 32
+NEXTAUTH_SECRET="your-secure-random-secret-here"
+NEXTAUTH_URL="http://localhost:3000"  # Use your production URL in production
+```
+
+### Optional Variables
+
+```bash
+# Email Service (Resend)
+RESEND_API_KEY="re_xxxxxxxxxxxx"
+
+# Node Environment (automatically set by most platforms)
+NODE_ENV="development"  # or "production"
+```
+
+### Environment File Structure
+
+```
+timbaOS/
+├── .env              # Your local config (gitignored, never commit!)
+├── .env.example      # Template with dummy values (safe to commit)
+└── .env.production   # Production config (gitignored, never commit!)
 ```
 
 ---
 
-## Security Notes
+## Security
 
-⚠️ **Important Security Considerations:**
+### Authentication & Authorization
 
-1. **Authentication**: This application uses NextAuth.js for authentication:
-   - Session-based authentication with Prisma adapter
-   - Password hashing with bcryptjs
-   - Protected routes via middleware
-   - Seed file includes test users with password "password" (bcrypt hashed)
+timbaOS implements comprehensive security measures:
 
-2. **Current Implementation**:
-   - ✅ NextAuth configured with Credentials provider
-   - ✅ Passwords hashed with bcrypt
-   - ✅ Session management via database
-   - ✅ Protected dashboard routes
-   - ⚠️ API routes need additional RBAC enforcement
+**Authentication**:
+- ✅ NextAuth.js with JWT session strategy
+- ✅ Bcrypt password hashing (10 rounds)
+- ✅ Secure session management
+- ✅ Protected routes via middleware
+- ✅ Conditional debug mode (development only)
 
-3. **Before Production**:
-   - Change all default passwords
-   - Add rate limiting to login endpoint
-   - Implement proper RBAC checks on all API routes
-   - Enable HTTPS/SSL
-   - Use proper secrets management for `NEXTAUTH_SECRET`
+**Authorization**:
+- ✅ Role-Based Access Control (RBAC)
+- ✅ Location-based access restrictions
+- ✅ API route authentication
+- ✅ Type-safe session handling
 
-4. **Environment Variables**: Never commit `.env` files. Required variables:
-   ```
-   DATABASE_URL="postgresql://..."
-   NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
-   NEXTAUTH_URL="http://localhost:3000"
-   ```
+**Security Features**:
+- ✅ Input validation using Zod schemas
+- ✅ SQL injection protection via Prisma ORM
+- ✅ XSS protection via React's built-in escaping
+- ✅ Database constraints (CHECK, UNIQUE, FOREIGN KEY)
+- ✅ Inventory validation before transactions
+- ✅ Audit logging for compliance
+
+### Security Best Practices
+
+**Before Production Deployment**:
+
+1. **Secrets Management**:
+   - ❌ Never commit `.env` files
+   - ✅ Use strong, randomly generated secrets
+   - ✅ Rotate secrets regularly
+   - ✅ Use environment-specific secrets
+   - ✅ Consider using a secrets manager (AWS Secrets Manager, Vault)
+
+2. **Authentication**:
+   - ✅ Change all default passwords
+   - ✅ Enforce strong password policies
+   - ❌ Remove or disable seed accounts
+   - ✅ Implement password reset flow
+   - ✅ Add rate limiting to login endpoints
+   - ✅ Enable MFA for admin accounts
+
+3. **Database**:
+   - ✅ Use strong database passwords
+   - ✅ Restrict database access to application only
+   - ✅ Enable SSL for database connections
+   - ✅ Regular backups with encryption
+   - ✅ Keep Prisma and PostgreSQL updated
+
+4. **Application**:
+   - ✅ Enable HTTPS/SSL (use reverse proxy like nginx)
+   - ✅ Set secure HTTP headers
+   - ✅ Implement rate limiting (API abuse prevention)
+   - ✅ Keep all dependencies updated
+   - ✅ Run security audits: `npm audit`
+   - ✅ Monitor logs for suspicious activity
+
+5. **Environment**:
+   - ✅ Set `NODE_ENV=production`
+   - ✅ Disable debug logging in production
+   - ✅ Use read-only file system where possible
+   - ✅ Run with least-privilege user account
+   - ✅ Configure CORS appropriately
+
+### Vulnerability Reporting
+
+If you discover a security vulnerability, please email security@example.com. Do not open a public issue.
+
+### Recent Security Improvements
+
+- Fixed: Plain-text password migration backdoor removed (2025-11-28)
+- Fixed: POS checkout now requires authentication (2025-11-28)
+- Fixed: Debug mode now conditional on NODE_ENV (2025-11-28)
+- Fixed: Type-safe Session objects throughout (2025-11-28)
+- Added: Inventory validation in POS checkout (2025-11-28)
+- Added: Database CHECK constraint for non-negative inventory (2025-11-28)
 
 ---
 

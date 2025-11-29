@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { OrderType, OrderStatus, PaymentStatus, FulfillmentType } from '@prisma/client';
+import { OrderType, OrderStatus, PaymentStatus, FulfillmentType, UserRole } from '@prisma/client';
 import { currency } from '@/lib/currency';
 import { posCheckoutSchema, PosCheckoutItem, PosPayment } from '@/lib/validations/pos';
 import { classifyError, logError } from '@/lib/error-handler';
 import { generateEntityNumber } from '@/lib/entity-number-generator';
 import { randomUUID } from 'crypto';
+import { requireAuth } from '@/lib/api-auth';
 
 export async function POST(request: NextRequest) {
+    // Require authentication with SALES role or higher
+    const { error, session } = await requireAuth(request, {
+        roles: [UserRole.SALES, UserRole.MANAGER, UserRole.LOCATION_ADMIN, UserRole.SUPER_ADMIN],
+    });
+
+    if (error) {
+        return error;
+    }
+
     try {
         const body = await request.json();
 
@@ -66,6 +76,51 @@ export async function POST(request: NextRequest) {
 
         const totalAmount = subtotal.add(taxAmount);
 
+        // Validate inventory availability before processing
+        const inventoryChecks = await Promise.all(
+            items.map(async (item: PosCheckoutItem) => {
+                const inventory = await prisma.locationInventory.findUnique({
+                    where: {
+                        locationId_productId: {
+                            locationId,
+                            productId: item.productId,
+                        },
+                    },
+                    select: {
+                        stockLevel: true,
+                        Product: {
+                            select: { name: true, sku: true },
+                        },
+                    },
+                });
+
+                if (!inventory) {
+                    return {
+                        valid: false,
+                        error: `Product ${item.productId} not available at this location`,
+                    };
+                }
+
+                if (inventory.stockLevel < item.quantity) {
+                    return {
+                        valid: false,
+                        error: `Insufficient stock for ${inventory.Product.name} (${inventory.Product.sku}). Available: ${inventory.stockLevel}, Requested: ${item.quantity}`,
+                    };
+                }
+
+                return { valid: true };
+            })
+        );
+
+        // Check if any inventory validation failed
+        const invalidItem = inventoryChecks.find((check) => !check.valid);
+        if (invalidItem) {
+            return NextResponse.json(
+                { error: 'Inventory validation failed', details: invalidItem.error },
+                { status: 400 }
+            );
+        }
+
         // Create order with transaction
         const order = await prisma.$transaction(async (tx) => {
             // Generate Order Number using centralized helper
@@ -112,13 +167,15 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            // Deduct inventory in parallel (optimized from N+1 sequential queries)
+            // Deduct inventory - using update() to ensure record exists
             await Promise.all(
                 items.map((item: PosCheckoutItem) =>
-                    tx.locationInventory.updateMany({
+                    tx.locationInventory.update({
                         where: {
-                            locationId,
-                            productId: item.productId,
+                            locationId_productId: {
+                                locationId,
+                                productId: item.productId,
+                            },
                         },
                         data: {
                             stockLevel: {

@@ -10,10 +10,8 @@ export class Currency {
     private amount: Decimal;
 
     constructor(amount: number | string | Decimal) {
-        // Configure precision per-instance to avoid global state conflicts
-        // Precision of 20 is sufficient for financial calculations
-        const config = { precision: 20, rounding: Decimal.ROUND_HALF_UP };
-
+        // Precision of 20 digits is sufficient for financial calculations
+        // Using ROUND_HALF_UP for standard rounding behavior
         if (amount instanceof Decimal) {
             this.amount = amount.toDecimalPlaces(20, Decimal.ROUND_HALF_UP);
         } else {
@@ -72,7 +70,6 @@ export class Currency {
      * This method is kept for backward compatibility but will be removed in a future version.
      */
     toNumber(): number {
-        console.warn('Currency.toNumber() is deprecated. Use toPrismaDecimal() for database writes.');
         return this.amount.toDecimalPlaces(2).toNumber();
     }
 

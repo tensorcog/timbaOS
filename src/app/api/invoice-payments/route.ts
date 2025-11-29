@@ -143,9 +143,17 @@ export async function POST(request: NextRequest) {
 
             // Update invoice if payment is applied
             if (invoice && appliedAmount.toNumber() > 0) {
-                const currentPaidAmount = currency(invoice.balanceDue.toString());
+                // Need to fetch current paidAmount from database
+                const currentInvoice = await tx.invoice.findUnique({
+                    where: { id: invoice.id },
+                    select: { paidAmount: true, balanceDue: true }
+                });
+
+                if (!currentInvoice) throw new Error('Invoice not found');
+
+                const currentPaidAmount = currency(currentInvoice.paidAmount.toString());
                 const newPaidAmount = currentPaidAmount.add(appliedAmount);
-                const newBalanceDue = currency(invoice.balanceDue.toString()).subtract(
+                const newBalanceDue = currency(currentInvoice.balanceDue.toString()).subtract(
                     appliedAmount
                 );
 
@@ -153,7 +161,7 @@ export async function POST(request: NextRequest) {
                 let newStatus = invoice.status;
                 if (newBalanceDue.toNumber() <= 0) {
                     newStatus = InvoiceStatus.PAID;
-                } else if (newBalanceDue.toNumber() < invoice.balanceDue) {
+                } else if (newBalanceDue.toNumber() < Number(currentInvoice.balanceDue)) {
                     newStatus = InvoiceStatus.PARTIALLY_PAID;
                 }
 

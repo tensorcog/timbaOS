@@ -37,10 +37,12 @@ test.describe('Invoice Management', () => {
 
         if (!res.ok()) {
             console.log(`Invoice creation failed: ${res.status()}`);
-            console.log(await res.text());
+            const text = await res.text();
+            console.log('Response:', text.substring(0, 500));
+            expect(res.ok()).toBeTruthy();
+            return;
         }
 
-        expect(res.ok()).toBeTruthy();
         const invoice = await res.json();
 
         expect(invoice.invoiceNumber).toMatch(/^INV-\d{6}-\d{4}$/);

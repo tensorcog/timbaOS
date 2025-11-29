@@ -41,6 +41,31 @@ export class Currency {
         return new Currency(this.amount.div(other));
     }
 
+    eq(value: number | string | Currency): boolean {
+        const other = value instanceof Currency ? value.amount : new Decimal(value);
+        return this.amount.equals(other);
+    }
+
+    lt(value: number | string | Currency): boolean {
+        const other = value instanceof Currency ? value.amount : new Decimal(value);
+        return this.amount.lessThan(other);
+    }
+
+    lte(value: number | string | Currency): boolean {
+        const other = value instanceof Currency ? value.amount : new Decimal(value);
+        return this.amount.lessThanOrEqualTo(other);
+    }
+
+    gt(value: number | string | Currency): boolean {
+        const other = value instanceof Currency ? value.amount : new Decimal(value);
+        return this.amount.greaterThan(other);
+    }
+
+    gte(value: number | string | Currency): boolean {
+        const other = value instanceof Currency ? value.amount : new Decimal(value);
+        return this.amount.greaterThanOrEqualTo(other);
+    }
+
     /**
      * @deprecated Use toPrismaDecimal() instead for database writes.
      * Converting to number loses precision and should be avoided for financial data.

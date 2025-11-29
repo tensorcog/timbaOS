@@ -15,6 +15,8 @@ export class PaymentTestHelper {
             paymentMethod: method,
             cardNumber: '4111111111111111', // Always approve
             referenceNumber: `TEST-${Date.now()}`,
+            accountNumber: method === 'ACH' ? '123456789' : undefined,
+            routingNumber: method === 'ACH' ? '021000021' : undefined,
         });
     }
 
@@ -104,7 +106,7 @@ export class PaymentTestHelper {
                     accountNumber: method === 'ACH' ? '123456789' : undefined,
                     routingNumber: method === 'ACH' ? '021000021' : undefined,
                 });
-            } catch (error) {
+            } catch (error: any) {
                 results[method] = { error: error.message };
             }
         }

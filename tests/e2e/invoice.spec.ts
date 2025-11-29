@@ -309,7 +309,7 @@ test.describe('Invoice Management', () => {
 
         const invoice = await invoiceRes.json();
         const totalAmount = Number(invoice.totalAmount);
-        const partialAmount = totalAmount / 2;
+        const partialAmount = Number((totalAmount / 2).toFixed(2));
 
         // Process payment through emulator
         const paymentResult = await PaymentTestHelper.createSuccessfulPayment(partialAmount, 'CREDIT_CARD');

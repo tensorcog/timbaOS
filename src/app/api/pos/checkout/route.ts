@@ -76,10 +76,12 @@ export async function POST(request: NextRequest) {
 
         const totalAmount = subtotal.plus(taxAmount);
 
-        // Validate inventory availability before processing
-        const inventoryChecks = await Promise.all(
-            items.map(async (item: PosCheckoutItem) => {
-                const inventory = await prisma.locationInventory.findUnique({
+        // Create order with transaction - ATOMIC inventory validation and deduction
+        const order = await prisma.$transaction(async (tx) => {
+            // Validate and reserve inventory INSIDE transaction to prevent race conditions
+            // This fixes the TOCTOU (Time-of-Check-Time-of-Use) vulnerability
+            for (const item of items) {
+                const inventory = await tx.locationInventory.findUnique({
                     where: {
                         locationId_productId: {
                             locationId,
@@ -88,6 +90,7 @@ export async function POST(request: NextRequest) {
                     },
                     select: {
                         stockLevel: true,
+                        version: true,
                         Product: {
                             select: { name: true, sku: true },
                         },
@@ -95,34 +98,39 @@ export async function POST(request: NextRequest) {
                 });
 
                 if (!inventory) {
-                    return {
-                        valid: false,
-                        error: `Product ${item.productId} not available at this location`,
-                    };
+                    throw new Error(`Product ${item.productId} not available at this location`);
                 }
 
                 if (inventory.stockLevel < item.quantity) {
-                    return {
-                        valid: false,
-                        error: `Insufficient stock for ${inventory.Product.name} (${inventory.Product.sku}). Available: ${inventory.stockLevel}, Requested: ${item.quantity}`,
-                    };
+                    throw new Error(
+                        `Insufficient stock for ${inventory.Product.name} (${inventory.Product.sku}). ` +
+                        `Available: ${inventory.stockLevel}, Requested: ${item.quantity}`
+                    );
                 }
 
-                return { valid: true };
-            })
-        );
+                // Optimistic locking: only update if version hasn't changed
+                const updateResult = await tx.locationInventory.updateMany({
+                    where: {
+                        locationId_productId: {
+                            locationId,
+                            productId: item.productId,
+                        },
+                        version: inventory.version,  // Only update if version matches
+                        stockLevel: { gte: item.quantity },  // Double-check stock level
+                    },
+                    data: {
+                        stockLevel: { decrement: item.quantity },
+                        version: { increment: 1 },  // Increment version on update
+                    },
+                });
 
-        // Check if any inventory validation failed
-        const invalidItem = inventoryChecks.find((check) => !check.valid);
-        if (invalidItem) {
-            return NextResponse.json(
-                { error: 'Inventory validation failed', details: invalidItem.error },
-                { status: 400 }
-            );
-        }
+                if (updateResult.count === 0) {
+                    throw new Error(
+                        `Inventory for ${inventory.Product.name} changed during checkout. Please retry.`
+                    );
+                }
+            }
 
-        // Create order with transaction
-        const order = await prisma.$transaction(async (tx) => {
             // Generate Order Number using centralized helper
             const orderNumber = await generateEntityNumber('ORDER', tx);
 
@@ -166,25 +174,6 @@ export async function POST(request: NextRequest) {
                     Payment: true,
                 },
             });
-
-            // Deduct inventory - using update() to ensure record exists
-            await Promise.all(
-                items.map((item: PosCheckoutItem) =>
-                    tx.locationInventory.update({
-                        where: {
-                            locationId_productId: {
-                                locationId,
-                                productId: item.productId,
-                            },
-                        },
-                        data: {
-                            stockLevel: {
-                                decrement: item.quantity,
-                            },
-                        },
-                    })
-                )
-            );
 
             return newOrder;
         });

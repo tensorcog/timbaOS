@@ -26,23 +26,7 @@ model Account {
   @@index([userId])
 }
 
-model Agent {
-  id         String      @id
-  name       String
-  type       String
-  locationId String?
-  config     Json?
-  lastRun    DateTime?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime
-  status     AgentStatus @default(ACTIVE)
-  scope      AgentScope  @default(LOCATION)
-  Location   Location?   @relation(fields: [locationId], references: [id])
 
-  @@index([locationId])
-  @@index([status])
-  @@index([type])
-}
 
 model AuditLog {
   id         String   @id
@@ -75,7 +59,7 @@ model Customer {
   taxExempt     Boolean      @default(false)
   taxId         String?
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime
+  updatedAt  DateTime @updatedAt
   loyaltyPoints Int          @default(0)
   customerType  CustomerType @default(RETAIL)
   deletedAt     DateTime?
@@ -109,7 +93,7 @@ model InventoryTransfer {
   approvedById                                               String?
   createdAt                                                  DateTime       @default(now())
   requestedById                                              String
-  updatedAt                                                  DateTime
+  updatedAt  DateTime @updatedAt
   status                                                     TransferStatus @default(PENDING)
   User_InventoryTransfer_approvedByIdToUser                  User?          @relation("InventoryTransfer_approvedByIdToUser", fields: [approvedById], references: [id])
   Location_InventoryTransfer_destinationLocationIdToLocation Location       @relation("InventoryTransfer_destinationLocationIdToLocation", fields: [destinationLocationId], references: [id])
@@ -136,9 +120,8 @@ model Location {
   isWarehouse                                                         Boolean             @default(false)
   managerId                                                           String?
   createdAt                                                           DateTime            @default(now())
-  updatedAt                                                           DateTime
+  updatedAt  DateTime @updatedAt
   taxRate                                                             Decimal             @default(0.0825) @db.Decimal(5, 4)
-  Agent                                                               Agent[]
   InventoryTransfer_InventoryTransfer_destinationLocationIdToLocation InventoryTransfer[] @relation("InventoryTransfer_destinationLocationIdToLocation")
   InventoryTransfer_InventoryTransfer_originLocationIdToLocation      InventoryTransfer[] @relation("InventoryTransfer_originLocationIdToLocation")
   User                                                                User?               @relation(fields: [managerId], references: [id])
@@ -168,7 +151,7 @@ model LocationInventory {
   lastCounted     DateTime?
   lastRestocked   DateTime?
   createdAt       DateTime  @default(now())
-  updatedAt       DateTime
+  updatedAt  DateTime @updatedAt
   Location        Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
   Product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -187,7 +170,7 @@ model LocationPricing {
   effectiveFrom DateTime  @default(now())
   effectiveTo   DateTime?
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime
+  updatedAt  DateTime @updatedAt
   Location      Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
   Product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -208,7 +191,7 @@ model Order {
   deliveryFee     Decimal         @default(0) @db.Decimal(12, 2)
   salesRepId      String?
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime
+  updatedAt  DateTime @updatedAt
   completedAt     DateTime?
   discountAmount  Decimal         @default(0) @db.Decimal(12, 2)
   subtotal        Decimal         @db.Decimal(12, 2)
@@ -280,7 +263,7 @@ model Product {
   uom                                                                       String                  @default("EA")
   isActive                                                                  Boolean                 @default(true)
   createdAt                                                                 DateTime                @default(now())
-  updatedAt                                                                 DateTime
+  updatedAt  DateTime @updatedAt
   categoryName                                                              String?
   image                                                                     String?
   tag                                                                       String?
@@ -305,7 +288,7 @@ model ProductRecommendation {
   strength                                                    Float
   reason                                                      String
   createdAt                                                   DateTime @default(now())
-  updatedAt                                                   DateTime
+  updatedAt  DateTime @updatedAt
   Product_ProductRecommendation_productIdToProduct            Product  @relation("ProductRecommendation_productIdToProduct", fields: [productId], references: [id], onDelete: Cascade)
   Product_ProductRecommendation_recommendedProductIdToProduct Product  @relation("ProductRecommendation_recommendedProductIdToProduct", fields: [recommendedProductId], references: [id], onDelete: Cascade)
 
@@ -330,7 +313,7 @@ model Quote {
   createdById        String
   convertedToOrderId String?     @unique
   createdAt          DateTime    @default(now())
-  updatedAt          DateTime
+  updatedAt  DateTime @updatedAt
   sentAt             DateTime?
   acceptedAt         DateTime?
   status             QuoteStatus @default(DRAFT)
@@ -385,7 +368,7 @@ model SystemConfig {
   key         String   @id
   value       Json
   description String?
-  updatedAt   DateTime
+  updatedAt  DateTime @updatedAt
 }
 
 model TransferItem {
@@ -409,7 +392,7 @@ model User {
   password                                                String
   isActive                                                Boolean             @default(true)
   createdAt                                               DateTime            @default(now())
-  updatedAt                                               DateTime
+  updatedAt  DateTime @updatedAt
   role                                                    UserRole
   Account                                                 Account[]
   AuditLog                                                AuditLog[]
@@ -450,7 +433,7 @@ model UserPreferences {
   theme                Theme    @default(DEFAULT)
   emailNotifications   Boolean  @default(true)
   createdAt            DateTime @default(now())
-  updatedAt            DateTime
+  updatedAt  DateTime @updatedAt
   User                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -469,17 +452,6 @@ enum Theme {
   OCEAN
   FOREST
   SUNSET
-}
-
-enum AgentScope {
-  LOCATION
-  GLOBAL
-}
-
-enum AgentStatus {
-  ACTIVE
-  INACTIVE
-  ERROR
 }
 
 enum CustomerType {

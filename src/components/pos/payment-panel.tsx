@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { CreditCard, DollarSign, Check, Wallet, X } from 'lucide-react';
-import { currency } from '@/lib/currency';
 import Decimal from 'decimal.js';
 
 interface CartItem {
@@ -49,29 +48,29 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
     }, [locationId]);
 
     // Calculate totals using Currency helper for precision
-    let subtotal = currency(0);
+    let subtotal = new Decimal(0);
     for (const item of cart) {
-        const itemPrice = currency(item.price);
+        const itemPrice = new Decimal(item.price);
         const itemQuantity = item.quantity;
-        const itemDiscount = currency(item.discount);
-        const itemLineTotal = itemPrice.multiply(itemQuantity).subtract(itemDiscount);
-        subtotal = subtotal.add(itemLineTotal);
+        const itemDiscount = new Decimal(item.discount);
+        const itemLineTotal = itemPrice.times(itemQuantity).minus(itemDiscount);
+        subtotal = subtotal.plus(itemLineTotal);
     }
 
     // Calculate tax with proper precision
     const taxAmount = customer.taxExempt
-        ? currency(0)
-        : subtotal.multiply(currency(taxRate));
+        ? new Decimal(0)
+        : subtotal.times(new Decimal(taxRate));
 
-    const total = subtotal.add(taxAmount);
+    const total = subtotal.plus(taxAmount);
 
     // Calculate paid amount using Currency
-    let paidAmount = currency(0);
+    let paidAmount = new Decimal(0);
     for (const p of payments) {
-        paidAmount = paidAmount.add(currency(p.amount));
+        paidAmount = paidAmount.plus(new Decimal(p.amount));
     }
 
-    const remaining = total.subtract(paidAmount);
+    const remaining = total.minus(paidAmount);
     const remainingNum = parseFloat(remaining.toString());
 
     const addPayment = () => {

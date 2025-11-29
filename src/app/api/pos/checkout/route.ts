@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { OrderType, OrderStatus, PaymentStatus, FulfillmentType, UserRole } from '@prisma/client';
-import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 import { posCheckoutSchema, PosCheckoutItem, PosPayment } from '@/lib/validations/pos';
 import { classifyError, logError } from '@/lib/error-handler';
 import { generateEntityNumber } from '@/lib/entity-number-generator';
@@ -51,30 +51,30 @@ export async function POST(request: NextRequest) {
             select: { taxExempt: true },
         });
 
-        // Use Decimal directly for tax rate - no conversion needed
-        const taxRateDecimal = location.taxRate;
+        // Use Decimal directly for tax rate
+        const taxRateDecimal = new Decimal(location.taxRate.toString());
 
-        // Calculate totals using Currency helper for precision
-        let subtotal = currency(0);
-        let discountAmount = currency(0);
+        // Calculate totals using Decimal for precision
+        let subtotal = new Decimal(0);
+        let discountAmount = new Decimal(0);
 
-        // Process items with proper currency handling
+        // Process items with proper decimal handling
         for (const item of items) {
-            const itemPrice = currency(item.price);
+            const itemPrice = new Decimal(item.price);
             const itemQuantity = item.quantity;
-            const itemDiscount = currency(item.discount);
+            const itemDiscount = new Decimal(item.discount);
 
-            const itemLineTotal = itemPrice.multiply(itemQuantity).subtract(itemDiscount);
-            subtotal = subtotal.add(itemLineTotal);
-            discountAmount = discountAmount.add(itemDiscount);
+            const itemLineTotal = itemPrice.times(itemQuantity).minus(itemDiscount);
+            subtotal = subtotal.plus(itemLineTotal);
+            discountAmount = discountAmount.plus(itemDiscount);
         }
 
-        // Calculate tax with proper precision using Decimal tax rate
+        // Calculate tax with proper precision
         const taxAmount = customer?.taxExempt
-            ? currency(0)
-            : subtotal.multiply(currency(taxRateDecimal));
+            ? new Decimal(0)
+            : subtotal.times(taxRateDecimal);
 
-        const totalAmount = subtotal.add(taxAmount);
+        const totalAmount = subtotal.plus(taxAmount);
 
         // Validate inventory availability before processing
         const inventoryChecks = await Promise.all(
@@ -137,10 +137,10 @@ export async function POST(request: NextRequest) {
                     orderType: OrderType.POS,
                     status: OrderStatus.COMPLETED,
                     paymentStatus: PaymentStatus.PAID,
-                    subtotal: subtotal.toPrismaDecimal(),
-                    taxAmount: taxAmount.toPrismaDecimal(),
-                    discountAmount: discountAmount.toPrismaDecimal(),
-                    totalAmount: totalAmount.toPrismaDecimal(),
+                    subtotal: subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                    taxAmount: taxAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                    discountAmount: discountAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                    totalAmount: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                     fulfillmentType: FulfillmentType.PICKUP,
                     completedAt: new Date(),
                     OrderItem: {

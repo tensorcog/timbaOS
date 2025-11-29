@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { UserRole, InvoiceStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 
 // GET /api/invoices - List invoices with filters
 export async function GET(request: NextRequest) {
@@ -189,38 +189,38 @@ export async function POST(request: NextRequest) {
         }
 
         // Calculate totals
-        let subtotal = currency(0);
-        let discountAmount = currency(0);
+        let subtotal = new Decimal(0);
+        let discountAmount = new Decimal(0);
 
         const processedItems = items.map((item: any) => {
-            const unitPrice = currency(item.unitPrice);
+            const unitPrice = new Decimal(item.unitPrice);
             const quantity = item.quantity;
-            const discount = currency(item.discount || 0);
+            const discount = new Decimal(item.discount || 0);
 
-            const itemSubtotal = unitPrice.multiply(quantity).subtract(discount);
+            const itemSubtotal = unitPrice.times(quantity).minus(discount);
 
-            subtotal = subtotal.add(itemSubtotal);
-            discountAmount = discountAmount.add(discount);
+            subtotal = subtotal.plus(itemSubtotal);
+            discountAmount = discountAmount.plus(discount);
 
             return {
                 id: randomUUID(),
                 productId: item.productId,
                 description: item.description || '',
                 quantity: quantity,
-                unitPrice: unitPrice.toPrismaDecimal(),
-                discount: discount.toPrismaDecimal(),
-                subtotal: itemSubtotal.toPrismaDecimal(),
+                unitPrice: unitPrice.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                discount: discount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                subtotal: itemSubtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
             };
         });
 
         // Calculate tax
         const taxRate = parseFloat(location.taxRate?.toString() || '0');
-        const taxAmount = customer.taxExempt ? currency(0) : subtotal.multiply(taxRate);
+        const taxAmount = customer.taxExempt ? new Decimal(0) : subtotal.times(taxRate);
 
         // Delivery fee (if provided in body)
-        const deliveryFee = currency(body.deliveryFee || 0);
+        const deliveryFee = new Decimal(body.deliveryFee || 0);
 
-        const totalAmount = subtotal.add(taxAmount).add(deliveryFee);
+        const totalAmount = subtotal.plus(taxAmount).plus(deliveryFee);
 
         // Generate invoice number using sequence
         const sequence = await prisma.invoiceSequence.create({ data: {} });
@@ -246,13 +246,13 @@ export async function POST(request: NextRequest) {
                 invoiceDate: new Date(),
                 dueDate,
                 status: InvoiceStatus.DRAFT,
-                subtotal: subtotal.toPrismaDecimal(),
-                taxAmount: taxAmount.toPrismaDecimal(),
-                discountAmount: discountAmount.toPrismaDecimal(),
-                deliveryFee: deliveryFee.toPrismaDecimal(),
-                totalAmount: totalAmount.toPrismaDecimal(),
-                paidAmount: currency(0).toPrismaDecimal(),
-                balanceDue: totalAmount.toPrismaDecimal(),
+                subtotal: subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                taxAmount: taxAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                discountAmount: discountAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                deliveryFee: deliveryFee.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                totalAmount: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                paidAmount: new Decimal(0).toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                balanceDue: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 notes: notes || null,
                 terms: terms || 'Payment due within specified terms. Late payments may incur fees.',
                 paymentTermDays: termDays,

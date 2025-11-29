@@ -59,11 +59,13 @@ export const authOptions: NextAuthOptions = {
             return session;
         },
         async jwt({ token, user }) {
+            // Only query DB on login (when user object exists)
+            // On subsequent requests, token already has all data
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
 
-                // Fetch user's assigned locations
+                // Fetch user's assigned locations only on login
                 const userLocations = await prisma.userLocation.findMany({
                     where: { userId: user.id },
                     select: { locationId: true },

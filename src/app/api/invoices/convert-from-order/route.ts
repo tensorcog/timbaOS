@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { UserRole, InvoiceStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 
 // POST /api/invoices/convert-from-order - Convert order to invoice
 export async function POST(request: NextRequest) {
@@ -109,16 +109,16 @@ export async function POST(request: NextRequest) {
         dueDate.setDate(dueDate.getDate() + termDays);
 
         // Calculate totals from order items
-        let subtotal = currency(0);
-        let discountAmount = currency(0);
+        let subtotal = new Decimal(0);
+        let discountAmount = new Decimal(0);
 
         const invoiceItems = order.OrderItem.map((item) => {
-            const itemPrice = currency(item.price);
-            const itemDiscount = currency(item.discount || 0);
-            const itemSubtotal = itemPrice.multiply(item.quantity).subtract(itemDiscount);
+            const itemPrice = new Decimal(item.price);
+            const itemDiscount = new Decimal(item.discount || 0);
+            const itemSubtotal = itemPrice.times(item.quantity).minus(itemDiscount);
 
-            subtotal = subtotal.add(itemSubtotal);
-            discountAmount = discountAmount.add(itemDiscount);
+            subtotal = subtotal.plus(itemSubtotal);
+            discountAmount = discountAmount.plus(itemDiscount);
 
             return {
                 id: randomUUID(),
@@ -126,21 +126,21 @@ export async function POST(request: NextRequest) {
                 description: item.Product.name,
                 quantity: item.quantity,
                 unitPrice: item.price,
-                discount: itemDiscount.toPrismaDecimal(),
-                subtotal: itemSubtotal.toPrismaDecimal(),
+                discount: itemDiscount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                subtotal: itemSubtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
             };
         });
 
         // Calculate tax
         const taxRate = parseFloat(order.Location.taxRate?.toString() || '0');
         const taxAmount = order.Customer.taxExempt
-            ? currency(0)
-            : subtotal.multiply(taxRate);
+            ? new Decimal(0)
+            : subtotal.times(taxRate);
 
         // Delivery fee
-        const deliveryFee = currency(order.deliveryFee || 0);
+        const deliveryFee = new Decimal(order.deliveryFee || 0);
 
-        const totalAmount = subtotal.add(taxAmount).add(deliveryFee);
+        const totalAmount = subtotal.plus(taxAmount).plus(deliveryFee);
 
         // Create invoice from order
         const invoice = await prisma.invoice.create({
@@ -153,13 +153,13 @@ export async function POST(request: NextRequest) {
                 invoiceDate: new Date(),
                 dueDate,
                 status: InvoiceStatus.DRAFT,
-                subtotal: subtotal.toPrismaDecimal(),
-                taxAmount: taxAmount.toPrismaDecimal(),
-                discountAmount: discountAmount.toPrismaDecimal(),
-                deliveryFee: deliveryFee.toPrismaDecimal(),
-                totalAmount: totalAmount.toPrismaDecimal(),
-                paidAmount: currency(0).toPrismaDecimal(),
-                balanceDue: totalAmount.toPrismaDecimal(),
+                subtotal: subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                taxAmount: taxAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                discountAmount: discountAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                deliveryFee: deliveryFee.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                totalAmount: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                paidAmount: new Decimal(0).toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                balanceDue: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 notes: null,
                 terms: 'Payment due within specified terms.',
                 paymentTermDays: termDays,

@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { randomUUID } from 'crypto';
+import logger from '@/lib/logger';
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'CONVERT_TO_ORDER' | 'CREATE_FROM_QUOTE';
 export type EntityType = 'Quote' | 'Order' | 'Product' | 'Customer' | 'Inventory';
@@ -37,7 +38,6 @@ export async function logActivity({
             },
         });
     } catch (error) {
-        console.error('Failed to create audit log:', error);
-        // Don't throw error to prevent blocking the main operation
+        logger.error({ error, entityType, entityId, action }, 'Failed to create audit log');
     }
 }

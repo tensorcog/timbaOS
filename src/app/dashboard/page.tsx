@@ -1,4 +1,3 @@
-import { AgentInterface } from "@/components/agent-interface";
 import prisma from "@/lib/prisma";
 import { TrendingUp, Package, Users, DollarSign, AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -255,11 +254,6 @@ export default async function DashboardPage() {
                             )}
                         </div>
                     </div>
-                </div>
-
-                {/* AI Agent */}
-                <div className="col-span-3">
-                    <AgentInterface />
                 </div>
             </div>
 

@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { UserRole, InvoiceStatus, InvoicePaymentMethod } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 
 // POST /api/invoice-payments - Record payment for invoice
 export async function POST(request: NextRequest) {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const paymentAmount = currency(amount);
+        const paymentAmount = new Decimal(amount);
 
         if (paymentAmount.toNumber() <= 0) {
             return NextResponse.json(
@@ -99,13 +99,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Calculate applied and unapplied amounts
-        let appliedAmount = currency(0);
+        let appliedAmount = new Decimal(0);
         let unappliedAmount = paymentAmount;
 
         if (invoice) {
-            const balanceDue = currency(invoice.balanceDue.toString());
+            const balanceDue = new Decimal(invoice.balanceDue.toString());
             appliedAmount = paymentAmount.lte(balanceDue) ? paymentAmount : balanceDue;
-            unappliedAmount = paymentAmount.subtract(appliedAmount);
+            unappliedAmount = paymentAmount.minus(appliedAmount);
         }
 
         // Create payment and update invoice in transaction
@@ -116,9 +116,9 @@ export async function POST(request: NextRequest) {
                     id: randomUUID(),
                     invoiceId: invoiceId || null,
                     customerId,
-                    amount: paymentAmount.toPrismaDecimal(),
-                    appliedAmount: appliedAmount.toPrismaDecimal(),
-                    unappliedAmount: unappliedAmount.toPrismaDecimal(),
+                    amount: paymentAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                    appliedAmount: appliedAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                    unappliedAmount: unappliedAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                     paymentMethod: paymentMethod as InvoicePaymentMethod,
                     referenceNumber: referenceNumber || null,
                     notes: notes || null,
@@ -151,9 +151,9 @@ export async function POST(request: NextRequest) {
 
                 if (!currentInvoice) throw new Error('Invoice not found');
 
-                const currentPaidAmount = currency(currentInvoice.paidAmount.toString());
-                const newPaidAmount = currentPaidAmount.add(appliedAmount);
-                const newBalanceDue = currency(currentInvoice.balanceDue.toString()).subtract(
+                const currentPaidAmount = new Decimal(currentInvoice.paidAmount.toString());
+                const newPaidAmount = currentPaidAmount.plus(appliedAmount);
+                const newBalanceDue = new Decimal(currentInvoice.balanceDue.toString()).minus(
                     appliedAmount
                 );
 
@@ -168,8 +168,8 @@ export async function POST(request: NextRequest) {
                 await tx.invoice.update({
                     where: { id: invoice.id },
                     data: {
-                        paidAmount: newPaidAmount.toPrismaDecimal(),
-                        balanceDue: newBalanceDue.toPrismaDecimal(),
+                        paidAmount: newPaidAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                        balanceDue: newBalanceDue.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                         status: newStatus,
                         paidAt: newStatus === InvoiceStatus.PAID ? new Date() : null,
                         updatedAt: new Date(),

@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { UserRole, InvoiceStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 
 // POST /api/invoices/convert-from-quote - Convert quote to invoice
 export async function POST(request: NextRequest) {
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
                 discountAmount: quote.discountAmount,
                 deliveryFee: quote.deliveryFee,
                 totalAmount: quote.totalAmount,
-                paidAmount: currency(0).toPrismaDecimal(),
+                paidAmount: new Decimal(0).toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 balanceDue: quote.totalAmount,
                 notes: quote.notes,
                 terms: quote.terms || 'Payment due within specified terms.',

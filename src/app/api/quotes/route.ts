@@ -4,7 +4,7 @@ import { logActivity } from '@/lib/audit-logger';
 import { createQuoteSchema } from '@/lib/validations/quote';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 import { QuoteStatus, UserRole } from '@prisma/client';
 import { checkLocationAccess } from '@/lib/permissions';
 import { randomUUID } from 'crypto';
@@ -84,41 +84,41 @@ export async function POST(request: NextRequest) {
 
         const taxRate = parseFloat(location.taxRate?.toString() || defaultTaxRate.toString());
 
-        // Calculate totals using Currency helper
-        let subtotal = currency(0);
-        let discountAmount = currency(0);
+        // Calculate totals using Decimal for precision
+        let subtotal = new Decimal(0);
+        let discountAmount = new Decimal(0);
 
         const processedItems = items.map(item => {
-            const unitPrice = currency(item.unitPrice);
+            const unitPrice = new Decimal(item.unitPrice);
             const quantity = item.quantity;
-            const discount = currency(item.discount || 0);
+            const discount = new Decimal(item.discount || 0);
 
-            const itemSubtotal = unitPrice.multiply(quantity).subtract(discount);
+            const itemSubtotal = unitPrice.times(quantity).minus(discount);
 
-            subtotal = subtotal.add(itemSubtotal);
-            discountAmount = discountAmount.add(discount);
+            subtotal = subtotal.plus(itemSubtotal);
+            discountAmount = discountAmount.plus(discount);
 
             return {
                 id: randomUUID(),
                 productId: item.productId,
                 quantity: item.quantity,
-                unitPrice: unitPrice.toPrismaDecimal(),
-                discount: discount.toPrismaDecimal(),
-                subtotal: itemSubtotal.toPrismaDecimal(),
+                unitPrice: unitPrice.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                discount: discount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                subtotal: itemSubtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
             };
         });
 
         // Delivery Fee Logic
         const deliveryFee = deliveryAddress && subtotal.toNumber() < deliveryFeeThreshold
-            ? currency(deliveryFeeAmount)
-            : currency(0);
+            ? new Decimal(deliveryFeeAmount)
+            : new Decimal(0);
 
         // Tax Logic
         const taxAmount = customer.taxExempt
-            ? currency(0)
-            : subtotal.multiply(taxRate);
+            ? new Decimal(0)
+            : subtotal.times(taxRate);
 
-        const totalAmount = subtotal.add(deliveryFee).add(taxAmount);
+        const totalAmount = subtotal.plus(deliveryFee).plus(taxAmount);
 
         // Generate Quote Number using Sequence
         const sequence = await prisma.quoteSequence.create({ data: {} });
@@ -138,11 +138,11 @@ export async function POST(request: NextRequest) {
                 createdById: userId,
                 status: QuoteStatus.PENDING,
                 validUntil,
-                subtotal: subtotal.toPrismaDecimal(),
-                discountAmount: discountAmount.toPrismaDecimal(),
-                taxAmount: taxAmount.toPrismaDecimal(),
-                deliveryFee: deliveryFee.toPrismaDecimal(),
-                totalAmount: totalAmount.toPrismaDecimal(),
+                subtotal: subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                discountAmount: discountAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                taxAmount: taxAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                deliveryFee: deliveryFee.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                totalAmount: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 notes: notes || null,
                 terms: 'Standard terms and conditions apply.',
                 updatedAt: new Date(),
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
             userId: userId,
             changes: {
                 quoteNumber: { new: quoteNumber },
-                totalAmount: { new: totalAmount.toPrismaDecimal() },
+                totalAmount: { new: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP) },
                 customerId: { new: customerId },
                 itemsCount: { new: items.length },
             },

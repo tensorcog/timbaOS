@@ -4,7 +4,7 @@ import { logActivity } from '@/lib/audit-logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { OrderStatus } from '@prisma/client';
-import { currency } from '@/lib/currency';
+import Decimal from 'decimal.js';
 import { randomUUID } from 'crypto';
 
 export async function PATCH(
@@ -45,8 +45,8 @@ export async function PATCH(
         const taxRate = parseFloat(order.Location.taxRate?.toString() || '0');
 
         // Calculate new totals
-        let subtotal = currency(0);
-        let discountAmount = currency(0);
+        let subtotal = new Decimal(0);
+        let discountAmount = new Decimal(0);
 
         const processedItems = items.map((item: any) => {
             const existingItem = order.OrderItem.find(oi => oi.productId === item.productId);
@@ -54,39 +54,39 @@ export async function PATCH(
                 throw new Error(`Product ${item.productId} not found in order`);
             }
 
-            const price = currency(existingItem.price);
+            const price = new Decimal(existingItem.price.toString());
             const quantity = item.quantity;
-            const discount = currency(existingItem.discount);
+            const discount = new Decimal(existingItem.discount.toString());
 
-            const itemSubtotal = price.multiply(quantity).subtract(discount);
+            const itemSubtotal = price.times(quantity).minus(discount);
 
-            subtotal = subtotal.add(itemSubtotal);
-            discountAmount = discountAmount.add(discount);
+            subtotal = subtotal.plus(itemSubtotal);
+            discountAmount = discountAmount.plus(discount);
 
             return {
                 id: randomUUID(),
                 productId: item.productId,
                 quantity: item.quantity,
-                price: price.toPrismaDecimal(),
-                discount: discount.toPrismaDecimal(),
+                price: price.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                discount: discount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
             };
         });
 
-        const deliveryFee = currency(order.deliveryFee);
+        const deliveryFee = new Decimal(order.deliveryFee.toString());
         const taxAmount = order.Customer.taxExempt
-            ? currency(0)
-            : subtotal.multiply(taxRate);
+            ? new Decimal(0)
+            : subtotal.times(taxRate);
 
-        const totalAmount = subtotal.add(deliveryFee).add(taxAmount);
+        const totalAmount = subtotal.plus(deliveryFee).plus(taxAmount);
 
         // Update order
         const updatedOrder = await prisma.order.update({
             where: { id: params.id },
             data: {
-                subtotal: subtotal.toPrismaDecimal(),
-                discountAmount: discountAmount.toPrismaDecimal(),
-                taxAmount: taxAmount.toPrismaDecimal(),
-                totalAmount: totalAmount.toPrismaDecimal(),
+                subtotal: subtotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                discountAmount: discountAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                taxAmount: taxAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
+                totalAmount: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 deliveryAddress: deliveryAddress || null,
                 OrderItem: {
                     deleteMany: {},
@@ -113,7 +113,7 @@ export async function PATCH(
             changes: {
                 totalAmount: {
                     old: parseFloat(order.totalAmount.toString()),
-                    new: totalAmount.toPrismaDecimal()
+                    new: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
                 },
                 itemsCount: {
                     old: order.OrderItem.length,

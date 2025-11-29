@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Trash2, ShoppingCart, Percent } from 'lucide-react';
-import { currency } from '@/lib/currency';
 import Decimal from 'decimal.js';
 
 interface CartItem {
@@ -49,21 +48,21 @@ export function POSCart({
     }, [locationId]);
 
     // Calculate subtotal using Currency helper
-    let subtotal = currency(0);
+    let subtotal = new Decimal(0);
     for (const item of items) {
-        const itemPrice = currency(item.price);
+        const itemPrice = new Decimal(item.price);
         const itemQuantity = item.quantity;
-        const itemDiscount = currency(item.discount);
-        const itemTotal = itemPrice.multiply(itemQuantity).subtract(itemDiscount);
-        subtotal = subtotal.add(itemTotal);
+        const itemDiscount = new Decimal(item.discount);
+        const itemTotal = itemPrice.times(itemQuantity).minus(itemDiscount);
+        subtotal = subtotal.plus(itemTotal);
     }
 
-    const discountAmount = currency(orderDiscount);
+    const discountAmount = new Decimal(orderDiscount);
     const taxableAmount = customer?.taxExempt
-        ? currency(0)
-        : subtotal.subtract(discountAmount);
-    const taxAmount = taxableAmount.multiply(currency(taxRate));
-    const total = subtotal.subtract(discountAmount).add(taxAmount);
+        ? new Decimal(0)
+        : subtotal.minus(discountAmount);
+    const taxAmount = taxableAmount.times(new Decimal(taxRate));
+    const total = subtotal.minus(discountAmount).plus(taxAmount);
 
     return (
         <div className="rounded-xl border bg-card p-6 flex flex-col h-full">

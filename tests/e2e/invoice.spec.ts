@@ -203,9 +203,7 @@ test.describe('Invoice Management', () => {
             }
         });
 
-        const invoiceRes = await helper.post('/api/invoices/convert-from-order', {
-            orderId: order.id
-        });
+        const invoiceRes = await helper.post(`/api/orders/${order.id}/invoice`, {});
 
         if (!invoiceRes.ok()) {
             console.log(`Order to invoice conversion failed: ${invoiceRes.status()}`);
@@ -213,11 +211,12 @@ test.describe('Invoice Management', () => {
         }
 
         expect(invoiceRes.ok()).toBeTruthy();
-        const invoice = await invoiceRes.json();
+        const body = await invoiceRes.json();
+        const invoice = body.invoice;
 
         expect(invoice.orderId).toBe(order.id);
         expect(invoice.InvoiceItem.length).toBeGreaterThan(0);
-        expect(invoice.status).toBe('DRAFT');
+        expect(invoice.status).toBe('SENT'); // New endpoint sets status to SENT
     });
 
     test('Payment Recording - Full Payment', async () => {

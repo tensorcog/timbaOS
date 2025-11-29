@@ -54,12 +54,22 @@ test.describe('POS Validation', () => {
         expect(order?.status).toBe('COMPLETED');
     });
 
-    test('Walk-in Customer Creation', async () => {
-        const res = await helper.post('/api/pos/customers/walk-in', {});
-        expect(res.ok()).toBeTruthy();
-        const customer = await res.json();
+    test('Walk-in Customer Creation (Singleton)', async () => {
+        // First call - should create or return existing
+        const res1 = await helper.post('/api/pos/customers/walk-in', {});
+        expect(res1.ok()).toBeTruthy();
+        const customer1 = await res1.json();
 
-        expect(customer.name).toMatch(/^Walk-in/);
+        expect(customer1.name).toBe('Walk-in Customer');
+        expect(customer1.email).toBe('walk-in@pos.local');
+
+        // Second call - should return the SAME customer
+        const res2 = await helper.post('/api/pos/customers/walk-in', {});
+        expect(res2.ok()).toBeTruthy();
+        const customer2 = await res2.json();
+
+        expect(customer2.id).toBe(customer1.id);
+        expect(customer2.email).toBe('walk-in@pos.local');
     });
 
     test('Multiple Payment Methods (Split)', async () => {
@@ -181,6 +191,10 @@ test.describe('POS Validation', () => {
         };
 
         const res = await helper.post('/api/pos/checkout', checkoutData);
+        if (!res.ok()) {
+            console.log(`POS Tax Calculation failed: ${res.status()}`);
+            console.log(await res.text());
+        }
         expect(res.ok()).toBeTruthy();
         const body = await res.json();
 

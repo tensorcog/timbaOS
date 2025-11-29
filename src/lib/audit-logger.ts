@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import logger from '@/lib/logger';
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'CONVERT_TO_ORDER' | 'CREATE_FROM_QUOTE';
-export type EntityType = 'Quote' | 'Order' | 'Product' | 'Customer' | 'Inventory';
+export type EntityType = 'Quote' | 'Order' | 'Product' | 'Customer' | 'Inventory' | 'Invoice';
 
 interface AuditLogParams {
     entityType: EntityType;

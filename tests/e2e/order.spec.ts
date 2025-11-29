@@ -261,6 +261,50 @@ test.describe('Order Validation', () => {
         expect(updatedQuote?.status).toBe('ACCEPTED');
     });
 
+    test('Order Completion Validation', async () => {
+        // Create a processing order
+        const customer = await prisma.customer.findFirst();
+        const location = await prisma.location.findFirst();
+        const product = await prisma.product.findFirst();
+
+        if (!customer || !location || !product) {
+            console.log('Missing data for order completion test');
+            test.skip();
+            return;
+        }
+
+        const order = await prisma.order.create({
+            data: {
+                id: randomUUID(),
+                orderNumber: `ORD-COMP-${randomUUID().substring(0, 8)}`,
+                customerId: customer.id,
+                locationId: location.id,
+                status: 'PROCESSING',
+                totalAmount: 100,
+                subtotal: 100,
+                updatedAt: new Date(),
+                createdAt: new Date(),
+                OrderItem: {
+                    create: {
+                        id: randomUUID(),
+                        productId: product.id,
+                        quantity: 1,
+                        price: 100
+                    }
+                }
+            }
+        });
+
+        const res = await helper.post(`/api/orders/${order.id}/complete`, {});
+        expect(res.ok()).toBeTruthy();
+        const body = await res.json();
+        expect(body.success).toBeTruthy();
+
+        const updatedOrder = await prisma.order.findUnique({ where: { id: order.id } });
+        expect(updatedOrder?.status).toBe('COMPLETED');
+        expect(updatedOrder?.completedAt).not.toBeNull();
+    });
+
     test('Tax Calculation Validation', async () => {
         // 1. Create a taxable customer
         const customer = await prisma.customer.create({

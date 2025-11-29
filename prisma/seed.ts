@@ -10,6 +10,7 @@ import {
     QuoteStatus
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -51,6 +52,8 @@ async function main() {
 
     console.log('✅ Cleared existing data');
 
+    const hashedPassword = await bcrypt.hash('password', 10);
+
     // Create Users
     const users = await Promise.all([
         prisma.user.create({
@@ -58,7 +61,7 @@ async function main() {
                 id: randomUUID(),
                 email: 'admin@billssupplies.com',
                 name: 'Bill Thompson',
-                password: 'password',
+                password: hashedPassword,
                 role: UserRole.SUPER_ADMIN,
                 updatedAt: new Date(),
             },
@@ -68,7 +71,7 @@ async function main() {
                 id: randomUUID(),
                 email: 'amherst.manager@billssupplies.com',
                 name: 'Sarah Martinez',
-                password: 'password',
+                password: hashedPassword,
                 role: UserRole.LOCATION_ADMIN,
                 updatedAt: new Date(),
             },
@@ -78,7 +81,7 @@ async function main() {
                 id: randomUUID(),
                 email: 'buffalo.manager@billssupplies.com',
                 name: 'Mike O\'Connor',
-                password: 'password',
+                password: hashedPassword,
                 role: UserRole.LOCATION_ADMIN,
                 updatedAt: new Date(),
             },
@@ -88,7 +91,7 @@ async function main() {
                 id: randomUUID(),
                 email: 'westchester.manager@billssupplies.com',
                 name: 'Jennifer Wu',
-                password: 'password',
+                password: hashedPassword,
                 role: UserRole.LOCATION_ADMIN,
                 updatedAt: new Date(),
             },
@@ -98,7 +101,7 @@ async function main() {
                 id: randomUUID(),
                 email: 'orchardpark.manager@billssupplies.com',
                 name: 'Tom Kowalski',
-                password: 'password',
+                password: hashedPassword,
                 role: UserRole.LOCATION_ADMIN,
                 updatedAt: new Date(),
             },
@@ -108,7 +111,7 @@ async function main() {
                 id: randomUUID(),
                 email: 'niagara.manager@billssupplies.com',
                 name: 'Lisa Chen',
-                password: 'password',
+                password: hashedPassword,
                 role: UserRole.LOCATION_ADMIN,
                 updatedAt: new Date(),
             },
@@ -118,7 +121,7 @@ async function main() {
                 id: randomUUID(),
                 email: 'sales1@billssupplies.com',
                 name: 'Robert Johnson',
-                password: 'password',
+                password: hashedPassword,
                 role: UserRole.SALES,
                 updatedAt: new Date(),
             },
@@ -128,7 +131,7 @@ async function main() {
                 id: randomUUID(),
                 email: 'sales2@billssupplies.com',
                 name: 'Amanda Rodriguez',
-                password: 'password',
+                password: hashedPassword,
                 role: UserRole.SALES,
                 updatedAt: new Date(),
             },

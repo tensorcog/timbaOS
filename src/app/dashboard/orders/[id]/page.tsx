@@ -4,6 +4,8 @@ import { ArrowLeft, Package, User, Calendar, DollarSign, Edit } from "lucide-rea
 import { notFound } from "next/navigation";
 import { ConfirmOrderButton } from "@/components/orders/confirm-order-button";
 import { CancelOrderButton } from "@/components/orders/cancel-order-button";
+import { CompleteOrderButton } from "@/components/orders/complete-order-button";
+import { CreateInvoiceButton } from "@/components/orders/create-invoice-button";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const order = await prisma.order.findUnique({
@@ -126,6 +128,30 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             <Edit className="h-4 w-4" />
                             Edit Order
                         </Link>
+                        <CancelOrderButton
+                            orderId={order.id}
+                            orderNumber={order.orderNumber}
+                            status={order.status}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Actions Panel for PROCESSING orders */}
+            {order.status === 'PROCESSING' && (
+                <div className="rounded-xl border bg-card p-6">
+                    <h2 className="text-lg font-semibold mb-4">Actions</h2>
+                    <div className="space-y-2">
+                        <CompleteOrderButton
+                            orderId={order.id}
+                            orderNumber={order.orderNumber}
+                            status={order.status}
+                        />
+                        <CreateInvoiceButton
+                            orderId={order.id}
+                            orderNumber={order.orderNumber}
+                            status={order.status}
+                        />
                         <CancelOrderButton
                             orderId={order.id}
                             orderNumber={order.orderNumber}

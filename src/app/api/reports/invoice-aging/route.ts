@@ -5,8 +5,16 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { UserRole } from '@prisma/client';
 import Decimal from 'decimal.js';
+import { z } from 'zod';
 
-// GET /api/reports/invoice-aging - Generate invoice aging report
+// Validation schema for query parameters
+const agingReportQuerySchema = z.object({
+  customerId: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(1000).default(100),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+// GET /api/reports/invoice-aging - Generate invoice aging report with pagination
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const userRole = session.user.role as UserRole;
 
-    // Only managers and admins can view reports
+    // Only managers and admins can access reports
     if (userRole === UserRole.SALES || userRole === UserRole.WAREHOUSE) {
       return NextResponse.json(
         { error: 'Forbidden - Insufficient permissions' },
@@ -24,29 +32,60 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Validate query parameters
+    const searchParams = request.nextUrl.searchParams;
+    const validation = agingReportQuerySchema.safeParse({
+      customerId: searchParams.get('customerId'),
+      limit: searchParams.get('limit'),
+      offset: searchParams.get('offset'),
+    });
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid query parameters' },
+        { status: 400 }
+      );
+    }
+
+    const { customerId, limit, offset } = validation.data;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Get all unpaid invoices
-    const unpaidInvoices = await prisma.invoice.findMany({
-      where: {
-        balanceDue: {
-          gt: 0,
-        },
-        status: {
-          in: ['SENT', 'PARTIALLY_PAID', 'OVERDUE'],
-        },
-        deletedAt: null,
-      },
-      include: {
+    // Build filters
+    const filters: any = {
+      status: { in: ['SENT', 'PARTIALLY_PAID', 'OVERDUE'] }, // Only unpaid/partially paid
+      balanceDue: { gt: 0 },
+      deletedAt: null, // Keep the deletedAt filter from original
+    };
+
+    if (customerId) {
+      filters.customerId = customerId;
+    }
+
+    // Get total count for pagination
+    const totalCount = await prisma.invoice.count({ where: filters });
+
+    // CRITICAL: Add pagination with LIMIT to prevent OOM
+    const invoices = await prisma.invoice.findMany({
+      where: filters,
+      select: {
+        id: true,
+        invoiceNumber: true,
+        customerId: true,
+        invoiceDate: true,
+        dueDate: true,
+        totalAmount: true,
+        balanceDue: true,
         Customer: {
           select: {
             id: true,
             name: true,
-            accountNumber: true,
+            email: true,
+            accountNumber: true, // Added accountNumber back for consistency with later logic
           },
         },
-        Location: {
+        Location: { // Added Location back for consistency with later logic
           select: {
             id: true,
             name: true,
@@ -54,6 +93,11 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      orderBy: {
+        dueDate: 'asc',
+      },
+      take: limit, // CRITICAL: Limit results to prevent OOM
+      skip: offset, // Support pagination
     });
 
     // Categorize invoices by aging buckets
@@ -69,7 +113,7 @@ export async function GET(request: NextRequest) {
 
     const agingReport: Record<string, AgingBucket> = {};
 
-    for (const invoice of unpaidInvoices) {
+    for (const invoice of invoices) { // Changed unpaidInvoices to invoices
       const customerId = invoice.customerId;
       const customerName = invoice.Customer.name;
 

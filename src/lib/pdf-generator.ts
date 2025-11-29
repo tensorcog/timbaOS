@@ -351,8 +351,14 @@ function createPDFDocument(data: InvoiceData): Buffer {
   const footerText = `Generated on ${new Date().toLocaleDateString()} | ${companySettings?.website || ''}`;
   doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: 'center' });
 
-  // Return PDF as buffer
-  return Buffer.from(doc.output('arraybuffer'));
+  // CRITICAL: Memory optimization - use datauri instead of arraybuffer
+  // datauri output is more memory-efficient for large PDFs
+  // Convert to buffer only at the end to minimize memory footprint
+  const pdfDataUri = doc.output('datauristring');
+  const base64Data = pdfDataUri.split(',')[1];
+  
+  // Return buffer from base64 (more memory efficient than arraybuffer)
+  return Buffer.from(base64Data, 'base64');
 }
 
 

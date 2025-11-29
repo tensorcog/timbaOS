@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { User, Mail, Shield, Calendar, MapPin, Pencil } from 'lucide-react';
+import { User, Mail, Shield, Calendar, MapPin, Pencil, Upload, Palette } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface UserProfile {
     id: string;
     name: string;
     email: string;
     role: string;
+    profilePicture?: string | null;
     createdAt: string;
     isActive: boolean;
     UserLocation: Array<{
@@ -19,15 +21,35 @@ interface UserProfile {
     }>;
 }
 
+interface UserPreferences {
+    theme: string;
+    customTheme?: any;
+    emailNotifications: boolean;
+}
+
+const COLOR_SCHEMES = [
+    { name: 'Purple & Blue (Default)', value: 'default', colors: { primary: '#9333ea', secondary: '#3b82f6' } },
+    { name: 'Ocean', value: 'ocean', colors: { primary: '#0891b2', secondary: '#06b6d4' } },
+    { name: 'Forest', value: 'forest', colors: { primary: '#059669', secondary: '#10b981' } },
+    { name: 'Sunset', value: 'sunset', colors: { primary: '#ea580c', secondary: '#f59e0b' } },
+    { name: 'Rose', value: 'rose', colors: { primary: '#e11d48', secondary: '#f43f5e' } },
+    { name: 'Violet', value: 'violet', colors: { primary: '#7c3aed', secondary: '#a78bfa' } },
+];
+
 export default function ProfilePage() {
     const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [preferences, setPreferences] = useState<UserPreferences | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+    const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
+    const [selectedColorScheme, setSelectedColorScheme] = useState('default');
 
     useEffect(() => {
         loadProfile();
+        loadPreferences();
     }, []);
 
     const loadProfile = async () => {
@@ -37,11 +59,64 @@ export default function ProfilePage() {
                 const data = await response.json();
                 setProfile(data);
                 setEditName(data.name);
+                if (data.profilePicture) {
+                    setProfilePicturePreview(data.profilePicture);
+                }
             }
         } catch (error) {
             console.error('Failed to load profile:', error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const loadPreferences = async () => {
+        try {
+            const response = await fetch('/api/users/preferences');
+            if (response.ok) {
+                const data = await response.json();
+                setPreferences(data);
+                setSelectedColorScheme(data.theme?.toLowerCase() || 'default');
+            }
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+        }
+    };
+
+    const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setProfilePictureFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfilePicturePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleUploadProfilePicture = async () => {
+        if (!profilePictureFile) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('profilePicture', profilePictureFile);
+
+            const response = await fetch('/api/upload/profile-picture', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to upload profile picture');
+            }
+
+            toast.success('Profile picture updated successfully');
+            setProfilePictureFile(null);
+            await loadProfile();
+        } catch (error: any) {
+            console.error('Failed to upload profile picture:', error);
+            toast.error(error.message || 'Failed to upload profile picture');
         }
     };
 
@@ -59,6 +134,7 @@ export default function ProfilePage() {
             if (response.ok) {
                 await loadProfile();
                 setIsEditing(false);
+                toast.success('Profile updated successfully');
             } else {
                 const error = await response.json();
                 setErrorMessage(error.error || 'Failed to update profile');
@@ -66,6 +142,29 @@ export default function ProfilePage() {
         } catch (error) {
             console.error('Failed to save profile:', error);
             setErrorMessage('Failed to save profile');
+        }
+    };
+
+    const handleColorSchemeChange = async (scheme: string) => {
+        setSelectedColorScheme(scheme);
+        
+        try {
+            const response = await fetch('/api/users/preferences', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ theme: scheme.toUpperCase() }),
+            });
+
+            if (response.ok) {
+                toast.success('Color scheme updated');
+                // Reload page to apply new theme
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Failed to update color scheme:', error);
+            toast.error('Failed to update color scheme');
         }
     };
 
@@ -120,9 +219,15 @@ export default function ProfilePage() {
                 <div className="p-6 -mt-12">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="h-24 w-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-card">
-                                {profile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-                            </div>
+                            {profilePicturePreview ? (
+                                <div className="h-24 w-24 rounded-full overflow-hidden border-4 border-card bg-muted">
+                                    <img src={profilePicturePreview} alt={profile.name} className="w-full h-full object-cover" />
+                                </div>
+                            ) : (
+                                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-card">
+                                    {profile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                </div>
+                            )}
                             <div className="mt-8">
                                 {isEditing ? (
                                     <input
@@ -175,6 +280,78 @@ export default function ProfilePage() {
                             {errorMessage}
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Profile Picture Upload */}
+            <div className="bg-card border border-border rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                    <Upload className="h-5 w-5 text-primary" />
+                    <div>
+                        <h3 className="text-lg font-semibold">Profile Picture</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Upload a profile picture (PNG or JPG, max 5MB)
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors cursor-pointer">
+                        <Upload className="h-4 w-4" />
+                        Choose File
+                        <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={handleProfilePictureChange}
+                            className="hidden"
+                        />
+                    </label>
+                    {profilePictureFile && (
+                        <>
+                            <span className="text-sm text-muted-foreground">{profilePictureFile.name}</span>
+                            <button
+                                onClick={handleUploadProfilePicture}
+                                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Upload
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Color Scheme Selector */}
+            <div className="bg-card border border-border rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                    <Palette className="h-5 w-5 text-primary" />
+                    <div>
+                        <h3 className="text-lg font-semibold">Color Scheme</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Choose your preferred color scheme
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {COLOR_SCHEMES.map((scheme) => (
+                        <button
+                            key={scheme.value}
+                            onClick={() => handleColorSchemeChange(scheme.value)}
+                            className={`p-4 rounded-lg border-2 transition-all ${
+                                selectedColorScheme === scheme.value
+                                    ? 'border-primary bg-primary/10'
+                                    : 'border-border hover:border-primary/50'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2 mb-2">
+                                <div
+                                    className="h-6 w-6 rounded-full"
+                                    style={{ background: `linear-gradient(135deg, ${scheme.colors.primary}, ${scheme.colors.secondary})` }}
+                                />
+                                <span className="font-medium text-sm">{scheme.name}</span>
+                            </div>
+                        </button>
+                    ))}
                 </div>
             </div>
 

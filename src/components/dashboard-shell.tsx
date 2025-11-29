@@ -24,11 +24,24 @@ import { LocationProvider, useLocation } from "@/lib/context/location-context"
 import { CartProvider } from "@/lib/context/cart-context"
 import { CartButton } from "./cart-button"
 import { CartSidebar } from "./cart-sidebar"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 function DashboardContent({ children, session }: { children: React.ReactNode; session: any }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [companyLogo, setCompanyLogo] = useState<string | null>(null);
     const userRole = session?.user?.role || 'SALES';
+
+    useEffect(() => {
+        // Fetch company logo
+        fetch('/api/company-settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data?.logo) {
+                    setCompanyLogo(data.logo);
+                }
+            })
+            .catch(err => console.error('Failed to load company logo:', err));
+    }, []);
 
     return (
         <>
@@ -37,9 +50,15 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                     <div className="flex h-full max-h-screen flex-col gap-2">
                         <div className="flex h-14 items-center border-b border-border px-4 lg:h-[60px] lg:px-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10">
                             <Link href="/" className="flex items-center gap-2 font-semibold">
-                                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
-                                    <Package2 className="h-5 w-5 text-white" />
-                                </div>
+                                {companyLogo ? (
+                                    <div className="h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center bg-white">
+                                        <img src={companyLogo} alt="Company logo" className="max-h-full max-w-full object-contain" />
+                                    </div>
+                                ) : (
+                                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                                        <Package2 className="h-5 w-5 text-white" />
+                                    </div>
+                                )}
                                 <span className="bg-gradient-to-r from-purple-400 to-blue-600 bg-clip-text text-transparent font-bold">Pine ERP</span>
                             </Link>
                             <button className="ml-auto h-8 w-8 border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors">

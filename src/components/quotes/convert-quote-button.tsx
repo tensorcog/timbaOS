@@ -24,7 +24,6 @@ export function ConvertQuoteButton({
         setIsConverting(true);
 
         try {
-            console.log('Converting quote:', quoteId);
             const response = await fetch(`/api/quotes/${quoteId}/convert`, {
                 method: 'POST',
                 headers: {
@@ -32,9 +31,7 @@ export function ConvertQuoteButton({
                 },
             });
 
-            console.log('Response status:', response.status);
             const data = await response.json();
-            console.log('Response data:', data);
 
             if (!response.ok) {
                 const errorMsg = data.details || data.error || 'Failed to convert quote';
@@ -46,7 +43,6 @@ export function ConvertQuoteButton({
 
             // Redirect to the new order page
             if (data.order && data.order.id) {
-                console.log('Redirecting to order:', data.order.id);
                 router.push(`/dashboard/orders/${data.order.id}`);
                 router.refresh();
             } else {

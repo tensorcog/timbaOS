@@ -1,9 +1,16 @@
 #!/bin/bash
 
+# Strict error handling
+set -euo pipefail
+
 # Get the directory where this script lives
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source common functions
+# Source common functions with error checking
+if [ ! -f "$SCRIPT_DIR/common.sh" ]; then
+    echo "ERROR: common.sh not found in $SCRIPT_DIR"
+    exit 1
+fi
 source "$SCRIPT_DIR/common.sh"
 
 echo "🛑 Stopping timbaOS..."

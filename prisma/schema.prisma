@@ -390,6 +390,7 @@ model User {
   email                                                   String              @unique
   name                                                    String
   password                                                String
+  profilePicture                                          String?
   isActive                                                Boolean             @default(true)
   createdAt                                               DateTime            @default(now())
   updatedAt  DateTime @updatedAt
@@ -431,6 +432,7 @@ model UserPreferences {
   id                   String   @id
   userId               String   @unique
   theme                Theme    @default(DEFAULT)
+  customTheme          Json?
   emailNotifications   Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -660,3 +662,17 @@ model InvoiceSequence {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
 }
+
+model CompanySettings {
+  id          String   @id
+  companyName String
+  logo        String?
+  address     String?
+  phone       String?
+  email       String?
+  taxId       String?
+  website     String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+

@@ -120,11 +120,11 @@ describe('Permissions', () => {
         it('should ignore items with null or undefined locationId', () => {
             const itemsWithNulls = [
                 { id: '1', locationId: 'loc-A' },
-                { id: '2', locationId: null },
-                { id: '3', locationId: undefined },
+                { id: '2', locationId: null as any },
+                { id: '3', locationId: undefined as any },
             ];
             const userLocationIds = ['loc-A'];
-            const filtered = filterByUserLocations(itemsWithNulls as any, userLocationIds, 'locationId');
+            const filtered = filterByUserLocations(itemsWithNulls, userLocationIds, 'locationId');
 
             expect(filtered).toHaveLength(1);
             expect(filtered[0].id).toBe('1');
@@ -187,12 +187,12 @@ describe('Permissions', () => {
 
         it('should handle null ownership values', () => {
             const itemsWithNulls = [
-                { id: '1', createdById: 'user-A', salesRepId: null },
-                { id: '2', createdById: null, salesRepId: 'user-A' },
-                { id: '3', createdById: null, salesRepId: null },
+                { id: '1', createdById: 'user-A', salesRepId: null as any },
+                { id: '2', createdById: null as any, salesRepId: 'user-A' },
+                { id: '3', createdById: null as any, salesRepId: null as any },
             ];
             const userId = 'user-A';
-            const filtered = filterByOwnership(itemsWithNulls as any, userId, ['createdById', 'salesRepId']);
+            const filtered = filterByOwnership(itemsWithNulls, userId, ['createdById', 'salesRepId']);
 
             expect(filtered).toHaveLength(2);
             expect(filtered.map(i => i.id)).toEqual(['1', '2']);

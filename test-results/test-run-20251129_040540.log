@@ -1,0 +1,136 @@
+╔════════════════════════════════════════════════════╗
+║  timbaOS - Regression Test Suite                  ║
+╚════════════════════════════════════════════════════╝
+
+Started at: Sat Nov 29 04:05:40 CST 2025
+Server URL: http://localhost:3000
+Log file: ./test-results/test-run-20251129_040540.log
+
+[1;33mChecking server status...[0m
+[0;32m✓ Server is running[0m
+
+==================================================
+[0;34mRunning: RBAC Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  RBAC Regression Test Suite           ║
+╔════════════════════════════════════════╗
+
+
+=========================================
+TEST: Unauthenticated User Access
+=========================================
+[1;33mℹ INFO[0m: Testing GET /api/analytics without auth
+[0;32m✓ PASS[0m: Unauthenticated user correctly blocked from analytics
+[1;33mℹ INFO[0m: Testing GET /api/quotes without auth
+[0;32m✓ PASS[0m: Unauthenticated user correctly blocked from quotes
+
+=========================================
+TEST: Admin User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics
+[0;32m✓ PASS[0m: Admin can access analytics endpoint
+[1;33mℹ INFO[0m: Testing GET /api/quotes
+[0;32m✓ PASS[0m: Admin can access quotes endpoint (found 25 quotes)
+
+=========================================
+TEST: Sales User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as sales1@billssupplies.com
+[0;32m✓ PASS[0m: Sales login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics (should be blocked)
+[0;32m✓ PASS[0m: Sales user correctly blocked from analytics
+[1;33mℹ INFO[0m: Testing GET /api/quotes (should only see own quotes)
+[0;32m✓ PASS[0m: Sales can access quotes endpoint (found 5 quotes)
+[0;32m✓ PASS[0m: Sales user sees fewer quotes than admin (5 < 25) - filtering works!
+
+=========================================
+TEST: Manager User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as amherst.manager@billssupplies.com
+[0;32m✓ PASS[0m: Manager login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics (should have access)
+[0;32m✓ PASS[0m: Manager can access analytics endpoint
+[1;33mℹ INFO[0m: Testing GET /api/quotes (should see location-filtered quotes)
+[0;32m✓ PASS[0m: Manager can access quotes endpoint (found 25 quotes)
+[0;32m✓ PASS[0m: Manager sees more/equal quotes than sales (25 >= 5)
+
+=========================================
+TEST: Quote Creation Permissions
+=========================================
+[1;33mℹ INFO[0m: This test validates quote creation permissions
+[0;32m✓ PASS[0m: Quote creation test prepared (requires seed data IDs)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 14[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ RBAC Tests PASSED[0m
+==================================================
+[0;34mRunning: Quote Validation Tests[0m
+==================================================
+[1;33m⚠ Quote Validation Tests not found: ./tests/quote-validation-test.sh[0m
+==================================================
+[0;34mRunning: Order Validation Tests[0m
+==================================================
+[1;33m⚠ Order Validation Tests not found: ./tests/order-validation-test.sh[0m
+==================================================
+[0;34mRunning: Inventory Validation Tests[0m
+==================================================
+[1;33m⚠ Inventory Validation Tests not found: ./tests/inventory-validation-test.sh[0m
+==================================================
+[0;34mRunning: POS Validation Tests[0m
+==================================================
+[1;33m⚠ POS Validation Tests not found: ./tests/pos-validation-test.sh[0m
+==================================================
+[0;34mRunning: Customer Validation Tests[0m
+==================================================
+[1;33m⚠ Customer Validation Tests not found: ./tests/customer-validation-test.sh[0m
+==================================================
+[0;34mRunning: Product Validation Tests[0m
+==================================================
+[1;33m⚠ Product Validation Tests not found: ./tests/product-validation-test.sh[0m
+==================================================
+[0;34mRunning: Audit Log Validation Tests[0m
+==================================================
+[1;33m⚠ Audit Log Validation Tests not found: ./tests/audit-log-validation-test.sh[0m
+==================================================
+[0;34mRunning: Export Validation Tests[0m
+==================================================
+[1;33m⚠ Export Validation Tests not found: ./tests/export-validation-test.sh[0m
+==================================================
+[0;34mRunning: API Conversion Tests[0m
+==================================================
+Logging in as admin...
+Testing conversion of quote: prisma:error 
+Invalid `prisma.quote.findFirst()` invocation:
+
+
+error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:7
+   | 
+ 6 |   provider = "postgresql"
+ 7 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+[0;31m✗ Quote conversion failed (status: 000)[0m
+Response: 
+[0;32m✓ API Conversion Tests PASSED[0m
+
+==================================================
+TEST SUITE SUMMARY
+==================================================
+[0;32mTest Suites Passed: 2[0m
+[0;31mTest Suites Failed: 0[0m
+==================================================
+Completed at: Sat Nov 29 04:05:50 CST 2025
+
+[0;32m✓ ALL TEST SUITES PASSED[0m
+
+Full results saved to: ./test-results/test-run-20251129_040540.log

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Load environment variables from .env file if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 BASE_URL="http://localhost:3000"
 RESULTS_DIR="./test-results"
 mkdir -p "$RESULTS_DIR"

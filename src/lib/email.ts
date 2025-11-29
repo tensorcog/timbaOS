@@ -37,7 +37,6 @@ export async function sendPasswordResetEmail({
             return { success: false, error: error.message };
         }
 
-        console.log('Password reset email sent:', data);
         return { success: true };
     } catch (error) {
         console.error('Error sending password reset email:', error);

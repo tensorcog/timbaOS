@@ -1,6 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 export interface Location {
     id: string;
@@ -27,6 +29,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     const [currentLocation, setCurrentLocationState] = useState<Location | null>(null);
     const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
     // Load locations and current selection from localStorage
     useEffect(() => {
@@ -39,17 +42,23 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
                     setAvailableLocations(locations);
 
                     // Try to restore last selected location
-                    const savedLocationId = localStorage.getItem('selectedLocationId');
+                    const savedLocationId = Cookies.get('locationId') || localStorage.getItem('selectedLocationId');
                     if (savedLocationId) {
                         const savedLocation = locations.find((loc: Location) => loc.id === savedLocationId);
                         if (savedLocation) {
                             setCurrentLocationState(savedLocation);
+                            // Ensure cookie is set if it was only in local storage
+                            if (!Cookies.get('locationId')) {
+                                Cookies.set('locationId', savedLocationId);
+                            }
                         } else if (locations.length > 0) {
                             setCurrentLocationState(locations[0]);
+                            Cookies.set('locationId', locations[0].id);
                         }
                     } else if (locations.length > 0) {
                         // Default to first location
                         setCurrentLocationState(locations[0]);
+                        Cookies.set('locationId', locations[0].id);
                     }
                 }
             } catch (error) {
@@ -65,6 +74,8 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     const setCurrentLocation = (location: Location) => {
         setCurrentLocationState(location);
         localStorage.setItem('selectedLocationId', location.id);
+        Cookies.set('locationId', location.id);
+        router.refresh();
     };
 
     return (

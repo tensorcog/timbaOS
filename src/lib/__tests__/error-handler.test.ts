@@ -125,7 +125,7 @@ describe('Error Handler', () => {
 
             it('should hide error details in production for unknown Prisma errors', () => {
                 const originalEnv = process.env.NODE_ENV;
-                process.env.NODE_ENV = 'production';
+                Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true });
 
                 const error = new Prisma.PrismaClientKnownRequestError(
                     'Secret database error',
@@ -138,12 +138,12 @@ describe('Error Handler', () => {
                 const result = classifyError(error);
                 expect(result.details).toBeUndefined();
 
-                process.env.NODE_ENV = originalEnv;
+                Object.defineProperty(process.env, 'NODE_ENV', { value: originalEnv, configurable: true });
             });
 
             it('should expose error details in development for unknown Prisma errors', () => {
                 const originalEnv = process.env.NODE_ENV;
-                process.env.NODE_ENV = 'development';
+                Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', configurable: true });
 
                 const error = new Prisma.PrismaClientKnownRequestError(
                     'Database connection failed',
@@ -156,7 +156,7 @@ describe('Error Handler', () => {
                 const result = classifyError(error);
                 expect(result.details).toBe('Database connection failed');
 
-                process.env.NODE_ENV = originalEnv;
+                Object.defineProperty(process.env, 'NODE_ENV', { value: originalEnv, configurable: true });
             });
         });
 
@@ -174,7 +174,7 @@ describe('Error Handler', () => {
 
             it('should hide validation details in production', () => {
                 const originalEnv = process.env.NODE_ENV;
-                process.env.NODE_ENV = 'production';
+                Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true });
 
                 const error = new Prisma.PrismaClientValidationError(
                     'Invalid field type: expected number, got string',
@@ -184,7 +184,7 @@ describe('Error Handler', () => {
                 const result = classifyError(error);
                 expect(result.details).toBeUndefined();
 
-                process.env.NODE_ENV = originalEnv;
+                Object.defineProperty(process.env, 'NODE_ENV', { value: originalEnv, configurable: true });
             });
         });
 
@@ -250,26 +250,26 @@ describe('Error Handler', () => {
 
             it('should hide generic error details in production', () => {
                 const originalEnv = process.env.NODE_ENV;
-                process.env.NODE_ENV = 'production';
+                Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true });
 
                 const error = new Error('Internal database connection failed');
                 const result = classifyError(error);
 
                 expect(result.details).toBeUndefined();
 
-                process.env.NODE_ENV = originalEnv;
+                Object.defineProperty(process.env, 'NODE_ENV', { value: originalEnv, configurable: true });
             });
 
             it('should expose generic error details in development', () => {
                 const originalEnv = process.env.NODE_ENV;
-                process.env.NODE_ENV = 'development';
+                Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', configurable: true });
 
                 const error = new Error('Stack trace details here');
                 const result = classifyError(error);
 
                 expect(result.details).toBe('Stack trace details here');
 
-                process.env.NODE_ENV = originalEnv;
+                Object.defineProperty(process.env, 'NODE_ENV', { value: originalEnv, configurable: true });
             });
         });
 
@@ -312,26 +312,26 @@ describe('Error Handler', () => {
 
             it('should hide unknown error details in production', () => {
                 const originalEnv = process.env.NODE_ENV;
-                process.env.NODE_ENV = 'production';
+                Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true });
 
                 const error = { sensitive: 'data' };
                 const result = classifyError(error);
 
                 expect(result.details).toBeUndefined();
 
-                process.env.NODE_ENV = originalEnv;
+                Object.defineProperty(process.env, 'NODE_ENV', { value: originalEnv, configurable: true });
             });
 
             it('should stringify unknown errors in development', () => {
                 const originalEnv = process.env.NODE_ENV;
-                process.env.NODE_ENV = 'development';
+                Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', configurable: true });
 
                 const error = { code: 'ERR', data: 'info' };
                 const result = classifyError(error);
 
                 expect(result.details).toBe('[object Object]');
 
-                process.env.NODE_ENV = originalEnv;
+                Object.defineProperty(process.env, 'NODE_ENV', { value: originalEnv, configurable: true });
             });
         });
 

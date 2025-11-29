@@ -1,0 +1,92 @@
+╔════════════════════════════════════════════════════╗
+║  timbaOS - Regression Test Suite                  ║
+╚════════════════════════════════════════════════════╝
+
+Started at: Sat Nov 29 04:12:43 CST 2025
+Server URL: http://localhost:3000
+Log file: ./test-results/test-run-20251129_041243.log
+
+[1;33mChecking server status...[0m
+[0;32m✓ Server is running[0m
+
+==================================================
+[0;34mRunning: RBAC Tests[0m
+==================================================
+╔════════════════════════════════════════╗
+║  RBAC Regression Test Suite           ║
+╔════════════════════════════════════════╗
+
+
+=========================================
+TEST: Unauthenticated User Access
+=========================================
+[1;33mℹ INFO[0m: Testing GET /api/analytics without auth
+[0;32m✓ PASS[0m: Unauthenticated user correctly blocked from analytics
+[1;33mℹ INFO[0m: Testing GET /api/quotes without auth
+[0;32m✓ PASS[0m: Unauthenticated user correctly blocked from quotes
+
+=========================================
+TEST: Admin User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as admin@billssupplies.com
+[0;32m✓ PASS[0m: Admin login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics
+[0;32m✓ PASS[0m: Admin can access analytics endpoint
+[1;33mℹ INFO[0m: Testing GET /api/quotes
+[0;32m✓ PASS[0m: Admin can access quotes endpoint (found 25 quotes)
+
+=========================================
+TEST: Sales User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as sales1@billssupplies.com
+[0;32m✓ PASS[0m: Sales login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics (should be blocked)
+[0;32m✓ PASS[0m: Sales user correctly blocked from analytics
+[1;33mℹ INFO[0m: Testing GET /api/quotes (should only see own quotes)
+[0;32m✓ PASS[0m: Sales can access quotes endpoint (found 5 quotes)
+[0;32m✓ PASS[0m: Sales user sees fewer quotes than admin (5 < 25) - filtering works!
+
+=========================================
+TEST: Manager User API Access
+=========================================
+[1;33mℹ INFO[0m: Logging in as amherst.manager@billssupplies.com
+[0;32m✓ PASS[0m: Manager login successful
+[1;33mℹ INFO[0m: Testing GET /api/analytics (should have access)
+[0;32m✓ PASS[0m: Manager can access analytics endpoint
+[1;33mℹ INFO[0m: Testing GET /api/quotes (should see location-filtered quotes)
+[0;32m✓ PASS[0m: Manager can access quotes endpoint (found 25 quotes)
+[0;32m✓ PASS[0m: Manager sees more/equal quotes than sales (25 >= 5)
+
+=========================================
+TEST: Quote Creation Permissions
+=========================================
+[1;33mℹ INFO[0m: This test validates quote creation permissions
+[0;32m✓ PASS[0m: Quote creation test prepared (requires seed data IDs)
+
+=========================================
+TEST SUMMARY
+=========================================
+[0;32mPassed: 14[0m
+[0;31mFailed: 0[0m
+=========================================
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ RBAC Tests PASSED[0m
+==================================================
+[0;34mRunning: API Conversion Tests[0m
+==================================================
+Logging in as admin...
+Testing conversion of quote: 69e3c03e-59e1-4165-8e32-489af9266a64
+[0;32m✓ Quote conversion successful[0m
+[0;32m✓ API Conversion Tests PASSED[0m
+
+==================================================
+TEST SUITE SUMMARY
+==================================================
+[0;32mTest Suites Passed: 2[0m
+[0;31mTest Suites Failed: 0[0m
+==================================================
+Completed at: Sat Nov 29 04:12:46 CST 2025
+
+[0;32m✓ ALL TEST SUITES PASSED[0m
+
+Full results saved to: ./test-results/test-run-20251129_041243.log

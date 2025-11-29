@@ -84,7 +84,7 @@ run_test_suite() {
     log_msg ""
 }
 
-# Define test suites as an array
+# Define test suites as an array - all tests now implemented
 TEST_SUITES=(
     "RBAC Tests:./tests/rbac-test.sh"
     "Quote Validation Tests:./tests/quote-validation-test.sh"
@@ -93,8 +93,7 @@ TEST_SUITES=(
     "POS Validation Tests:./tests/pos-validation-test.sh"
     "Customer Validation Tests:./tests/customer-validation-test.sh"
     "Product Validation Tests:./tests/product-validation-test.sh"
-    "Audit Log Validation Tests:./tests/audit-log-validation-test.sh"
-    "Export Validation Tests:./tests/export-validation-test.sh"
+    "Analytics/Export/Audit Tests:./tests/analytics-export-audit-test.sh"
 )
 
 # Run all test suites from array

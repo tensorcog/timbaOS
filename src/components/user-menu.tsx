@@ -8,6 +8,7 @@ import Link from "next/link";
 export function UserMenu() {
     const { data: session } = useSession();
     const [isOpen, setIsOpen] = useState(false);
+    const [profilePicture, setProfilePicture] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
     // Close menu when clicking outside
@@ -22,6 +23,20 @@ export function UserMenu() {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
+    // Fetch profile picture
+    useEffect(() => {
+        if (session?.user?.id) {
+            fetch('/api/users/profile')
+                .then(res => res.json())
+                .then(data => {
+                    if (data?.profilePicture) {
+                        setProfilePicture(data.profilePicture);
+                    }
+                })
+                .catch(err => console.error('Failed to load profile picture:', err));
+        }
+    }, [session?.user?.id]);
 
     const userInitials = session?.user?.name
         ? session.user.name
@@ -38,10 +53,10 @@ export function UserMenu() {
                 onClick={() => setIsOpen(!isOpen)}
                 className="rounded-full border border-border w-9 h-9 flex items-center justify-center hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 overflow-hidden"
             >
-                {session?.user?.image ? (
+                {profilePicture || session?.user?.image ? (
                     <img
-                        src={session.user.image}
-                        alt={session.user.name || "User"}
+                        src={(profilePicture || session?.user?.image) ?? ''}
+                        alt={session?.user?.name || "User"}
                         className="w-full h-full object-cover"
                     />
                 ) : (

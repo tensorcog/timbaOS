@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 export const dynamic = 'force-dynamic';
 
@@ -18,10 +19,26 @@ export default async function DashboardPage() {
     const userRole = session.user.role as UserRole;
     const userLocationIds = session.user.locationIds || [];
 
-    // Build location filter based on role
-    const locationFilter = (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN)
-        ? {} // Admins see all locations
-        : { locationId: { in: userLocationIds } }; // Others see only assigned locations
+    // Build location filter based on role and selected location
+    const cookieStore = cookies();
+    const selectedLocationId = cookieStore.get('locationId')?.value;
+
+    let locationFilter: any = {};
+
+    if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.LOCATION_ADMIN) {
+        // Admins can see all, but if they selected a location, filter by it
+        if (selectedLocationId) {
+            locationFilter = { locationId: selectedLocationId };
+        }
+    } else {
+        // Regular users are restricted to their assigned locations
+        if (selectedLocationId && userLocationIds.includes(selectedLocationId)) {
+            locationFilter = { locationId: selectedLocationId };
+        } else {
+            // Fallback to all assigned locations if no selection or invalid selection
+            locationFilter = { locationId: { in: userLocationIds } };
+        }
+    }
 
     // Sales users only see their own quotes and orders
     const ownershipFilter = userRole === UserRole.SALES

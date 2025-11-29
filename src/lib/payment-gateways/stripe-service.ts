@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import prisma from '../prisma';
 import Decimal from 'decimal.js';
 import { logger } from '../logger';
+import { randomUUID } from 'crypto';
 
 // Initialize Stripe with API key
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -140,7 +141,7 @@ export async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) 
   }
 
   try {
-    // Get invoice
+    // Get invoice OUTSIDE transaction (read-only)
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
     });
@@ -151,39 +152,14 @@ export async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) 
     }
 
     const amountReceived = new Decimal(paymentIntent.amount_received).dividedBy(100); // Convert from cents
-    const stripeFee = paymentIntent.charges.data[0]?.balance_transaction
-      ? new Decimal((await stripe.balanceTransactions.retrieve(
-          paymentIntent.charges.data[0].balance_transaction as string
-        )).fee).dividedBy(100)
-      : new Decimal(0);
-
-    // Create payment record
-    await prisma.invoicePayment.create({
-      data: {
-        id: require('crypto').randomUUID(),
-        invoiceId: invoice.id,
-        customerId: invoice.customerId,
-        amount: amountReceived,
-        appliedAmount: amountReceived,
-        unappliedAmount: new Decimal(0),
-        paymentMethod: 'CREDIT_CARD',
-        paymentDate: new Date(),
-        gatewayType: 'STRIPE',
-        gatewayTransactionId: paymentIntent.id,
-        gatewayFee: stripeFee,
-        gatewayMetadata: paymentIntent as any,
-        recordedById: invoice.createdById, // Use invoice creator as recorder
-        notes: `Stripe payment - ${paymentIntent.id}`,
-      },
-    });
-
-    // Update invoice
+    
+    // Calculate newstat values
     const newPaidAmount = new Decimal(invoice.paidAmount).plus(amountReceived);
     const newBalanceDue = new Decimal(invoice.totalAmount).minus(newPaidAmount);
-
+    
     let newStatus = invoice.status;
     let paidAt = invoice.paidAt;
-
+    
     if (newBalanceDue.lessThanOrEqualTo(0)) {
       newStatus = 'PAID';
       paidAt = new Date();
@@ -191,14 +167,55 @@ export async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) 
       newStatus = 'PARTIALLY_PAID';
     }
 
-    await prisma.invoice.update({
-      where: { id: invoice.id },
-      data: {
-        paidAmount: newPaidAmount,
-        balanceDue: newBalanceDue,
-        status: newStatus,
-        paidAt,
-      },
+    // CRITICAL: Use transaction to prevent race condition
+    // This ensures payment record and invoice update are atomic
+    await prisma.$transaction(async (tx) => {
+      // Retrieve fee information (outside transaction for API call)
+      let stripeFee = new Decimal(0);
+      try {
+        if (stripe && paymentIntent.latest_charge) {
+          const charge = await stripe.charges.retrieve(paymentIntent.latest_charge as string);
+          if (charge.balance_transaction) {
+            const balanceTx = await stripe.balanceTransactions.retrieve(
+              charge.balance_transaction as string
+            );
+            stripeFee = new Decimal(balanceTx.fee).dividedBy(100);
+          }
+        }
+      } catch (err) {
+        logger.warn('Could not fetch Stripe fee:', err);
+      }
+
+      // Create payment record
+      await tx.invoicePayment.create({
+        data: {
+          id: randomUUID(),
+          invoiceId: invoice.id,
+          customerId: invoice.customerId,
+          amount: amountReceived,
+          appliedAmount: amountReceived,
+          unappliedAmount: new Decimal(0),
+          paymentMethod: 'CREDIT_CARD',
+          paymentDate: new Date(),
+          gatewayType: 'STRIPE',
+          gatewayTransactionId: paymentIntent.id,
+          gatewayFee: stripeFee,
+          gatewayMetadata: paymentIntent as any,
+          recordedById: invoice.createdById,
+          notes: `Stripe payment - ${paymentIntent.id}`,
+        },
+      });
+
+      // Update invoice status and amounts
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          paidAmount: newPaidAmount,
+          balanceDue: newBalanceDue,
+          status: newStatus,
+          paidAt,
+        },
+      });
     });
 
     logger.info(`Recorded payment for invoice ${invoice.invoiceNumber}: $${amountReceived.toFixed(2)}`);

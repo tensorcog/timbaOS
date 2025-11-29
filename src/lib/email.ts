@@ -1,4 +1,8 @@
 import { Resend } from 'resend';
+import prisma from './prisma';
+import { randomUUID } from 'crypto';
+import type { Invoice } from '@prisma/client';
+import type { InvoiceWithCustomer } from '@/types/invoice';
 
 // Initialize Resend client
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -165,7 +169,7 @@ export async function sendInvoiceEmail(params: SendInvoiceEmailParams): Promise<
 
     try {
         // Fetch invoice data
-        const invoice = await require('./prisma').default.invoice.findUnique({
+        const invoice = await prisma.invoice.findUnique({
             where: { id: invoiceId },
             include: {
                 Customer: true,
@@ -198,9 +202,9 @@ export async function sendInvoiceEmail(params: SendInvoiceEmailParams): Promise<
         }
 
         // Log email sent
-        await require('./prisma').default.invoiceEmailLog.create({
+        await prisma.invoiceEmailLog.create({
             data: {
-                id: require('crypto').randomUUID(),
+                id: randomUUID(),
                 invoiceId,
                 emailType: 'INVOICE_DELIVERY',
                 recipient: customerEmail,
@@ -234,7 +238,7 @@ export async function sendPaymentReminderEmail(params: SendPaymentReminderParams
     }
 
     try {
-        const invoice = await require('./prisma').default.invoice.findUnique({
+        const invoice = await prisma.invoice.findUnique({
             where: { id: invoiceId },
             include: {
                 Customer: true,
@@ -258,9 +262,9 @@ export async function sendPaymentReminderEmail(params: SendPaymentReminderParams
         }
 
         // Log reminder
-        await require('./prisma').default.invoiceEmailLog.create({
+        await prisma.invoiceEmailLog.create({
             data: {
-                id: require('crypto').randomUUID(),
+                id: randomUUID(),
                 invoiceId,
                 emailType: 'PAYMENT_REMINDER',
                 recipient: customerEmail,
@@ -284,7 +288,7 @@ export async function sendPaymentConfirmationEmail(invoiceId: string, customerEm
     }
 
     try {
-        const invoice = await require('./prisma').default.invoice.findUnique({
+        const invoice = await prisma.invoice.findUnique({
             where: { id: invoiceId },
         });
 
@@ -315,7 +319,7 @@ export async function sendPaymentConfirmationEmail(invoiceId: string, customerEm
 
 // Email HTML Templates
 
-function getInvoiceEmailHTML(invoice: any): string {
+function getInvoiceEmailHTML(invoice: InvoiceWithCustomer): string {
     return `
 <!DOCTYPE html>
 <html>
@@ -352,7 +356,7 @@ function getInvoiceEmailHTML(invoice: any): string {
 `;
 }
 
-function getInvoiceEmailText(invoice: any): string {
+function getInvoiceEmailText(invoice: InvoiceWithCustomer): string {
     return `
 Invoice from ${APP_NAME}
 
@@ -375,7 +379,7 @@ Thank you for your business!
     `.trim();
 }
 
-function getPaymentReminderHTML(invoice: any, daysOverdue: number): string {
+function getPaymentReminderHTML(invoice: InvoiceWithCustomer, daysOverdue: number): string {
     return `
 <!DOCTYPE html>
 <html>
@@ -405,7 +409,7 @@ function getPaymentReminderHTML(invoice: any, daysOverdue: number): string {
 `;
 }
 
-function getPaymentReminderText(invoice: any, daysOverdue: number): string {
+function getPaymentReminderText(invoice: InvoiceWithCustomer, daysOverdue: number): string {
     return `
 Payment Reminder
 
@@ -425,7 +429,7 @@ Thank you for your prompt attention to this matter.
   ` .trim();
 }
 
-function getPaymentConfirmationHTML(invoice: any): string {
+function getPaymentConfirmationHTML(invoice: Invoice): string {
     return `
 <!DOCTYPE html>
 <html>
@@ -453,7 +457,7 @@ function getPaymentConfirmationHTML(invoice: any): string {
 `;
 }
 
-function getPaymentConfirmationText(invoice: any): string {
+function getPaymentConfirmationText(invoice: Invoice): string {
     return `
 Payment Received
 

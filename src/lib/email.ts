@@ -146,3 +146,327 @@ This is an automated message, please do not reply to this email.
 © ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
   `.trim();
 }
+
+// ===== INVOICE EMAIL FUNCTIONS =====
+
+interface SendInvoiceEmailParams {
+    invoiceId: string;
+    customerEmail: string;
+    pdfBuffer?: Buffer;
+}
+
+export async function sendInvoiceEmail(params: SendInvoiceEmailParams): Promise<{ success: boolean; error?: string }> {
+    const { invoiceId, customerEmail, pdfBuffer } = params;
+
+    if (!resend) {
+        console.warn('Email service not configured. Would send invoice to:', customerEmail);
+        return { success: true };
+    }
+
+    try {
+        // Fetch invoice data
+        const invoice = await require('./prisma').default.invoice.findUnique({
+            where: { id: invoiceId },
+            include: {
+                Customer: true,
+            },
+        });
+
+        if (!invoice) {
+            return { success: false, error: 'Invoice not found' };
+        }
+
+        const attachments = pdfBuffer
+            ? [{
+                filename: `Invoice-${invoice.invoiceNumber}.pdf`,
+                content: pdfBuffer,
+            }]
+            : [];
+
+        const { data, error } = await resend.emails.send({
+            from: FROM_EMAIL,
+            to: customerEmail,
+            subject: `Invoice ${invoice.invoiceNumber} from ${APP_NAME}`,
+            html: getInvoiceEmailHTML(invoice),
+            text: getInvoiceEmailText(invoice),
+            attachments,
+        });
+
+        if (error) {
+            console.error('Failed to send invoice email:', error);
+            return { success: false, error: error.message };
+        }
+
+        // Log email sent
+        await require('./prisma').default.invoiceEmailLog.create({
+            data: {
+                id: require('crypto').randomUUID(),
+                invoiceId,
+                emailType: 'INVOICE_DELIVERY',
+                recipient: customerEmail,
+                subject: `Invoice ${invoice.invoiceNumber} from ${APP_NAME}`,
+                status: 'SENT',
+            },
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error sending invoice email:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        };
+    }
+}
+
+interface SendPaymentReminderParams {
+    invoiceId: string;
+    customerEmail: string;
+    daysOverdue: number;
+}
+
+export async function sendPaymentReminderEmail(params: SendPaymentReminderParams): Promise<{ success: boolean; error?: string }> {
+    const { invoiceId, customerEmail, daysOverdue } = params;
+
+    if (!resend) {
+        console.warn('Email service not configured. Would send reminder to:', customerEmail);
+        return { success: true };
+    }
+
+    try {
+        const invoice = await require('./prisma').default.invoice.findUnique({
+            where: { id: invoiceId },
+            include: {
+                Customer: true,
+            },
+        });
+
+        if (!invoice) {
+            return { success: false, error: 'Invoice not found' };
+        }
+
+        const { data, error } = await resend.emails.send({
+            from: FROM_EMAIL,
+            to: customerEmail,
+            subject: `Payment Reminder: Invoice ${invoice.invoiceNumber}`,
+            html: getPaymentReminderHTML(invoice, daysOverdue),
+            text: getPaymentReminderText(invoice, daysOverdue),
+        });
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        // Log reminder
+        await require('./prisma').default.invoiceEmailLog.create({
+            data: {
+                id: require('crypto').randomUUID(),
+                invoiceId,
+                emailType: 'PAYMENT_REMINDER',
+                recipient: customerEmail,
+                subject: `Payment Reminder: Invoice ${invoice.invoiceNumber}`,
+                status: 'SENT',
+            },
+        });
+
+        return { success: true };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        };
+    }
+}
+
+export async function sendPaymentConfirmationEmail(invoiceId: string, customerEmail: string): Promise<{ success: boolean; error?: string }> {
+    if (!resend) {
+        return { success: true };
+    }
+
+    try {
+        const invoice = await require('./prisma').default.invoice.findUnique({
+            where: { id: invoiceId },
+        });
+
+        if (!invoice) {
+            return { success: false, error: 'Invoice not found' };
+        }
+
+        const { error } = await resend.emails.send({
+            from: FROM_EMAIL,
+            to: customerEmail,
+            subject: `Payment Received - Invoice ${invoice.invoiceNumber}`,
+            html: getPaymentConfirmationHTML(invoice),
+            text: getPaymentConfirmationText(invoice),
+        });
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        return { success: true };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        };
+    }
+}
+
+// Email HTML Templates
+
+function getInvoiceEmailHTML(invoice: any): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=\"UTF-8\">
+  <title>Invoice</title>
+</head>
+<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">
+  <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">
+    <h1 style=\"color: #667eea;\">Invoice from ${APP_NAME}</h1>
+    <p>Dear ${invoice.Customer.name},</p>
+    <p>Please find attached your invoice <strong>#${invoice.invoiceNumber}</strong>.</p>
+    
+    <div style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;\">
+      <p style=\"margin: 5px 0;\"><strong>Invoice Date:</strong> ${new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+      <p style=\"margin: 5px 0;\"><strong>Due Date:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</p>
+      <p style=\"margin: 5px 0;\"><strong>Total Amount:</strong> $${invoice.totalAmount}</p>
+      <p style=\"margin: 5px 0;\"><strong>Balance Due:</strong> $${invoice.balanceDue}</p>
+    </div>
+    
+    <p>Payment can be made via the following methods:</p>
+    <ul>
+      <li>Online payment (visit our website)</li>
+      <li>Bank transfer</li>
+      <li>Check</li>
+    </ul>
+    
+    <p>If you have any questions, please don't hesitate to contact us.</p>
+    <p>Thank you for your business!</p>
+    <p style=\"margin-top: 30px; color: #999; font-size: 12px;\">© ${new Date().getFullYear()} ${APP_NAME}</p>
+  </div>
+</body>
+</html>
+`;
+}
+
+function getInvoiceEmailText(invoice: any): string {
+    return `
+Invoice from ${APP_NAME}
+
+Dear ${invoice.Customer.name},
+
+Please find attached your invoice #${invoice.invoiceNumber}.
+
+Invoice Date: ${new Date(invoice.invoiceDate).toLocaleDateString()}
+Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}
+Total Amount: $${invoice.totalAmount}
+Balance Due: $${invoice.balanceDue}
+
+Payment can be made via online payment, bank transfer, or check.
+
+If you have any questions, please contact us.
+
+Thank you for your business!
+
+© ${new Date().getFullYear()} ${APP_NAME}
+    `.trim();
+}
+
+function getPaymentReminderHTML(invoice: any, daysOverdue: number): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=\"UTF-8\">
+  <title>Payment Reminder</title>
+</head>
+<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">
+  <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">
+    <h1 style=\"color: #dc2626;\">Payment Reminder</h1>
+    <p>Dear ${invoice.Customer.name},</p>
+    <p>This is a friendly reminder that invoice <strong>#${invoice.invoiceNumber}</strong> is now <strong>${daysOverdue} days overdue</strong>.</p>
+    
+    <div style=\"background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0;\">
+      <p style=\"margin: 5px 0;\"><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
+      <p style=\"margin: 5px 0;\"><strong>Original Due Date:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</p>
+      <p style=\"margin: 5px 0; color: #dc2626; font-size: 18px;\"><strong>Amount Due:</strong> $${invoice.balanceDue}</p>
+    </div>
+    
+    <p>Please arrange payment at your earliest convenience. If you have already sent payment, please disregard this notice.</p>
+    <p>If you have any questions or concerns about this invoice, please contact us immediately.</p>
+    <p>Thank you for your prompt attention to this matter.</p>
+    <p style=\"margin-top: 30px; color: #999; font-size: 12px;\">© ${new Date().getFullYear()} ${APP_NAME}</p>
+  </div>
+</body>
+</html>
+`;
+}
+
+function getPaymentReminderText(invoice: any, daysOverdue: number): string {
+    return `
+Payment Reminder
+
+Dear ${invoice.Customer.name},
+
+This is a friendly reminder that invoice #${invoice.invoiceNumber} is now ${daysOverdue} days overdue.
+
+Invoice Number: ${invoice.invoiceNumber}
+Original Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}
+Amount Due: $${invoice.balanceDue}
+
+Please arrange payment at your earliest convenience. If you have already sent payment, please disregard this notice.
+
+Thank you for your prompt attention to this matter.
+
+© ${new Date().getFullYear()} ${APP_NAME}
+  ` .trim();
+}
+
+function getPaymentConfirmationHTML(invoice: any): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=\"UTF-8\">
+  <title>Payment Received</title>
+</head>
+<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">
+  <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">
+    <h1 style=\"color: #22c55e;\">✓ Payment Received</h1>
+    <p>Dear Customer,</p>
+    <p>Thank you! We have received your payment for invoice <strong>#${invoice.invoiceNumber}</strong>.</p>
+    
+    <div style=\"background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;\">
+      <p style=\"margin: 5px 0;\"><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
+      <p style=\"margin: 5px 0;\"><strong>Amount Paid:</strong> $${invoice.paidAmount}</p>
+      <p style=\"margin: 5px 0;\"><strong>Payment Status:</strong> ${invoice.status}</p>
+    </div>
+    
+    <p>We appreciate your business and look forward to serving you again.</p>
+    <p style=\"margin-top: 30px; color: #999; font-size: 12px;\">© ${new Date().getFullYear()} ${APP_NAME}</p>
+  </div>
+</body>
+</html>
+`;
+}
+
+function getPaymentConfirmationText(invoice: any): string {
+    return `
+Payment Received
+
+Dear Customer,
+
+Thank you! We have received your payment for invoice #${invoice.invoiceNumber}.
+
+Invoice Number: ${invoice.invoiceNumber}
+Amount Paid: $${invoice.paidAmount}
+Payment Status: ${invoice.status}
+
+We appreciate your business.
+
+© ${new Date().getFullYear()} ${APP_NAME}
+    `.trim();
+}

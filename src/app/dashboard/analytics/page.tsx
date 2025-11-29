@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package } from "lucide-react"
+import { useLocation } from "@/lib/context/location-context"
 
 interface AnalyticsData {
   totalRevenue: number
@@ -28,11 +29,12 @@ export default function AnalyticsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const locationId = searchParams.get('locationId')
+  const { currentLocation } = useLocation()
 
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [locations, setLocations] = useState<Location[]>([])
-  const [selectedLocation, setSelectedLocation] = useState<string>(locationId || 'all')
+  const [selectedLocation, setSelectedLocation] = useState<string>(locationId || '')
 
   useEffect(() => {
     async function fetchLocations() {
@@ -48,6 +50,13 @@ export default function AnalyticsPage() {
     }
     fetchLocations()
   }, [])
+
+  // Sync with current location from context when not showing all locations
+  useEffect(() => {
+    if (currentLocation && selectedLocation !== 'all') {
+      setSelectedLocation(currentLocation.id)
+    }
+  }, [currentLocation?.id])
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -113,7 +122,7 @@ export default function AnalyticsPage() {
 
   const selectedLocationName = selectedLocation === 'all'
     ? 'All Locations'
-    : locations.find(l => l.id === selectedLocation)?.name || 'All Locations'
+    : currentLocation?.name || 'Loading...'
 
   return (
     <>
@@ -122,18 +131,16 @@ export default function AnalyticsPage() {
           <h1 className="text-lg font-semibold md:text-2xl">Analytics</h1>
           <p className="text-sm text-muted-foreground mt-1">{selectedLocationName}</p>
         </div>
-        <select
-          value={selectedLocation}
-          onChange={(e) => handleLocationChange(e.target.value)}
-          className="px-4 py-2 rounded-lg border bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+        <button
+          onClick={() => handleLocationChange(selectedLocation === 'all' ? '' : 'all')}
+          className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+            selectedLocation === 'all'
+              ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-primary'
+              : 'bg-background hover:bg-muted'
+          }`}
         >
-          <option value="all">All Locations</option>
-          {locations.map((location) => (
-            <option key={location.id} value={location.id}>
-              {location.name} ({location.code})
-            </option>
-          ))}
-        </select>
+          {selectedLocation === 'all' ? '✓ All Locations' : 'Show All Locations'}
+        </button>
       </div>
 
       {/* KPI Cards */}

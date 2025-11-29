@@ -68,11 +68,17 @@ model Customer {
   paymentTermDays      Int      @default(30)
   creditHold           Boolean  @default(false)
   earlyPaymentDiscount Decimal? @db.Decimal(5, 2)
+  
+  // Enhanced invoicing features
+  autoGenerateInvoice     Boolean             @default(false)
+  preferredPaymentGateway PaymentGatewayType?
 
   Order                Order[]
   Quote                Quote[]
   Invoice              Invoice[]
   InvoicePayment       InvoicePayment[]
+  RecurringInvoice     RecurringInvoice[]
+  CreditNote           CreditNote[]
 
   @@index([accountNumber])
   @@index([customerType])
@@ -131,6 +137,8 @@ model Location {
   Quote                                                               Quote[]
   UserLocation                                                        UserLocation[]
   Invoice                                                             Invoice[]
+  RecurringInvoice                                                    RecurringInvoice[]
+  CreditNote                                                          CreditNote[]
 
   @@index([code])
   @@index([isActive])
@@ -410,6 +418,8 @@ model User {
   PasswordResetToken                                      PasswordResetToken[]
   InvoicesCreated                                         Invoice[]              @relation("InvoiceCreatedBy")
   InvoicePaymentsRecorded                                 InvoicePayment[]       @relation("PaymentRecordedBy")
+  RecurringInvoicesCreated                                RecurringInvoice[]     @relation("RecurringInvoiceCreatedBy")
+  CreditNotesCreated                                      CreditNote[]           @relation("CreditNoteCreatedBy")
 
   @@index([email])
   @@index([isActive])
@@ -575,17 +585,28 @@ model Invoice {
   paidAt          DateTime?
   deletedAt       DateTime?
 
+  // Enhanced features
+  templateId            String?
+  recurringInvoiceId    String?
+  stripePaymentIntentId String?
+  paypalOrderId         String?
+
   createdById     String
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
-  Customer        Customer       @relation(fields: [customerId], references: [id])
-  Location        Location       @relation(fields: [locationId], references: [id])
-  Order           Order?         @relation(fields: [orderId], references: [id])
-  Quote           Quote?         @relation(fields: [quoteId], references: [id])
-  CreatedBy       User           @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
-  InvoiceItem     InvoiceItem[]
-  InvoicePayment  InvoicePayment[]
+  Customer         Customer          @relation(fields: [customerId], references: [id])
+  Location         Location          @relation(fields: [locationId], references: [id])
+  Order            Order?            @relation(fields: [orderId], references: [id])
+  Quote            Quote?            @relation(fields: [quoteId], references: [id])
+  CreatedBy        User              @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  Template         InvoiceTemplate?  @relation(fields: [templateId], references: [id])
+  RecurringInvoice RecurringInvoice? @relation(fields: [recurringInvoiceId], references: [id])
+  InvoiceItem      InvoiceItem[]
+  InvoicePayment   InvoicePayment[]
+  InvoiceEmailLog  InvoiceEmailLog[]
+  InvoiceReminder  InvoiceReminder[]
+  CreditNote       CreditNote[]
 
   @@index([customerId])
   @@index([locationId])
@@ -594,6 +615,8 @@ model Invoice {
   @@index([invoiceDate])
   @@index([invoiceNumber])
   @@index([deletedAt])
+  @@index([templateId])
+  @@index([recurringInvoiceId])
 }
 
 enum InvoiceStatus {
@@ -638,6 +661,12 @@ model InvoicePayment {
   referenceNumber String?
   notes           String?
   
+  // Payment gateway fields
+  gatewayType         PaymentGatewayType?
+  gatewayTransactionId String?
+  gatewayFee          Decimal?            @db.Decimal(12, 2)
+  gatewayMetadata     Json?
+  
   recordedById    String
   recordedAt      DateTime             @default(now())
   
@@ -678,3 +707,176 @@ model CompanySettings {
   createdAt   DateTime @default(now())
 }
 
+// Recurring Invoicing
+model RecurringInvoice {
+  id              String                  @id
+  customerId      String
+  locationId      String
+  frequency       RecurringFrequency
+  nextBillingDate DateTime
+  startDate       DateTime
+  endDate         DateTime?
+  
+  templateData    Json     // Stores invoice items, terms, etc.
+  notes           String?
+  isActive        Boolean  @default(true)
+  
+  createdById     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  Customer        Customer  @relation(fields: [customerId], references: [id])
+  Location        Location  @relation(fields: [locationId], references: [id])
+  CreatedBy       User      @relation("RecurringInvoiceCreatedBy", fields: [createdById], references: [id])
+  Invoices        Invoice[]
+  
+  @@index([customerId])
+  @@index([locationId])
+  @@index([nextBillingDate])
+  @@index([isActive])
+}
+
+enum RecurringFrequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+// Credit Notes
+model CreditNote {
+  id                String           @id
+  creditNoteNumber  String           @unique
+  invoiceId         String
+  customerId        String
+  locationId        String
+  
+  creditDate        DateTime         @default(now())
+  amount            Decimal          @db.Decimal(12, 2)
+  appliedAmount     Decimal          @db.Decimal(12, 2) @default(0)
+  remainingAmount   Decimal          @db.Decimal(12, 2)
+  
+  reason            String
+  notes             String?
+  status            CreditNoteStatus @default(ISSUED)
+  
+  // Refund tracking
+  refundProcessed      Boolean  @default(false)
+  refundDate           DateTime?
+  refundMethod         PaymentGatewayType?
+  refundTransactionId  String?
+  
+  createdById       String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  Invoice           Invoice  @relation(fields: [invoiceId], references: [id])
+  Customer          Customer @relation(fields: [customerId], references: [id])
+  Location          Location @relation(fields: [locationId], references: [id])
+  CreatedBy         User     @relation("CreditNoteCreatedBy", fields: [createdById], references: [id])
+  
+  @@index([invoiceId])
+  @@index([customerId])
+  @@index([status])
+  @@index([creditNoteNumber])
+}
+
+enum CreditNoteStatus {
+  ISSUED
+  APPLIED
+  REFUNDED
+  CANCELLED
+}
+
+// Invoice Templates
+model InvoiceTemplate {
+  id          String   @id
+  name        String
+  description String?
+  
+  headerHtml  String?  // Custom header HTML
+  footerHtml  String?  // Custom footer HTML
+  logoUrl     String?
+  
+  defaultTerms String?
+  defaultNotes String?
+  
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  Invoices    Invoice[]
+  
+  @@index([isDefault])
+  @@index([isActive])
+}
+
+// Invoice Reminders
+model InvoiceReminder {
+  id           String   @id
+  invoiceId    String
+  
+  reminderType ReminderType
+  sentAt       DateTime @default(now())
+  daysOverdue  Int
+  
+  emailSent    Boolean  @default(true)
+  emailStatus  String?
+  
+  Invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  @@index([invoiceId])
+  @@index([sentAt])
+}
+
+enum ReminderType {
+  FIRST_REMINDER
+  SECOND_REMINDER
+  FINAL_NOTICE
+  COURTESY_REMINDER
+}
+
+// Invoice Email Log
+model InvoiceEmailLog {
+  id          String   @id
+  invoiceId   String
+  
+  emailType   InvoiceEmailType
+  recipient   String
+  sentAt      DateTime @default(now())
+  
+  subject     String
+  status      EmailStatus @default(SENT)
+  error       String?
+  
+  openedAt    DateTime?
+  
+  Invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  @@index([invoiceId])
+  @@index([sentAt])
+  @@index([status])
+}
+
+enum InvoiceEmailType {
+  INVOICE_DELIVERY
+  PAYMENT_REMINDER
+  PAYMENT_CONFIRMATION
+  OVERDUE_NOTICE
+}
+
+enum EmailStatus {
+  SENT
+  DELIVERED
+  OPENED
+  FAILED
+  BOUNCED
+}
+
+enum PaymentGatewayType {
+  STRIPE
+  PAYPAL
+  MANUAL
+}

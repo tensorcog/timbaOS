@@ -25,10 +25,12 @@ import { CartProvider } from "@/lib/context/cart-context"
 import { CartButton } from "./cart-button"
 import { CartSidebar } from "./cart-sidebar"
 import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 
 function DashboardContent({ children, session }: { children: React.ReactNode; session: any }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [companyLogo, setCompanyLogo] = useState<string | null>(null);
+    const pathname = usePathname();
     const userRole = session?.user?.role || 'SALES';
 
     useEffect(() => {
@@ -70,49 +72,77 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                             <nav className="grid items-start px-2 text-sm font-medium lg:px-4 gap-1">
                                 <Link
                                     href="/dashboard"
-                                    className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 px-3 py-2 text-primary transition-all hover:from-purple-500/30 hover:to-blue-500/30"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname === '/dashboard'
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
                                 >
                                     <Home className="h-4 w-4" />
                                     Dashboard
                                 </Link>
                                 <Link
                                     href="/dashboard/orders"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/orders')
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
                                 >
                                     <ShoppingCart className="h-4 w-4" />
                                     Orders
                                 </Link>
                                 <Link
                                     href="/dashboard/quotes"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/quotes')
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
                                 >
                                     <FileText className="h-4 w-4" />
                                     Quotes
                                 </Link>
                                 <Link
                                     href="/dashboard/products"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/products')
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
                                 >
                                     <Package className="h-4 w-4" />
                                     Products
                                 </Link>
                                 <Link
                                     href="/dashboard/customers"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/customers')
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
                                 >
                                     <Users className="h-4 w-4" />
                                     Customers
                                 </Link>
                                 <Link
                                     href="/dashboard/transfers"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/transfers')
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
                                 >
                                     <ArrowLeftRight className="h-4 w-4" />
                                     Transfers
                                 </Link>
                                 <Link
                                     href="/dashboard/locations"
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/locations')
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
                                 >
                                     <MapPin className="h-4 w-4" />
                                     Locations
@@ -121,7 +151,11 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                 {(userRole === 'SUPER_ADMIN' || userRole === 'LOCATION_ADMIN' || userRole === 'MANAGER') && (
                                     <Link
                                         href="/dashboard/analytics"
-                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                            pathname?.startsWith('/dashboard/analytics')
+                                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                        }`}
                                     >
                                         <LineChart className="h-4 w-4" />
                                         Analytics
@@ -134,7 +168,11 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                 {(userRole === 'SUPER_ADMIN' || userRole === 'LOCATION_ADMIN') && (
                                     <Link
                                         href="/dashboard/admin"
-                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                            pathname === '/dashboard/admin'
+                                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                        }`}
                                     >
                                         <Settings className="h-4 w-4" />
                                         Admin
@@ -143,7 +181,11 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                 {(userRole === 'SUPER_ADMIN' || userRole === 'LOCATION_ADMIN') && (
                                     <Link
                                         href="/dashboard/admin/users"
-                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-muted"
+                                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                            pathname?.startsWith('/dashboard/admin/users')
+                                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                        }`}
                                     >
                                         <Users className="h-4 w-4" />
                                         Employees
@@ -154,7 +196,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                     </div>
                 </div>
                 <div className="flex flex-col">
-                    <header className="flex h-14 items-center gap-4 border-b border-border bg-card/50 backdrop-blur px-4 lg:h-[60px] lg:px-6">
+                    <header className="flex h-14 items-center gap-4 border-b border-border bg-card/50 backdrop-blur px-4 lg:h-[60px] lg:px-6 overflow-visible">
                         <div className="flex-1" />
                         <LocationSelector />
                         <CartButton onClick={() => setIsCartOpen(true)} />

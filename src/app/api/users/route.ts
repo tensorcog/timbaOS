@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { hash } from "bcryptjs";
 import { UserRole } from "@prisma/client";
+import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
@@ -14,7 +15,23 @@ export async function GET(req: Request) {
     }
 
     try {
+        // Get selected location from cookie
+        const cookieStore = cookies();
+        const selectedLocationId = cookieStore.get('locationId')?.value;
+
+        // Build filter based on selected location
+        const locationFilter = selectedLocationId
+            ? {
+                UserLocation: {
+                    some: {
+                        locationId: selectedLocationId
+                    }
+                }
+            }
+            : {};
+
         const users = await prisma.user.findMany({
+            where: locationFilter,
             select: {
                 id: true,
                 name: true,

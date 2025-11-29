@@ -2,11 +2,24 @@
 
 import { useLocation } from "@/lib/context/location-context";
 import { MapPin, Check } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export function LocationSelector() {
     const { currentLocation, availableLocations, setCurrentLocation, isLoading } = useLocation();
     const [isOpen, setIsOpen] = useState(false);
+    const [position, setPosition] = useState({ top: 0, right: 0 });
+    const buttonRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        if (isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setPosition({
+                top: rect.bottom + window.scrollY + 8,
+                right: window.innerWidth - rect.right + window.scrollX
+            });
+        }
+    }, [isOpen]);
 
     if (isLoading || !currentLocation) {
         return (
@@ -18,8 +31,9 @@ export function LocationSelector() {
     }
 
     return (
-        <div className="relative">
+        <>
             <button
+                ref={buttonRef}
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 hover:from-purple-500/30 hover:to-blue-500/30 transition-all border border-purple-500/30"
             >
@@ -30,16 +44,22 @@ export function LocationSelector() {
                 </div>
             </button>
 
-            {isOpen && (
+            {isOpen && createPortal(
                 <>
                     {/* Backdrop */}
                     <div
-                        className="fixed inset-0 z-40"
+                        className="fixed inset-0 z-[90]"
                         onClick={() => setIsOpen(false)}
                     />
 
-                    {/* Dropdown */}
-                    <div className="absolute top-full mt-2 right-0 z-50 w-64 rounded-lg border bg-card shadow-lg overflow-hidden">
+                    {/* Dropdown - rendered at document root */}
+                    <div 
+                        className="fixed z-[100] w-64 rounded-lg border bg-card shadow-lg overflow-hidden"
+                        style={{
+                            top: `${position.top}px`,
+                            right: `${position.right}px`
+                        }}
+                    >
                         <div className="p-2 border-b bg-muted/50">
                             <p className="text-xs font-semibold text-muted-foreground">SELECT LOCATION</p>
                         </div>
@@ -65,7 +85,6 @@ export function LocationSelector() {
                                         </div>
                                         <div>
                                             <p className="font-medium">{location.name}</p>
-                                            <p className="text-xs text-muted-foreground">{location.code}</p>
                                             {location.isWarehouse && (
                                                 <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">
                                                     Warehouse
@@ -85,8 +104,9 @@ export function LocationSelector() {
                             </div>
                         )}
                     </div>
-                </>
+                </>,
+                document.body
             )}
-        </div>
+        </>
     );
 }

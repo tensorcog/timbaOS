@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { UserDialog } from "./user-dialog";
 import { Loader2, Search, Edit, Trash2, Shield, MapPin } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useLocation } from "@/lib/context/location-context";
 
 interface User {
     id: string;
@@ -26,6 +27,7 @@ export default function EmployeesPage() {
     const [locations, setLocations] = useState<Location[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const { currentLocation } = useLocation();
 
     const fetchData = async () => {
         try {
@@ -53,6 +55,13 @@ export default function EmployeesPage() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Refetch when location changes
+    useEffect(() => {
+        if (currentLocation) {
+            fetchData();
+        }
+    }, [currentLocation?.id]);
 
     const handleDelete = async (userId: string) => {
         if (!confirm("Are you sure you want to deactivate this user?")) return;

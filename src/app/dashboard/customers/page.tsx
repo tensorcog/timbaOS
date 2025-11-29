@@ -1,7 +1,23 @@
 import prisma from "@/lib/prisma";
+import { SearchInput } from "@/components/search-input";
 
-export default async function CustomersPage() {
+export default async function CustomersPage({
+    searchParams,
+}: {
+    searchParams: { q?: string };
+}) {
+    const query = searchParams.q;
+
     const customers = await prisma.customer.findMany({
+        where: query
+            ? {
+                OR: [
+                    { name: { contains: query, mode: "insensitive" } },
+                    { email: { contains: query, mode: "insensitive" } },
+                    { phone: { contains: query, mode: "insensitive" } },
+                ],
+            }
+            : {},
         include: {
             _count: {
                 select: { Order: true },
@@ -14,8 +30,15 @@ export default async function CustomersPage() {
 
     return (
         <>
-            <div className="flex items-center">
+            <div className="flex items-center mb-4">
                 <h1 className="text-lg font-semibold md:text-2xl">Customers</h1>
+            </div>
+            {/* Search Bar */}
+            <div className="mb-4">
+                <SearchInput 
+                    placeholder="Search customers by name, email, or phone..."
+                    baseUrl="/dashboard/customers"
+                />
             </div>
             <div className="rounded-xl border bg-card text-card-foreground shadow">
                 <div className="p-6">

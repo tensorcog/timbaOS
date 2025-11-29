@@ -617,6 +617,10 @@ model Invoice {
   @@index([deletedAt])
   @@index([templateId])
   @@index([recurringInvoiceId])
+  // PERFORMANCE: Composite indexes for common query patterns
+  @@index([customerId, status, dueDate])        // Customer invoice filtering by status and due date
+  @@index([locationId, status, invoiceDate])    // Location invoice reports
+  @@index([status, dueDate])                    // Aging reports and overdue queries
 }
 
 enum InvoiceStatus {
@@ -677,6 +681,8 @@ model InvoicePayment {
   @@index([customerId])
   @@index([invoiceId])
   @@index([paymentDate])
+  // PERFORMANCE: Composite index for payment gateway lookups
+  @@index([gatewayType, gatewayTransactionId])  // Fast gateway transaction lookups (webhooks, reconciliation)
 }
 
 enum InvoicePaymentMethod {

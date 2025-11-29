@@ -5,6 +5,7 @@ import { UserDialog } from "./user-dialog";
 import { Loader2, Search, Edit, Trash2, Shield, MapPin } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useLocation } from "@/lib/context/location-context";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface User {
     id: string;
@@ -28,11 +29,15 @@ export default function EmployeesPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const { currentLocation } = useLocation();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const showAll = searchParams.get('showAll') === 'true';
 
     const fetchData = async () => {
         try {
+            const url = showAll ? "/api/users?showAll=true" : "/api/users";
             const [usersRes, locationsRes] = await Promise.all([
-                fetch("/api/users"),
+                fetch(url),
                 fetch("/api/locations")
             ]);
 
@@ -54,11 +59,11 @@ export default function EmployeesPage() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [showAll]);
 
-    // Refetch when location changes
+    // Refetch when location changes (only if not showing all)
     useEffect(() => {
-        if (currentLocation) {
+        if (currentLocation && !showAll) {
             fetchData();
         }
     }, [currentLocation?.id]);
@@ -100,6 +105,12 @@ export default function EmployeesPage() {
         }
     };
 
+    const toggleShowAll = () => {
+        const newShowAll = !showAll;
+        const url = newShowAll ? '/dashboard/admin/users?showAll=true' : '/dashboard/admin/users';
+        router.push(url);
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-96">
@@ -117,7 +128,19 @@ export default function EmployeesPage() {
                     </h1>
                     <p className="text-muted-foreground mt-1">Manage system users and access roles</p>
                 </div>
-                <UserDialog locations={locations} onSuccess={fetchData} />
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={toggleShowAll}
+                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                            showAll
+                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-primary'
+                                : 'bg-background hover:bg-muted'
+                        }`}
+                    >
+                        {showAll ? '✓ All Locations' : 'Show All Locations'}
+                    </button>
+                    <UserDialog locations={locations} onSuccess={fetchData} />
+                </div>
             </div>
 
             <div className="flex items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">

@@ -15,20 +15,26 @@ export async function GET(req: Request) {
     }
 
     try {
+        // Check for showAll query parameter
+        const { searchParams } = new URL(req.url);
+        const showAll = searchParams.get('showAll') === 'true';
+
         // Get selected location from cookie
         const cookieStore = cookies();
         const selectedLocationId = cookieStore.get('locationId')?.value;
 
-        // Build filter based on selected location
-        const locationFilter = selectedLocationId
-            ? {
+        // Build filter based on showAll flag and selected location
+        let locationFilter = {};
+        
+        if (!showAll && selectedLocationId) {
+            locationFilter = {
                 UserLocation: {
                     some: {
                         locationId: selectedLocationId
                     }
                 }
-            }
-            : {};
+            };
+        }
 
         const users = await prisma.user.findMany({
             where: locationFilter,

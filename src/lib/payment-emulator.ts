@@ -70,7 +70,7 @@ export class PaymentEmulator {
         switch (request.paymentMethod) {
             case 'CREDIT_CARD':
             case 'DEBIT_CARD':
-                return this.processCa rdPayment(request);
+                return this.processCardPayment(request);
 
             case 'ACH':
                 return this.processACHPayment(request);

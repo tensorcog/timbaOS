@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { TestHelper } from './utils/test-helpers';
 import prisma from '@/lib/prisma';
+import PaymentTestHelper from '@/lib/payment-test-helper';
 
 test.describe('Invoice Management', () => {
     let helper: TestHelper;
@@ -246,19 +247,23 @@ test.describe('Invoice Management', () => {
         const invoice = await invoiceRes.json();
         const totalAmount = Number(invoice.totalAmount);
 
-        // Record full payment
+        // Process payment through emulator
+        const paymentResult = await PaymentTestHelper.createCheckPayment(totalAmount, 'CHK-12345');
+        expect(paymentResult.success).toBeTruthy();
+
+        // Record full payment with emulator transaction ID
         const paymentRes = await helper.post('/api/invoice-payments', {
             invoiceId: invoice.id,
             customerId: customer.id,
             amount: totalAmount,
             paymentMethod: 'CHECK',
-            referenceNumber: 'CHK-12345',
-            notes: 'Test payment'
+            referenceNumber: paymentResult.transactionId,
+            notes: `Test payment - ${paymentResult.message}`
         });
 
         if (!paymentRes.ok()) {
             console.log(`Payment recording failed: ${paymentRes.status()}`);
-            console.log(await paymentRes.text());
+            console.log(await paymentRes.json());
         }
 
         expect(paymentRes.ok()).toBeTruthy();
@@ -306,14 +311,24 @@ test.describe('Invoice Management', () => {
         const totalAmount = Number(invoice.totalAmount);
         const partialAmount = totalAmount / 2;
 
-        // Record partial payment
+        // Process payment through emulator
+        const paymentResult = await PaymentTestHelper.createSuccessfulPayment(partialAmount, 'CREDIT_CARD');
+        expect(paymentResult.success).toBeTruthy();
+
+        // Record partial payment with emulator transaction ID
         const paymentRes = await helper.post('/api/invoice-payments', {
             invoiceId: invoice.id,
             customerId: customer.id,
             amount: partialAmount,
             paymentMethod: 'CREDIT_CARD',
+            referenceNumber: paymentResult.transactionId,
             notes: 'Partial payment test'
         });
+
+        if (!paymentRes.ok()) {
+            console.log(`Partial payment failed: ${paymentRes.status()}`);
+            console.log(await paymentRes.json());
+        }
 
         expect(paymentRes.ok()).toBeTruthy();
         const payment = await paymentRes.json();
@@ -455,43 +470,35 @@ test.describe('Invoice Management', () => {
 
     test('Payment Method Validation', async () => {
         const customer = await prisma.customer.findFirst();
-        const location = await prisma.location.findFirst();
-        const product = await prisma.product.findFirst({ where: { isActive: true } });
 
-        if (!customer || !location || !product) {
+        if (!customer) {
             console.log('Missing test data for payment method test');
             test.skip();
             return;
         }
 
-        const invoiceRes = await helper.post('/api/invoices', {
-            customerId: customer.id,
-            locationId: location.id,
-            items: [{
-                productId: product.id,
-                description: product.name,
-                quantity: 1,
-                unitPrice: 100,
-                discount: 0
-            }]
-        });
-
-        const invoice = await invoiceRes.json();
-
-        // Test various payment methods
-        const paymentMethods = ['CASH', 'CHECK', 'CREDIT_CARD', 'ACH', 'WIRE_TRANSFER'];
+        // Test various payment methods using emulator
+        const paymentMethods: Array<'CASH' | 'CHECK' | 'CREDIT_CARD' | 'ACH' | 'WIRE_TRANSFER'> =
+            ['CASH', 'CHECK', 'CREDIT_CARD', 'ACH', 'WIRE_TRANSFER'];
 
         for (const method of paymentMethods) {
+            // Process through emulator first
+            const paymentResult = await PaymentTestHelper.createSuccessfulPayment(10, method);
+            expect(paymentResult.success).toBeTruthy();
+
+            // Record in system
             const paymentRes = await helper.post('/api/invoice-payments', {
                 customerId: customer.id,
                 amount: 10,
                 paymentMethod: method,
-                notes: `Test ${method} payment`
+                referenceNumber: paymentResult.transactionId,
+                notes: `Test ${method} payment - ${paymentResult.message}`
             });
 
             if (!paymentRes.ok()) {
                 console.log(`Payment with ${method} failed: ${paymentRes.status()}`);
-                console.log(await paymentRes.text());
+                const errorText = await paymentRes.text();
+                console.log('Error:', errorText.substring(0, 200));
             }
 
             expect(paymentRes.ok()).toBeTruthy();

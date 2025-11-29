@@ -5,6 +5,8 @@ import { ArrowLeft, Printer, Mail, DollarSign, Calendar, User, MapPin } from "lu
 import { format, isPast } from "date-fns";
 import { InvoicePaymentList } from "@/components/invoices/invoice-payment-list";
 import { RecordPaymentButton } from "@/components/invoices/record-payment-button";
+import { DownloadPDFButton } from "@/components/invoices/download-pdf-button";
+import { SendInvoiceEmailButton } from "@/components/invoices/send-invoice-email-button";
 
 export default async function InvoiceDetailsPage({ params }: { params: { id: string } }) {
     const invoice = await prisma.invoice.findUnique({
@@ -63,14 +65,15 @@ export default async function InvoiceDetailsPage({ params }: { params: { id: str
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="inline-flex items-center justify-center rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-muted">
-                        <Printer className="h-4 w-4 mr-2" />
-                        Print
-                    </button>
-                    <button className="inline-flex items-center justify-center rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-muted">
-                        <Mail className="h-4 w-4 mr-2" />
-                        Email
-                    </button>
+                    <DownloadPDFButton 
+                        invoiceId={invoice.id} 
+                        invoiceNumber={invoice.invoiceNumber}
+                    />
+                    <SendInvoiceEmailButton
+                        invoiceId={invoice.id}
+                        invoiceNumber={invoice.invoiceNumber}
+                        customerEmail={invoice.Customer.email}
+                    />
                     {!isPaid && !isCancelled && (
                         <RecordPaymentButton
                             invoiceId={invoice.id}

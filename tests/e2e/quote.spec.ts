@@ -95,8 +95,9 @@ test.describe('Quote Validation', () => {
         const body = await res.json();
         expect(body.success).toBeTruthy();
 
-        const orderId = body.orderId;
+        const orderId = body.order.id;
         const order = await prisma.order.findUnique({ where: { id: orderId } });
+
         expect(Number(order?.totalAmount)).toBe(Number(quote.totalAmount));
 
         const updatedQuote = await prisma.quote.findUnique({ where: { id: quote.id } });

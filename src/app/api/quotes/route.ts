@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if user has access to the selected location
-        const hasLocationAccess = await checkLocationAccess(userId, locationId);
+        const userLocationIds = session.user.locationIds || [];
+        const hasLocationAccess = checkLocationAccess(userLocationIds, locationId);
         if (!hasLocationAccess && userRole !== UserRole.SUPER_ADMIN && userRole !== UserRole.LOCATION_ADMIN) {
             return NextResponse.json(
                 { error: 'Forbidden - No access to this location' },

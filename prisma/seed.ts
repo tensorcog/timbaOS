@@ -6,8 +6,6 @@ import {
     PaymentStatus,
     FulfillmentType,
     TransferStatus,
-    AgentStatus,
-    AgentScope,
     OrderType,
     QuoteStatus
 } from '@prisma/client';
@@ -46,7 +44,6 @@ async function main() {
     await prisma.locationInventory.deleteMany();
     await prisma.locationPricing.deleteMany();
     await prisma.userLocation.deleteMany();
-    await prisma.agent.deleteMany();
     await prisma.customer.deleteMany();
     await prisma.product.deleteMany();
     await prisma.location.deleteMany();

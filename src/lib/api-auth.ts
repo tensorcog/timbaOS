@@ -36,7 +36,8 @@ export async function requireAuth(
 
     // Check location access if specified
     if (options?.locationId) {
-        const hasAccess = await checkLocationAccess(session.user.id, options.locationId);
+        const userLocationIds = session.user.locationIds || [];
+        const hasAccess = checkLocationAccess(userLocationIds, options.locationId);
 
         if (!hasAccess) {
             return {

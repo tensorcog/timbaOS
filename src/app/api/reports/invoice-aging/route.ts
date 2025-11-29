@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
 
     // Format response
     const agingData = Object.entries(agingReport).map(([customerId, buckets]) => {
-      const customer = unpaidInvoices.find(inv => inv.customerId === customerId)?.Customer;
+      const customer = invoices.find((inv) => inv.customerId === customerId)?.Customer;
 
       return {
         customerId,
@@ -202,6 +202,12 @@ export async function GET(request: NextRequest) {
       summary,
       customers: agingData,
       generatedAt: new Date().toISOString(),
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount,
+      },
     });
   } catch (error) {
     logApiError('Failed to generate invoice aging report:', error);

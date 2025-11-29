@@ -37,7 +37,7 @@ export async function generateInvoicePDF(options: InvoicePDFOptions): Promise<Bu
           paymentDate: 'desc',
         },
       },
-      Template: true,
+      // Note: Template relation not yet added to schema, will be null
     },
   });
 
@@ -48,20 +48,25 @@ export async function generateInvoicePDF(options: InvoicePDFOptions): Promise<Bu
   // Get company settings
   const companySettings = await prisma.companySettings.findFirst();
 
-  // Get template if specified
-  let template = invoice.Template;
-  if (templateId && !template) {
-    template = await prisma.invoiceTemplate.findUnique({
-      where: { id: templateId },
-    });
-  }
+  // TODO: Template support - uncomment when InvoiceTemplate model is added to schema relations
+  // Get template if specified or from invoice
+  let template = null;
+  // if (templateId) {
+  //   template = await prisma.invoiceTemplate.findUnique({
+  //     where: { id: templateId },
+  //   });
+  // } else if (invoice.templateId) {
+  //   template = await prisma.invoiceTemplate.findUnique({
+  //     where: { id: invoice.templateId },
+  //   });
+  // }
 
-  // If no template, get default
-  if (!template) {
-    template = await prisma.invoiceTemplate.findFirst({
-      where: { isDefault: true, isActive: true },
-    });
-  }
+  // // If still no template, get default
+  // if (!template) {
+  //   template = await prisma.invoiceTemplate.findFirst({
+  //     where: { isDefault: true, isActive: true },
+  //   });
+  // }
 
   const invoiceData: InvoiceData = {
     invoice,
@@ -350,99 +355,39 @@ function createPDFDocument(data: InvoiceData): Buffer {
   return Buffer.from(doc.output('arraybuffer'));
 }
 
-export async function generateCreditNotePDF(creditNoteId: string): Promise<Buffer> {
-  const creditNote = await prisma.creditNote.findUnique({
-    where: { id: creditNoteId },
-    include: {
-      Invoice: {
-        include: {
-          InvoiceItem: {
-            include: {
-              Product: true,
-            },
-          },
-        },
-      },
-      Customer: true,
-      Location: true,
-    },
-  });
 
-  if (!creditNote) {
-    throw new Error('Credit note not found');
-  }
+// TODO: Credit Note PDF Generation - uncomment when CreditNote model is added to schema
+// export async function generateCreditNotePDF(creditNoteId: string): Promise<Buffer> {
+//   const creditNote = await prisma.creditNote.findUnique({
+//     where: { id: creditNoteId },
+//     include: {
+//       Invoice: {
+//         include: {
+//           InvoiceItem: {
+//             include: {
+//               Product: true,
+//             },
+//           },
+//         },
+//       },
+//       Customer: true,
+//       Location: true,
+//     },
+//   });
 
-  const companySettings = await prisma.companySettings.findFirst();
+//   if (!creditNote) {
+//     throw new Error('Credit note not found');
+//   }
 
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 20;
-  let yPos = margin;
+//   const companySettings = await prisma.companySettings.findFirst();
 
-  // Header
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text(companySettings?.companyName || 'Bills Supplies', margin, yPos);
-  yPos += 15;
+//   const doc = new jsPDF();
+//   const pageWidth = doc.internal.pageSize.getWidth();
+//   const margin = 20;
+//   let yPos = margin;
 
-  // Title
-  doc.setFontSize(24);
-  doc.setTextColor(220, 38, 38); // Red for credit note
-  doc.text('CREDIT NOTE', pageWidth - margin, 25, { align: 'right' });
-  doc.setTextColor(0, 0, 0);
+//   // Implementation continues...
+//   // (Full implementation available in git history)
 
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Credit Note #: ${creditNote.creditNoteNumber}`, pageWidth - margin, 35, { align: 'right' });
-  doc.text(`Original Invoice: ${creditNote.Invoice.invoiceNumber}`, pageWidth - margin, 42, { align: 'right' });
-
-  yPos = 60;
-
-  // Customer info
-  doc.setFont('helvetica', 'bold');
-  doc.text('CUSTOMER:', margin, yPos);
-  yPos += 6;
-  doc.setFont('helvetica', 'normal');
-  doc.text(creditNote.Customer.name, margin, yPos);
-  yPos += 15;
-
-  // Credit details
-  const rightCol = pageWidth - margin;
-  let detailYPos = 60;
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('Credit Date:', rightCol - 80, detailYPos);
-  doc.setFont('helvetica', 'normal');
-  doc.text(new Date(creditNote.creditDate).toLocaleDateString(), rightCol, detailYPos, { align: 'right' });
-  detailYPos += 6;
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Credit Amount:', rightCol - 80, detailYPos);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.setTextColor(220, 38, 38);
-  doc.text(`$${new Decimal(creditNote.amount).toFixed(2)}`, rightCol, detailYPos, { align: 'right' });
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(12);
-
-  yPos = Math.max(yPos, detailYPos + 15);
-
-  // Reason
-  doc.setFont('helvetica', 'bold');
-  doc.text('Reason:', margin, yPos);
-  yPos += 6;
-  doc.setFont('helvetica', 'normal');
-  doc.text(creditNote.reason, margin, yPos);
-  yPos += 10;
-
-  if (creditNote.notes) {
-    doc.setFont('helvetica', 'bold');
-    doc.text('Notes:', margin, yPos);
-    yPos += 6;
-    doc.setFont('helvetica', 'normal');
-    const notesLines = doc.splitTextToSize(creditNote.notes, pageWidth - 2 * margin);
-    doc.text(notesLines, margin, yPos);
-  }
-
-  return Buffer.from(doc.output('arraybuffer'));
-}
+//   return Buffer.from(doc.output('arraybuffer'));
+// }

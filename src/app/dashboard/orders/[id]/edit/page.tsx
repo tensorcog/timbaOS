@@ -74,6 +74,7 @@ export default async function EditOrderPage({ params }: EditOrderPageProps) {
             locationId: order.locationId,
             deliveryAddress: order.deliveryAddress,
             items: order.OrderItem.map(item => ({
+                id: item.id,
                 productId: item.productId,
                 product: {
                     id: item.Product.id,

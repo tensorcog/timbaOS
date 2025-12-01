@@ -103,10 +103,15 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
     useEffect(() => {
         const fetchShipments = async () => {
             try {
+                console.log('Fetching shipments for order:', order.id);
                 const res = await fetch(`/api/orders/${order.id}/shipments`);
+                console.log('Fetch shipments response status:', res.status);
                 if (res.ok) {
                     const data = await res.json();
+                    console.log('Fetched shipments:', data);
                     setShipments(data.shipments || []);
+                } else {
+                    console.error('Failed to fetch shipments');
                 }
             } catch (error) {
                 console.error('Error fetching shipments:', error);
@@ -547,8 +552,8 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                                 </div>
                                 <div className="text-sm">
                                     <span className="font-medium">Items:</span>{' '}
-                                    {shipment.ShipmentItem.map((si: any) => 
-                                        `${si.OrderItem.Product.name} (${si.quantity})`
+                                    {shipment.ShipmentItem?.map((si: any) => 
+                                        `${si.OrderItem?.Product?.name || 'Unknown'} (${si.quantity})`
                                     ).join(', ')}
                                 </div>
                             </div>

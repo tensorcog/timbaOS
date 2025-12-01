@@ -16,6 +16,7 @@ import {
     Settings,
     FileText,
     MapPin,
+    Calendar,
 } from "lucide-react"
 import { LocationSelector } from "./location-selector"
 import { GlobalSearch } from "./global-search"
@@ -91,6 +92,17 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                 >
                                     <ShoppingCart className="h-4 w-4" />
                                     Orders
+                                </Link>
+                                <Link
+                                    href="/dashboard/schedule"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/schedule')
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                >
+                                    <Calendar className="h-4 w-4" />
+                                    Schedule
                                 </Link>
                                 <Link
                                     href="/dashboard/quotes"

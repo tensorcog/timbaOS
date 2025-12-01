@@ -107,6 +107,10 @@ if [ -f "./scripts/test-api.sh" ]; then
     run_test_suite "API Conversion Tests" "./scripts/test-api.sh"
 fi
 
+if [ -f "./scripts/test-schedule.sh" ]; then
+    run_test_suite "Schedule API Tests" "./scripts/test-schedule.sh"
+fi
+
 # Summary
 log_msg ""
 log_msg "=================================================="

@@ -1,0 +1,174 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
+import { ChevronLeft, ChevronRight, Truck, Package } from "lucide-react";
+import { useLocation } from "@/lib/context/location-context";
+import Link from "next/link";
+
+interface ScheduledOrder {
+    id: string;
+    orderNumber: string;
+    deliveryDate: string;
+    status: string;
+    fulfillmentType: string;
+    totalAmount: string;
+    Customer: {
+        name: string;
+    };
+    Location: {
+        name: string;
+        code: string;
+    };
+}
+
+export default function SchedulePage() {
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [orders, setOrders] = useState<ScheduledOrder[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const { selectedLocation } = useLocation();
+
+    const fetchOrders = async () => {
+        setIsLoading(true);
+        try {
+            const start = startOfMonth(currentDate).toISOString();
+            const end = endOfMonth(currentDate).toISOString();
+            
+            let url = `/api/orders/schedule?start=${start}&end=${end}`;
+            if (selectedLocation) {
+                url += `&locationId=${selectedLocation}`;
+            }
+
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.orders) {
+                setOrders(data.orders);
+            }
+        } catch (error) {
+            console.error("Failed to fetch scheduled orders:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrders();
+    }, [currentDate, selectedLocation]);
+
+    const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+    const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart);
+    const endDate = endOfWeek(monthEnd);
+
+    const calendarDays = eachDayOfInterval({
+        start: startDate,
+        end: endDate,
+    });
+
+    // O(N) Pre-processing: Group orders by date string (YYYY-MM-DD)
+    const ordersByDate = useMemo(() => {
+        const map = new Map<string, ScheduledOrder[]>();
+        orders.forEach(order => {
+            if (order.deliveryDate) {
+                // Normalize to YYYY-MM-DD to avoid time/timezone ambiguity for the key
+                const dateKey = format(new Date(order.deliveryDate), 'yyyy-MM-dd');
+                if (!map.has(dateKey)) {
+                    map.set(dateKey, []);
+                }
+                map.get(dateKey)?.push(order);
+            }
+        });
+        return map;
+    }, [orders]);
+
+    // O(1) Lookup
+    const getOrdersForDay = (day: Date) => {
+        const dateKey = format(day, 'yyyy-MM-dd');
+        return ordersByDate.get(dateKey) || [];
+    };
+
+    return (
+        <div className="flex flex-col gap-4 h-[calc(100vh-100px)]">
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold tracking-tight">Delivery Schedule</h1>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={prevMonth}
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 w-9"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <div className="font-semibold min-w-[150px] text-center">
+                        {format(currentDate, "MMMM yyyy")}
+                    </div>
+                    <button 
+                        onClick={nextMonth}
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 w-9"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </button>
+                </div>
+            </div>
+
+            <div className="rounded-xl border bg-card text-card-foreground shadow-sm flex-1 flex flex-col overflow-hidden">
+                <div className="flex flex-col space-y-1.5 p-6 py-3 border-b">
+                    <div className="grid grid-cols-7 text-center text-sm font-medium text-muted-foreground">
+                        <div>Sun</div>
+                        <div>Mon</div>
+                        <div>Tue</div>
+                        <div>Wed</div>
+                        <div>Thu</div>
+                        <div>Fri</div>
+                        <div>Sat</div>
+                    </div>
+                </div>
+                <div className="p-6 pt-0 flex-1 p-0 overflow-y-auto">
+                    <div className="grid grid-cols-7 h-full min-h-[600px] auto-rows-fr border-l border-t">
+                        {calendarDays.map((day, dayIdx) => {
+                            const dayOrders = getOrdersForDay(day);
+                            const isCurrentMonth = isSameMonth(day, monthStart);
+
+                            return (
+                                <div
+                                    key={day.toString()}
+                                    className={`min-h-[100px] border-b border-r p-2 transition-colors hover:bg-muted/50 ${
+                                        !isCurrentMonth ? "bg-muted/20 text-muted-foreground" : ""
+                                    }`}
+                                >
+                                    <div className={`text-right text-sm mb-2 ${
+                                        isSameDay(day, new Date()) ? "bg-primary text-primary-foreground w-6 h-6 rounded-full ml-auto flex items-center justify-center" : ""
+                                    }`}>
+                                        {format(day, "d")}
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        {dayOrders.map((order) => (
+                                            <Link 
+                                                href={`/dashboard/orders/${order.id}`}
+                                                key={order.id}
+                                                className={`text-xs p-1.5 rounded border truncate flex items-center gap-1.5 ${
+                                                    order.fulfillmentType === 'DELIVERY' 
+                                                        ? 'bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-300' 
+                                                        : 'bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-300'
+                                                }`}
+                                            >
+                                                {order.fulfillmentType === 'DELIVERY' ? (
+                                                    <Truck className="h-3 w-3 shrink-0" />
+                                                ) : (
+                                                    <Package className="h-3 w-3 shrink-0" />
+                                                )}
+                                                <span className="truncate font-medium">{order.Customer.name}</span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

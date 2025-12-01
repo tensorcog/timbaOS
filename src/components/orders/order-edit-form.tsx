@@ -42,6 +42,8 @@ interface OrderEditFormProps {
         customerId: string;
         locationId: string;
         deliveryAddress: string | null;
+        deliveryDate: string | null;
+        fulfillmentType: string;
         items: OrderItem[];
     };
     customers: Customer[];
@@ -53,6 +55,8 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
     const router = useRouter();
     const [items, setItems] = useState<OrderItem[]>(order.items);
     const [deliveryAddress, setDeliveryAddress] = useState(order.deliveryAddress || '');
+    const [deliveryDate, setDeliveryDate] = useState(order.deliveryDate ? new Date(order.deliveryDate).toISOString().split('T')[0] : '');
+    const [fulfillmentType, setFulfillmentType] = useState(order.fulfillmentType || 'PICKUP');
     const [productSearch, setProductSearch] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
@@ -132,6 +136,8 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                         quantity: item.quantity,
                     })),
                     deliveryAddress,
+                    deliveryDate,
+                    fulfillmentType,
                 }),
             });
 
@@ -269,9 +275,32 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                 )}
             </div>
 
-            {/* Delivery Address */}
+            {/* Delivery & Fulfillment */}
             <div className="rounded-xl border bg-card p-6">
-                <h2 className="text-lg font-semibold mb-4">Delivery Address</h2>
+                <h2 className="text-lg font-semibold mb-4">Delivery & Fulfillment</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Fulfillment Type</label>
+                        <select
+                            value={fulfillmentType}
+                            onChange={(e) => setFulfillmentType(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border bg-background"
+                        >
+                            <option value="PICKUP">Pickup</option>
+                            <option value="DELIVERY">Delivery</option>
+                            <option value="WILL_CALL">Will Call</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Delivery/Pickup Date</label>
+                        <input
+                            type="date"
+                            value={deliveryDate}
+                            onChange={(e) => setDeliveryDate(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border bg-background"
+                        />
+                    </div>
+                </div>
                 <textarea
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}

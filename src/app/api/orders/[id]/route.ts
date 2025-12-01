@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { logActivity } from '@/lib/audit-logger';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, FulfillmentType } from '@prisma/client';
 import Decimal from 'decimal.js';
 import { randomUUID } from 'crypto';
 
@@ -19,7 +19,7 @@ export async function PATCH(
         }
 
         const body = await request.json();
-        const { items, deliveryAddress } = body;
+        const { items, deliveryAddress, deliveryDate, fulfillmentType } = body;
 
         // Get the order
         const order = await prisma.order.findUnique({
@@ -89,6 +89,8 @@ export async function PATCH(
                 taxAmount: taxAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 totalAmount: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 deliveryAddress: deliveryAddress || null,
+                deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
+                fulfillmentType: fulfillmentType || undefined,
                 OrderItem: {
                     deleteMany: {},
                     create: processedItems,
@@ -119,6 +121,14 @@ export async function PATCH(
                 itemsCount: {
                     old: order.OrderItem.length,
                     new: items.length
+                },
+                deliveryDate: {
+                    old: order.deliveryDate,
+                    new: deliveryDate
+                },
+                fulfillmentType: {
+                    old: order.fulfillmentType,
+                    new: fulfillmentType
                 }
             },
             ipAddress: request.headers.get('x-forwarded-for') || 'unknown',

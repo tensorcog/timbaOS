@@ -7,10 +7,12 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { SearchInput } from "@/components/search-input";
 
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+
 export default async function OrdersPage({
     searchParams,
 }: {
-    searchParams: { q?: string; showAll?: string };
+    searchParams: { q?: string; showAll?: string; sort?: string; order?: string };
 }) {
     // Get authenticated user
     const session = await getServerSession(authOptions);
@@ -23,6 +25,8 @@ export default async function OrdersPage({
 
     const query = searchParams.q;
     const showAll = searchParams.showAll === 'true';
+    const sort = searchParams.sort || 'createdAt';
+    const sortOrder = searchParams.order === 'asc' ? 'asc' : 'desc';
 
     // Build location filter based on role and selected location
     const cookieStore = cookies();
@@ -53,6 +57,27 @@ export default async function OrdersPage({
         ? { salesRepId: session.user.id }
         : {};
 
+    // Determine orderBy based on sort param
+    let orderBy: any = {};
+    switch (sort) {
+        case 'orderNumber':
+            orderBy = { orderNumber: sortOrder };
+            break;
+        case 'customer':
+            orderBy = { Customer: { name: sortOrder } };
+            break;
+        case 'status':
+            orderBy = { status: sortOrder };
+            break;
+        case 'totalAmount':
+            orderBy = { totalAmount: sortOrder };
+            break;
+        case 'createdAt':
+        default:
+            orderBy = { createdAt: sortOrder };
+            break;
+    }
+
     const orders = await prisma.order.findMany({
         where: {
             ...locationFilter,
@@ -74,10 +99,36 @@ export default async function OrdersPage({
                 },
             },
         },
-        orderBy: {
-            createdAt: "desc",
-        },
+        orderBy,
     });
+
+    // Helper to generate sort URL
+    const getSortUrl = (column: string) => {
+        const newOrder = sort === column && sortOrder === 'asc' ? 'desc' : 'asc';
+        const params = new URLSearchParams();
+        if (query) params.set('q', query);
+        if (showAll) params.set('showAll', 'true');
+        params.set('sort', column);
+        params.set('order', newOrder);
+        return `/dashboard/orders?${params.toString()}`;
+    };
+
+    // Sort Header Component
+    const SortHeader = ({ column, label }: { column: string; label: string }) => {
+        const isActive = sort === column;
+        return (
+            <th className="text-left p-2">
+                <Link href={getSortUrl(column)} className="flex items-center gap-1 hover:text-primary transition-colors group">
+                    {label}
+                    {isActive ? (
+                        sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                    ) : (
+                        <ArrowUpDown className="h-4 w-4 opacity-0 group-hover:opacity-50" />
+                    )}
+                </Link>
+            </th>
+        );
+    };
 
     return (
         <>
@@ -107,11 +158,11 @@ export default async function OrdersPage({
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b">
-                                    <th className="text-left p-2">Order Number</th>
-                                    <th className="text-left p-2">Customer</th>
-                                    <th className="text-left p-2">Status</th>
-                                    <th className="text-left p-2">Total</th>
-                                    <th className="text-left p-2">Date</th>
+                                    <SortHeader column="orderNumber" label="Order Number" />
+                                    <SortHeader column="customer" label="Customer" />
+                                    <SortHeader column="status" label="Status" />
+                                    <SortHeader column="totalAmount" label="Total" />
+                                    <SortHeader column="createdAt" label="Date" />
                                 </tr>
                             </thead>
                             <tbody>

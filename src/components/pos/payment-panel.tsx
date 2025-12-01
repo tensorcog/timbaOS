@@ -143,10 +143,10 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                     {/* Total Due */}
                     <div className="mb-6 p-6 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border">
                         <div className="text-sm text-muted-foreground mb-1">Amount Due</div>
-                        <div className="text-4xl font-bold">${remaining.toString()}</div>
+                        <div className="text-4xl font-bold">${remaining.toFixed(2)}</div>
                         {parseFloat(paidAmount.toString()) > 0 && (
                             <div className="text-sm text-muted-foreground mt-2">
-                                Paid: ${paidAmount.toString()} of ${total.toString()}
+                                Paid: ${paidAmount.toFixed(2)} of ${total.toFixed(2)}
                             </div>
                         )}
                     </div>
@@ -205,10 +205,10 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                                     value={paymentAmount}
                                     onChange={(e) => setPaymentAmount(e.target.value)}
                                     className="flex-1 px-4 py-3 rounded-lg border bg-background"
-                                    placeholder={remaining.toString()}
+                                    placeholder={remaining.toFixed(2)}
                                 />
                                 <button
-                                    onClick={() => setPaymentAmount(remaining.toString())}
+                                    onClick={() => setPaymentAmount(remaining.toFixed(2))}
                                     className="px-4 py-2 rounded-lg border hover:bg-muted"
                                 >
                                     Exact
@@ -252,7 +252,7 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                         disabled={remainingNum > 0.01 || processing}
                         className="w-full py-4 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-bold text-lg hover:from-purple-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {processing ? 'Processing...' : remainingNum > 0.01 ? `$${remaining.toString()} Remaining` : 'Complete Transaction'}
+                        {processing ? 'Processing...' : remainingNum > 0.01 ? `$${remaining.toFixed(2)} Remaining` : 'Complete Transaction'}
                     </button>
                 </div>
             </div>

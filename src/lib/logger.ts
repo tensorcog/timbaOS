@@ -21,6 +21,11 @@ export const logger = pino({
   base: {
     env: process.env.NODE_ENV || 'development',
   },
+  serializers: {
+    err: pino.stdSerializers.err,
+    req: pino.stdSerializers.req,
+    res: pino.stdSerializers.res,
+  },
 });
 
 /**

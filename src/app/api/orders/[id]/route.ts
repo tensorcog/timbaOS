@@ -57,16 +57,35 @@ export async function PATCH(
         let subtotal = new Decimal(0);
         let discountAmount = new Decimal(0);
 
+        // Fetch all products involved to get prices for new items
+        const productIds = items.map((item: any) => item.productId);
+        const products = await prisma.product.findMany({
+            where: { id: { in: productIds } }
+        });
+
         const processedItems = items.map((item: any) => {
             const existingItem = order.OrderItem.find(oi => oi.productId === item.productId);
-            if (!existingItem) {
-                throw new Error(`Product ${item.productId} not found in order`);
+            const product = products.find(p => p.id === item.productId);
+
+            if (!product) {
+                throw new Error(`Product ${item.productId} not found`);
             }
 
-            const price = new Decimal(existingItem.price.toString());
-            const quantity = item.quantity;
-            const discount = new Decimal(existingItem.discount.toString());
+            let price: Decimal;
+            let discount: Decimal;
 
+            if (existingItem) {
+                // For existing items, preserve the original price and discount
+                // unless we want to allow re-pricing. For now, matching original logic.
+                price = new Decimal(existingItem.price.toString());
+                discount = new Decimal(existingItem.discount.toString());
+            } else {
+                // For new items, use the current product price
+                price = new Decimal(product.basePrice.toString());
+                discount = new Decimal(0); // Default no discount for new items
+            }
+
+            const quantity = item.quantity;
             const itemSubtotal = price.times(quantity).minus(discount);
 
             subtotal = subtotal.plus(itemSubtotal);

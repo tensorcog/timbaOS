@@ -111,10 +111,8 @@ export async function POST(request: NextRequest) {
                 // Optimistic locking: only update if version hasn't changed
                 const updateResult = await tx.locationInventory.updateMany({
                     where: {
-                        locationId_productId: {
-                            locationId,
-                            productId: item.productId,
-                        },
+                        locationId,
+                        productId: item.productId,
                         version: inventory.version,  // Only update if version matches
                         stockLevel: { gte: item.quantity },  // Double-check stock level
                     },

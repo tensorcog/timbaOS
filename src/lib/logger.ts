@@ -9,30 +9,17 @@ import pino from 'pino';
 const logLevel = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
 
 // Create logger with full configuration
+// Note: pino-pretty transport disabled to avoid worker thread issues in Next.js
+// Create logger with simple configuration to avoid worker thread issues
 export const logger = pino({
   level: logLevel,
-  formatters: {
-    level: (label) => {
-      return { level: label.toUpperCase() };
-    },
+  // Disable all transport/worker thread features
+  transport: undefined,
+  browser: {
+    asObject: false,
   },
-  transport: process.env.NODE_ENV !== 'production' 
-    ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      }
-    : undefined, // Use JSON in production
   base: {
     env: process.env.NODE_ENV || 'development',
-  },
-  serializers: {
-    err: pino.stdSerializers.err,
-    req: pino.stdSerializers.req,
-    res: pino.stdSerializers.res,
   },
 });
 

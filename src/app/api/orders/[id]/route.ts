@@ -19,7 +19,7 @@ export async function PATCH(
         }
 
         const body = await request.json();
-        const { items, deliveryAddress, deliveryDate, fulfillmentType } = body;
+        const { items, deliveryAddress, deliveryDate, fulfillmentType, version } = body;
 
         // Get the order
         const order = await prisma.order.findUnique({
@@ -33,6 +33,14 @@ export async function PATCH(
 
         if (!order) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
+
+        // Optimistic Concurrency Control
+        if (version !== undefined && order.version !== version) {
+            return NextResponse.json({ 
+                error: 'Order has been modified by another user. Please refresh and try again.',
+                code: 'CONFLICT'
+            }, { status: 409 });
         }
 
         // Only allow editing PENDING orders
@@ -89,8 +97,7 @@ export async function PATCH(
                 taxAmount: taxAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 totalAmount: totalAmount.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
                 deliveryAddress: deliveryAddress || null,
-                deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
-                fulfillmentType: fulfillmentType || undefined,
+                version: { increment: 1 }, // Increment version
                 OrderItem: {
                     deleteMany: {},
                     create: processedItems,

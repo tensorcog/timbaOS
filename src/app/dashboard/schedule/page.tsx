@@ -6,53 +6,58 @@ import { ChevronLeft, ChevronRight, Truck, Package } from "lucide-react";
 import { useLocation } from "@/lib/context/location-context";
 import Link from "next/link";
 
-interface ScheduledOrder {
+interface ScheduledShipment {
     id: string;
-    orderNumber: string;
-    deliveryDate: string;
+    scheduledDate: string; // ISO string
     status: string;
-    fulfillmentType: string;
-    totalAmount: string;
-    Customer: {
-        name: string;
+    method: string;
+    Order: {
+        id: string;
+        orderNumber: string;
+        Customer: {
+            name: string;
+        };
+        Location: {
+            name: string;
+            code: string;
+        };
     };
-    Location: {
-        name: string;
-        code: string;
-    };
+    ShipmentItem: any[];
 }
 
 export default function SchedulePage() {
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [orders, setOrders] = useState<ScheduledOrder[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [shipments, setShipments] = useState<ScheduledShipment[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const { selectedLocation } = useLocation();
 
-    const fetchOrders = async () => {
+    const fetchSchedule = async () => {
         setIsLoading(true);
         try {
+            // Use UTC dates for API query
             const start = startOfMonth(currentDate).toISOString();
             const end = endOfMonth(currentDate).toISOString();
             
-            let url = `/api/orders/schedule?start=${start}&end=${end}`;
-            if (selectedLocation) {
-                url += `&locationId=${selectedLocation}`;
-            }
+            const params = new URLSearchParams({
+                start,
+                end,
+                ...(selectedLocation ? { locationId: selectedLocation } : {})
+            });
 
-            const res = await fetch(url);
+            const res = await fetch(`/api/orders/schedule?${params}`);
+            if (!res.ok) throw new Error('Failed to fetch schedule');
+            
             const data = await res.json();
-            if (data.orders) {
-                setOrders(data.orders);
-            }
+            setShipments(data.shipments);
         } catch (error) {
-            console.error("Failed to fetch scheduled orders:", error);
+            console.error('Error fetching schedule:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchOrders();
+        fetchSchedule();
     }, [currentDate, selectedLocation]);
 
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
@@ -68,26 +73,31 @@ export default function SchedulePage() {
         end: endDate,
     });
 
-    // O(N) Pre-processing: Group orders by date string (YYYY-MM-DD)
-    const ordersByDate = useMemo(() => {
-        const map = new Map<string, ScheduledOrder[]>();
-        orders.forEach(order => {
-            if (order.deliveryDate) {
-                // Normalize to YYYY-MM-DD to avoid time/timezone ambiguity for the key
-                const dateKey = format(new Date(order.deliveryDate), 'yyyy-MM-dd');
+    // O(N) Pre-processing: Group shipments by UTC date string (YYYY-MM-DD)
+    const shipmentsByDate = useMemo(() => {
+        const map = new Map<string, ScheduledShipment[]>();
+        shipments.forEach(shipment => {
+            if (shipment.scheduledDate) {
+                // Use UTC date parts to ensure consistency with server storage
+                const date = new Date(shipment.scheduledDate);
+                const year = date.getUTCFullYear();
+                const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(date.getUTCDate()).padStart(2, '0');
+                const dateKey = `${year}-${month}-${day}`;
+                
                 if (!map.has(dateKey)) {
                     map.set(dateKey, []);
                 }
-                map.get(dateKey)?.push(order);
+                map.get(dateKey)?.push(shipment);
             }
         });
         return map;
-    }, [orders]);
+    }, [shipments]);
 
     // O(1) Lookup
-    const getOrdersForDay = (day: Date) => {
+    const getShipmentsForDay = (day: Date) => {
         const dateKey = format(day, 'yyyy-MM-dd');
-        return ordersByDate.get(dateKey) || [];
+        return shipmentsByDate.get(dateKey) || [];
     };
 
     return (
@@ -128,7 +138,6 @@ export default function SchedulePage() {
                 <div className="p-6 pt-0 flex-1 p-0 overflow-y-auto">
                     <div className="grid grid-cols-7 h-full min-h-[600px] auto-rows-fr border-l border-t">
                         {calendarDays.map((day, dayIdx) => {
-                            const dayOrders = getOrdersForDay(day);
                             const isCurrentMonth = isSameMonth(day, monthStart);
 
                             return (
@@ -143,24 +152,23 @@ export default function SchedulePage() {
                                     }`}>
                                         {format(day, "d")}
                                     </div>
-                                    <div className="flex flex-col gap-1">
-                                        {dayOrders.map((order) => (
-                                            <Link 
-                                                href={`/dashboard/orders/${order.id}`}
-                                                key={order.id}
-                                                className={`text-xs p-1.5 rounded border truncate flex items-center gap-1.5 ${
-                                                    order.fulfillmentType === 'DELIVERY' 
-                                                        ? 'bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-300' 
-                                                        : 'bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-300'
+                                    <div className="space-y-1">
+                                        {getShipmentsForDay(day).map((shipment) => (
+                                            <div
+                                                key={shipment.id}
+                                                className={`text-xs p-1 rounded border truncate ${
+                                                    shipment.method === 'DELIVERY'
+                                                        ? 'bg-blue-50 border-blue-100 text-blue-700'
+                                                        : 'bg-orange-50 border-orange-100 text-orange-700'
                                                 }`}
+                                                title={`${shipment.Order.Customer.name} - ${shipment.Order.orderNumber}`}
                                             >
-                                                {order.fulfillmentType === 'DELIVERY' ? (
-                                                    <Truck className="h-3 w-3 shrink-0" />
-                                                ) : (
-                                                    <Package className="h-3 w-3 shrink-0" />
-                                                )}
-                                                <span className="truncate font-medium">{order.Customer.name}</span>
-                                            </Link>
+                                                <div className="font-medium">{shipment.Order.Customer.name}</div>
+                                                <div className="text-[10px] opacity-75 flex items-center gap-1">
+                                                    {shipment.method === 'DELIVERY' ? <Truck className="h-3 w-3" /> : <Package className="h-3 w-3" />}
+                                                    {shipment.Order.orderNumber}
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { startOfDay, endOfDay, parseISO } from 'date-fns';
+import prisma from '@/lib/prisma';
+import { logApiError } from '@/lib/api-logger';
 
 export async function GET(request: NextRequest) {
     try {
@@ -17,65 +17,63 @@ export async function GET(request: NextRequest) {
         const locationId = searchParams.get('locationId');
 
         if (!start || !end) {
-            return NextResponse.json(
-                { error: 'Start and end dates are required' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Start and end dates are required' }, { status: 400 });
         }
 
-        const startDate = startOfDay(parseISO(start));
-        const endDate = endOfDay(parseISO(end));
+        // Validate and normalize date inputs
+        let startDate: Date, endDate: Date;
 
-        const whereClause: any = {
-            deliveryDate: {
-                gte: startDate,
-                lte: endDate,
+        try {
+            if (!start.includes('T')) {
+                // Date-only string: treat as start of day UTC
+                startDate = new Date(`${start}T00:00:00.000Z`);
+            } else {
+                startDate = new Date(start);
+            }
+
+            if (!end.includes('T')) {
+                // Date-only string: treat as end of day UTC
+                endDate = new Date(`${end}T23:59:59.999Z`);
+            } else {
+                endDate = new Date(end);
+            }
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                throw new Error('Invalid date format');
+            }
+        } catch (error) {
+            return NextResponse.json({
+                error: 'Invalid date format. Use YYYY-MM-DD or ISO8601 with timezone.'
+            }, { status: 400 });
+        }
+
+        const shipments = await prisma.shipment.findMany({
+            where: {
+                scheduledDate: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+                Order: locationId ? {
+                    locationId: locationId
+                } : undefined
             },
-            // status: {
-            //     not: 'CANCELLED' // Should we exclude cancelled? Maybe show them as cancelled.
-            // }
-        };
-
-        if (locationId) {
-            whereClause.locationId = locationId;
-        }
-
-        // If user is not admin/manager, restrict to their location or sales rep?
-        // For now, assuming if they can access the schedule, they can see orders.
-        // But we should probably respect location access if implemented.
-        
-        const orders = await prisma.order.findMany({
-            where: whereClause,
-            select: {
-                id: true,
-                orderNumber: true,
-                deliveryDate: true,
-                status: true,
-                fulfillmentType: true,
-                totalAmount: true,
-                Customer: {
-                    select: {
-                        name: true,
+            include: {
+                Order: {
+                    include: {
+                        Customer: true,
+                        Location: true,
                     }
                 },
-                Location: {
-                    select: {
-                        name: true,
-                        code: true
-                    }
-                }
+                ShipmentItem: true
             },
             orderBy: {
-                deliveryDate: 'asc',
+                scheduledDate: 'asc',
             },
         });
 
-        return NextResponse.json({ orders });
+        return NextResponse.json({ shipments });
     } catch (error) {
-        console.error('Error fetching scheduled orders:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch scheduled orders' },
-            { status: 500 }
-        );
+        logApiError('GET_SCHEDULE', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

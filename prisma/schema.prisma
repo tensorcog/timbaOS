@@ -226,6 +226,8 @@ model Order {
   @@index([salesRepId])
   @@index([status])
   @@index([deletedAt])
+  version         Int             @default(0) // Optimistic locking
+  Shipment        Shipment[]
 }
 
 model OrderItem {
@@ -237,6 +239,7 @@ model OrderItem {
   discount  Decimal @default(0) @db.Decimal(12, 2)
   Order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   Product   Product @relation(fields: [productId], references: [id])
+  ShipmentItem ShipmentItem[]
 
   @@index([orderId])
   @@index([productId])
@@ -885,4 +888,45 @@ enum PaymentGatewayType {
   STRIPE
   PAYPAL
   MANUAL
+}
+
+model Shipment {
+  id              String         @id
+  orderId         String
+  status          ShipmentStatus @default(PENDING)
+  scheduledDate   DateTime?      // UTC Date
+  carrier         String?
+  trackingNumber  String?
+  method          String         @default("DELIVERY") // DELIVERY, PICKUP, etc.
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  Order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ShipmentItem    ShipmentItem[]
+
+  @@index([orderId])
+  @@index([scheduledDate])
+  @@index([status])
+}
+
+model ShipmentItem {
+  id            String    @id
+  shipmentId    String
+  orderItemId   String
+  quantity      Int
+  
+  Shipment      Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  OrderItem     OrderItem @relation(fields: [orderItemId], references: [id])
+
+  @@index([shipmentId])
+  @@index([orderItemId])
+}
+
+enum ShipmentStatus {
+  PENDING
+  SCHEDULED
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }

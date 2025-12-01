@@ -275,38 +275,31 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                 )}
             </div>
 
-            {/* Delivery & Fulfillment */}
+            {/* Shipments */}
             <div className="rounded-xl border bg-card p-6">
-                <h2 className="text-lg font-semibold mb-4">Delivery & Fulfillment</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label className="text-sm font-medium mb-1 block">Fulfillment Type</label>
-                        <select
-                            value={fulfillmentType}
-                            onChange={(e) => setFulfillmentType(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border bg-background"
-                        >
-                            <option value="PICKUP">Pickup</option>
-                            <option value="DELIVERY">Delivery</option>
-                            <option value="WILL_CALL">Will Call</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium mb-1 block">Delivery/Pickup Date</label>
-                        <input
-                            type="date"
-                            value={deliveryDate}
-                            onChange={(e) => setDeliveryDate(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border bg-background"
-                        />
-                    </div>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Shipments</h2>
+                    {/* Add Shipment Button would go here - simplified for now */}
                 </div>
+                
+                {/* List existing shipments */}
+                <div className="space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                        Shipment management is now handled via the Shipments tab.
+                    </div>
+                    {/* 
+                        TODO: Implement full shipment management UI here.
+                        For now, we just removed the legacy fields to prevent data corruption.
+                    */}
+                </div>
+            </div>
+
+            {/* Notes */}
+            <div className="rounded-xl border bg-card p-6">
+                <h2 className="text-lg font-semibold mb-4">Notes</h2>
                 <textarea
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Delivery address (optional)"
-                    className="w-full px-3 py-2 rounded-lg border bg-background"
-                    rows={3}
+                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Add notes about this order..."
                 />
             </div>
 

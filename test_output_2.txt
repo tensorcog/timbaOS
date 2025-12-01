@@ -1,0 +1,228 @@
+Running Schedule API Tests...
+  console.log
+    Starting test...
+
+      at src/app/api/orders/schedule/route.test.ts:95:17
+
+  console.log
+    Order created
+
+      at src/app/api/orders/schedule/route.test.ts:116:17
+
+  console.log
+    Prisma keys: [
+      '_originalClient',
+      '_middlewares',
+      '_createPrismaPromise',
+      '$extends',
+      '_extensions',
+      '_previewFeatures',
+      '_clientVersion',
+      '_activeProvider',
+      '_globalOmit',
+      '_tracingHelper',
+      '_errorFormat',
+      '_runtimeDataModel',
+      '_engineConfig',
+      '_accelerateEngineConfig',
+      '_engine',
+      '_requestHandler',
+      '_metrics',
+      '_appliedParent',
+      'account',
+      'auditLog',
+      'customer',
+      'inventoryTransfer',
+      'location',
+      'locationInventory',
+      'locationPricing',
+      'order',
+      'orderItem',
+      'orderSequence',
+      'payment',
+      'product',
+      'productRecommendation',
+      'quote',
+      'quoteItem',
+      'quoteSequence',
+      'session',
+      'systemConfig',
+      'transferItem',
+      'user',
+      'userLocation',
+      'userPreferences',
+      'verificationToken',
+      'passwordResetToken',
+      'invoice',
+      'invoiceItem',
+      'invoicePayment',
+      'invoiceSequence',
+      'companySettings',
+      'recurringInvoice',
+      'creditNote',
+      'invoiceTemplate',
+      'invoiceReminder',
+      'invoiceEmailLog',
+      'shipment',
+      'shipmentItem',
+      '$parent'
+    ]
+
+      at src/app/api/orders/schedule/route.test.ts:122:17
+
+  console.log
+    Prisma prototype keys: [
+      'constructor',
+      '$use',
+      '$on',
+      '$connect',
+      '$disconnect',
+      '$executeRawInternal',
+      '$executeRaw',
+      '$executeRawUnsafe',
+      '$runCommandRaw',
+      '$queryRawInternal',
+      '$queryRaw',
+      '$queryRawTyped',
+      '$queryRawUnsafe',
+      '_transactionWithArray',
+      '_transactionWithCallback',
+      '_createItxClient',
+      '$transaction',
+      '_request',
+      '_executeRequest',
+      '$metrics',
+      '_hasPreviewFlag',
+      '$applyPendingMigrations'
+    ]
+
+      at src/app/api/orders/schedule/route.test.ts:123:17
+
+  console.log
+    Prisma client path: /home/monty/timbaos/node_modules/@prisma/client/default.js
+
+      at src/app/api/orders/schedule/route.test.ts:124:17
+
+  console.log
+    Shipment created
+
+      at src/app/api/orders/schedule/route.test.ts:136:17
+
+  console.log
+    GET response: {
+      shipments: [
+        {
+          id: 'test-shipment-5f8c5784-b79b-408c-a27b-110ad22152ef',
+          orderId: 'test-order-9f88faba-04e6-4388-ae14-65a44898726f',
+          status: 'SCHEDULED',
+          scheduledDate: '2025-12-01T12:00:00.000Z',
+          carrier: null,
+          trackingNumber: null,
+          method: 'DELIVERY',
+          createdAt: '2025-12-01T03:13:00.570Z',
+          updatedAt: '2025-12-01T03:13:00.570Z',
+          Order: [Object],
+          ShipmentItem: []
+        }
+      ]
+    }
+
+      at src/app/api/orders/schedule/route.test.ts:146:17
+
+  console.log
+    Current Version: 0
+
+      at src/app/api/orders/schedule/route.test.ts:159:17
+
+  console.log
+    [PATCH] Order test-order-9f88faba-04e6-4388-ae14-65a44898726f - DB Version: 0, Body Version: 0
+
+      at src/app/api/orders/[id]/route.ts:38:17
+
+  console.log
+    PATCH 1 Response: {
+      success: true,
+      order: {
+        id: 'test-order-9f88faba-04e6-4388-ae14-65a44898726f',
+        orderNumber: 'ORD-18387a42-1388-4507-a730-ab99c4400ad3',
+        locationId: 'test-location-189c2d7d-25c9-4f39-9d0e-5a80a35c1a44',
+        customerId: 'test-customer-f14531b6-4bc3-43b2-8c92-0b94c9538a9b',
+        totalAmount: '0',
+        deliveryAddress: null,
+        deliveryDate: null,
+        deliveryFee: '0',
+        salesRepId: null,
+        createdAt: '2025-12-01T03:13:00.542Z',
+        updatedAt: '2025-12-01T03:13:00.681Z',
+        completedAt: null,
+        discountAmount: '0',
+        subtotal: '0',
+        taxAmount: '0',
+        status: 'PENDING',
+        fulfillmentType: 'PICKUP',
+        orderType: 'STANDARD',
+        paymentStatus: 'PENDING',
+        deletedAt: null,
+        version: 1,
+        OrderItem: [],
+        Customer: {
+          id: 'test-customer-f14531b6-4bc3-43b2-8c92-0b94c9538a9b',
+          name: 'Test Customer Schedule',
+          email: 'test-schedule-fe742714-c2e6-4d53-9243-20646c930418@example.com',
+          phone: null,
+          address: null,
+          accountNumber: null,
+          creditLimit: '0',
+          taxExempt: false,
+          taxId: null,
+          createdAt: '2025-12-01T03:13:00.473Z',
+          updatedAt: '2025-12-01T03:13:00.473Z',
+          loyaltyPoints: 0,
+          customerType: 'RETAIL',
+          deletedAt: null,
+          paymentTermDays: 30,
+          creditHold: false,
+          earlyPaymentDiscount: null,
+          autoGenerateInvoice: false,
+          preferredPaymentGateway: null
+        },
+        Location: {
+          id: 'test-location-189c2d7d-25c9-4f39-9d0e-5a80a35c1a44',
+          code: 'TEST-5bc7a8a2',
+          name: 'Test Location Schedule',
+          address: '123 Test St',
+          phone: null,
+          email: null,
+          timezone: 'America/New_York',
+          isActive: true,
+          isWarehouse: false,
+          managerId: null,
+          createdAt: '2025-12-01T03:13:00.493Z',
+          updatedAt: '2025-12-01T03:13:00.493Z',
+          taxRate: '0.0825'
+        }
+      },
+      message: 'Order updated successfully'
+    }
+
+      at src/app/api/orders/schedule/route.test.ts:172:17
+
+  console.log
+    [PATCH] Order test-order-9f88faba-04e6-4388-ae14-65a44898726f - DB Version: 1, Body Version: 0
+
+      at src/app/api/orders/[id]/route.ts:38:17
+
+  console.log
+    [PATCH] Conflict detected
+
+      at src/app/api/orders/[id]/route.ts:42:21
+
+PASS src/app/api/orders/schedule/route.test.ts
+  Schedule API
+    ✓ should create an order, create a shipment, and verify OCC (218 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        1.269 s
+Ran all test suites matching src/app/api/orders/schedule/route.test.ts.

@@ -3,8 +3,10 @@ import { loadEnvConfig } from '@next/env';
 loadEnvConfig(process.cwd());
 import { GET } from './route';
 import { PATCH } from '../[id]/route';
-import prisma from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { NextRequest } from 'next/server';
+
+const prisma = new PrismaClient();
 
 // Mock getServerSession
 jest.mock('next-auth', () => ({
@@ -89,7 +91,7 @@ describe('Schedule API', () => {
         await prisma.$disconnect();
     });
 
-    it('should create an order, fetch it via schedule API, and update it', async () => {
+    it('should create an order, create a shipment, and verify OCC', async () => {
         console.log('Starting test...');
         // 1. Create Order
         await prisma.order.create({
@@ -101,8 +103,6 @@ describe('Schedule API', () => {
                 totalAmount: 100,
                 subtotal: 100,
                 status: 'PENDING',
-                deliveryDate: new Date('2025-12-01T12:00:00Z'),
-                fulfillmentType: 'DELIVERY',
                 OrderItem: {
                     create: {
                         id: `test-order-item-${randomUUID()}`,
@@ -115,10 +115,30 @@ describe('Schedule API', () => {
         });
         console.log('Order created');
 
-        // 2. Test GET /api/orders/schedule
+        // 2. Create Shipment via API (Mocking the POST request logic here for simplicity or using the actual route if possible, but route is NextRequest based)
+        // Let's use Prisma directly to simulate the API effect for the Schedule test part, 
+        // and then test the OCC part on the Order.
+        
+        console.log('Prisma keys:', Object.keys(prisma));
+        console.log('Prisma prototype keys:', Object.getOwnPropertyNames(Object.getPrototypeOf(prisma)));
+        console.log('Prisma client path:', require.resolve('@prisma/client'));
+        
+        const shipmentId = `test-shipment-${randomUUID()}`;
+        await (prisma as any).shipment.create({
+            data: {
+                id: shipmentId,
+                orderId: orderId,
+                scheduledDate: new Date('2025-12-01T12:00:00Z'),
+                status: 'SCHEDULED',
+                method: 'DELIVERY',
+            }
+        });
+        console.log('Shipment created');
+
+        // 3. Test GET /api/orders/schedule (Should return the shipment)
         const url = new URL('http://localhost/api/orders/schedule');
-        url.searchParams.set('start', '2025-12-01');
-        url.searchParams.set('end', '2025-12-01');
+        url.searchParams.set('start', '2025-12-01T00:00:00Z');
+        url.searchParams.set('end', '2025-12-01T23:59:59Z');
         
         const req = new NextRequest(url);
         const res = await GET(req);
@@ -126,33 +146,44 @@ describe('Schedule API', () => {
         console.log('GET response:', data);
 
         expect(res.status).toBe(200);
-        expect(data.orders).toBeDefined();
-        expect(data.orders.length).toBeGreaterThan(0);
-        const foundOrder = data.orders.find((o: any) => o.id === orderId);
-        expect(foundOrder).toBeDefined();
-        expect(foundOrder.fulfillmentType).toBe('DELIVERY');
+        expect(data.shipments).toBeDefined();
+        expect(data.shipments.length).toBeGreaterThan(0);
+        const foundShipment = data.shipments.find((s: any) => s.id === shipmentId);
+        expect(foundShipment).toBeDefined();
+        expect(foundShipment.method).toBe('DELIVERY');
 
-        // 3. Test PATCH /api/orders/[id]
-        const updateBody = {
-            items: [{ productId: productId, quantity: 2 }],
-            deliveryDate: '2025-12-02',
-            fulfillmentType: 'PICKUP'
+        // 4. Test OCC on Order Update
+        // Fetch current order to get version
+        const currentOrder = await prisma.order.findUnique({ where: { id: orderId } });
+        const currentVersion = currentOrder?.version ?? 0;
+        console.log('Current Version:', currentVersion);
+
+        // First update (success)
+        const updateBody1 = {
+            version: currentVersion,
+            items: [] // No item changes
         };
-
-        const patchReq = new NextRequest(`http://localhost/api/orders/${orderId}`, {
+        const patchReq1 = new NextRequest(`http://localhost/api/orders/${orderId}`, {
             method: 'PATCH',
-            body: JSON.stringify(updateBody)
+            body: JSON.stringify(updateBody1)
         });
+        const patchRes1 = await PATCH(patchReq1, { params: { id: orderId } });
+        const patchData1 = await patchRes1.json();
+        console.log('PATCH 1 Response:', patchData1);
+        
+        expect(patchRes1.status).toBe(200);
+        expect(patchData1.order.version).toBe(currentVersion + 1);
 
-        const patchRes = await PATCH(patchReq, { params: { id: orderId } });
-        const patchData = await patchRes.json();
-        console.log('PATCH response:', patchData);
-
-        expect(patchRes.status).toBe(200);
-        expect(patchData.success).toBe(true);
-
-        const updatedOrder = await prisma.order.findUnique({ where: { id: orderId } });
-        expect(updatedOrder?.deliveryDate?.toISOString().startsWith('2025-12-02')).toBe(true);
-        expect(updatedOrder?.fulfillmentType).toBe('PICKUP');
+        // Second update with STALE version (failure)
+        const updateBody2 = {
+            version: currentVersion, // Stale! (Should be currentVersion + 1 now)
+            items: []
+        };
+        const patchReq2 = new NextRequest(`http://localhost/api/orders/${orderId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(updateBody2)
+        });
+        const patchRes2 = await PATCH(patchReq2, { params: { id: orderId } });
+        expect(patchRes2.status).toBe(409);
     });
 });

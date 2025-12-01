@@ -1,0 +1,122 @@
+Running Schedule API Tests...
+  console.log
+    Starting test...
+
+      at src/app/api/orders/schedule/route.test.ts:95:17
+
+  console.log
+    Order created
+
+      at src/app/api/orders/schedule/route.test.ts:116:17
+
+  console.log
+    Prisma keys: [
+      '_originalClient',
+      '_middlewares',
+      '_createPrismaPromise',
+      '$extends',
+      '_extensions',
+      '_previewFeatures',
+      '_clientVersion',
+      '_activeProvider',
+      '_globalOmit',
+      '_tracingHelper',
+      '_errorFormat',
+      '_runtimeDataModel',
+      '_engineConfig',
+      '_accelerateEngineConfig',
+      '_engine',
+      '_requestHandler',
+      '_metrics',
+      '_appliedParent',
+      'account',
+      'auditLog',
+      'customer',
+      'inventoryTransfer',
+      'location',
+      'locationInventory',
+      'locationPricing',
+      'order',
+      'orderItem',
+      'orderSequence',
+      'payment',
+      'product',
+      'productRecommendation',
+      'quote',
+      'quoteItem',
+      'quoteSequence',
+      'session',
+      'systemConfig',
+      'transferItem',
+      'user',
+      'userLocation',
+      'userPreferences',
+      'verificationToken',
+      'passwordResetToken',
+      'invoice',
+      'invoiceItem',
+      'invoicePayment',
+      'invoiceSequence',
+      'companySettings',
+      '$parent'
+    ]
+
+      at src/app/api/orders/schedule/route.test.ts:122:17
+
+  console.log
+    Prisma prototype keys: [
+      'constructor',
+      '$use',
+      '$on',
+      '$connect',
+      '$disconnect',
+      '$executeRawInternal',
+      '$executeRaw',
+      '$executeRawUnsafe',
+      '$runCommandRaw',
+      '$queryRawInternal',
+      '$queryRaw',
+      '$queryRawTyped',
+      '$queryRawUnsafe',
+      '_transactionWithArray',
+      '_transactionWithCallback',
+      '_createItxClient',
+      '$transaction',
+      '_request',
+      '_executeRequest',
+      '$metrics',
+      '_hasPreviewFlag',
+      '$applyPendingMigrations'
+    ]
+
+      at src/app/api/orders/schedule/route.test.ts:123:17
+
+  console.log
+    Prisma client path: /home/monty/timbaos/src/node_modules/@prisma/client/default.js
+
+      at src/app/api/orders/schedule/route.test.ts:124:17
+
+FAIL src/app/api/orders/schedule/route.test.ts
+  Schedule API
+    ✕ should create an order, create a shipment, and verify OCC (58 ms)
+
+  ● Schedule API › should create an order, create a shipment, and verify OCC
+
+    TypeError: Cannot read properties of undefined (reading 'create')
+
+      125 |         
+      126 |         const shipmentId = `test-shipment-${randomUUID()}`;
+    > 127 |         await (prisma as any).shipment.create({
+          |                                        ^
+      128 |             data: {
+      129 |                 id: shipmentId,
+      130 |                 orderId: orderId,
+
+      at src/app/api/orders/schedule/route.test.ts:127:40
+      at fulfilled (src/app/api/orders/schedule/route.test.ts:5:58)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 total
+Snapshots:   0 total
+Time:        1.026 s
+Ran all test suites matching src/app/api/orders/schedule/route.test.ts.

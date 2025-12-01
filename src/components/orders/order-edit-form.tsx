@@ -134,12 +134,29 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
 
     // Reset shipment form
     const resetShipmentForm = () => {
+        // For local lumber yard: pre-select ALL unshipped items by default
+        const preselectedItems = items
+            .map(item => {
+                if (!item.id) return null;
+                const shipped = shippedByItem[item.id] || 0;
+                const available = item.quantity - shipped;
+                
+                if (available > 0) {
+                    return {
+                        orderItemId: item.id,
+                        quantity: available // Default to shipping ALL remaining quantity
+                    };
+                }
+                return null;
+            })
+            .filter((item): item is { orderItemId: string; quantity: number } => item !== null);
+
         setShipmentFormData({
             scheduledDate: '',
             method: 'DELIVERY',
             carrier: '',
             trackingNumber: '',
-            items: []
+            items: preselectedItems // Auto-select all items for local shipping
         });
         setShipmentError('');
     };

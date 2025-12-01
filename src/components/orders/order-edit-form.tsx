@@ -228,7 +228,7 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
             } else {
                 // Create new shipment
                 if (shipmentFormData.items.length === 0) {
-                    setShipmentError('Please select at least one item to ship');
+                    setShipmentError('No items available to ship. All items may already be shipped.');
                     return;
                 }
 
@@ -634,28 +634,40 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                                 </div>
                             </div>
 
+
                             {/* Show what will be shipped (read-only summary) */}
-                            {!editingShipment && shipmentFormData.items.length > 0 && (
+                            {!editingShipment && (
                                 <div>
-                                    <label className="text-sm font-medium mb-2 block">Items to Ship</label>
-                                    <div className="space-y-2 border rounded-lg p-3 bg-muted/50">
-                                        {shipmentFormData.items.map((shipItem) => {
-                                            const orderItem = items.find(i => i.id === shipItem.orderItemId);
-                                            if (!orderItem) return null;
-                                            
-                                            return (
-                                                <div key={shipItem.orderItemId} className="flex justify-between text-sm">
-                                                    <span>{orderItem.product?.name || 'Unknown'}</span>
-                                                    <span className="font-medium">{shipItem.quantity} units</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-2">
-                                        All remaining items will be shipped together (typical for local delivery)
-                                    </p>
+                                    {shipmentFormData.items.length > 0 ? (
+                                        <>
+                                            <label className="text-sm font-medium mb-2 block">Items to Ship</label>
+                                            <div className="space-y-2 border rounded-lg p-3 bg-muted/50">
+                                                {shipmentFormData.items.map((shipItem) => {
+                                                    const orderItem = items.find(i => i.id === shipItem.orderItemId);
+                                                    if (!orderItem) return null;
+                                                    
+                                                    return (
+                                                        <div key={shipItem.orderItemId} className="flex justify-between text-sm">
+                                                            <span>{orderItem.product?.name || 'Unknown'}</span>
+                                                            <span className="font-medium">{shipItem.quantity} units</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-2">
+                                                All remaining items will be shipped together (typical for local delivery)
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <div className="border rounded-lg p-4 bg-muted/30 text-center">
+                                            <p className="text-sm text-muted-foreground">
+                                                No items available to ship. All items may already be fully shipped.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
+
 
 
                             {/* Error Message */}

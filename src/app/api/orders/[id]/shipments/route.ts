@@ -162,9 +162,8 @@ export async function POST(
         await logActivity({
             userId: session.user.id,
             action: 'UPDATE',
-            resourceType: 'ORDER',
-            resourceId: params.id,
-            details: `Created shipment ${shipment.id}`,
+            entityType: 'Order',
+            entityId: params.id,
             changes: {
                 shipment: {
                     new: shipment

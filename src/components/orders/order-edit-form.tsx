@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { Trash2 } from 'lucide-react';
@@ -94,13 +94,21 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
         fetchShipments();
     }, [order.id]);
 
-    // Calculate shipped quantity for an order item
+    // Calculate shipped quantity map (optimized with useMemo)
+    const shippedByItem = useMemo(() => {
+        const map: Record<string, number> = {};
+        shipments.forEach(shipment => {
+            if (shipment.status === 'CANCELLED') return;
+            shipment.ShipmentItem?.forEach((si: any) => {
+                map[si.orderItemId] = (map[si.orderItemId] || 0) + si.quantity;
+            });
+        });
+        return map;
+    }, [shipments]);
+
+    // Calculate shipped quantity for an order item (O(1) lookup)
     const calculateShippedQuantity = (orderItemId: string) => {
-        return shipments.reduce((total, shipment) => {
-            if (shipment.status === 'CANCELLED') return total;
-            const shipmentItem = shipment.ShipmentItem?.find((si: any) => si.orderItemId === orderItemId);
-            return total + (shipmentItem?.quantity || 0);
-        }, 0);
+        return shippedByItem[orderItemId] || 0;
     };
 
     // Reset shipment form
@@ -434,7 +442,10 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                     <h2 className="text-lg font-semibold">Shipments</h2>
                     <button
                         type="button"
-                        onClick={() => setShowShipmentDialog(true)}
+                        onClick={() => {
+                            resetShipmentForm();
+                            setShowShipmentDialog(true);
+                        }}
                         className="px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
                     >
                         + Create Shipment

@@ -85,9 +85,8 @@ export async function PUT(
         await logActivity({
             userId: session.user.id,
             action: 'UPDATE',
-            resourceType: 'ORDER',
-            resourceId: params.id,
-            details: `Updated shipment ${params.shipmentId}`,
+            entityType: 'Order',
+            entityId: params.id,
             changes: {
                 old: existingShipment,
                 new: updatedShipment
@@ -139,9 +138,9 @@ export async function DELETE(
         await logActivity({
             userId: session.user.id,
             action: 'DELETE',
-            resourceType: 'ORDER',
-            resourceId: params.id,
-            details: `Deleted shipment ${params.shipmentId}`
+            entityType: 'Order',
+            entityId: params.id,
+            changes: {}
         });
 
         return NextResponse.json({ success: true });

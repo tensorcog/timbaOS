@@ -68,8 +68,18 @@ export function softDeleteMiddleware(): Prisma.Middleware {
             // For findMany, add deletedAt filter
             if (params.action === 'findMany') {
                 if (!params.args) params.args = {};
-                if (!params.args.where) params.args.where = {};
-                params.args.where = { ...params.args.where, deletedAt: null };
+                if (!params.args.where) {
+                    params.args.where = { deletedAt: null };
+                } else {
+                    // Wrap existing where in AND to preserve OR conditions
+                    const existingWhere = params.args.where;
+                    params.args.where = {
+                        AND: [
+                            existingWhere,
+                            { deletedAt: null }
+                        ]
+                    };
+                }
             }
 
             // For update/updateMany, add deletedAt filter

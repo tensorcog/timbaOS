@@ -19,11 +19,6 @@ jest.mock('next-auth', () => ({
     authOptions: {}
 }));
 
-// Mock audit logger
-jest.mock('@/lib/audit-logger', () => ({
-    logActivity: jest.fn()
-}));
-
 // Mock api logger
 jest.mock('@/lib/api-logger', () => ({
     logApiError: jest.fn()

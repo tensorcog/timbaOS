@@ -111,6 +111,10 @@ if [ -f "./scripts/test-schedule.sh" ]; then
     run_test_suite "Schedule API Tests" "./scripts/test-schedule.sh"
 fi
 
+if [ -f "./scripts/test-shipments.sh" ]; then
+    run_test_suite "Shipment CRUD Tests" "./scripts/test-shipments.sh"
+fi
+
 # Summary
 log_msg ""
 log_msg "=================================================="

@@ -186,4 +186,102 @@ describe('Schedule API', () => {
         const patchRes2 = await PATCH(patchReq2, { params: { id: orderId } });
         expect(patchRes2.status).toBe(409);
     });
+
+    describe('Date Validation and Normalization', () => {
+        let testShipmentId: string;
+
+        beforeAll(async () => {
+            // Create a shipment at noon UTC for date range testing
+            testShipmentId = `test-date-shipment-${randomUUID()}`;
+            await prisma.shipment.create({
+                data: {
+                    id: testShipmentId,
+                    orderId: orderId,
+                    scheduledDate: new Date('2025-12-15T12:00:00.000Z'),
+                    status: 'SCHEDULED',
+                    method: 'DELIVERY',
+                }
+            });
+        });
+
+        afterAll(async () => {
+            // Cleanup test shipment
+            if (testShipmentId) {
+                await prisma.shipment.deleteMany({ where: { id: testShipmentId } });
+            }
+        });
+
+        it('should normalize date-only strings to full-day UTC ranges', async () => {
+            // Query with date-only string (should cover 00:00:00Z to 23:59:59.999Z)
+            const url = new URL('http://localhost/api/orders/schedule');
+            url.searchParams.set('start', '2025-12-15');
+            url.searchParams.set('end', '2025-12-15');
+            
+            const req = new NextRequest(url);
+            const res = await GET(req);
+            const data = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(data.shipments).toBeDefined();
+            
+            // Should find the shipment at 12:00:00Z
+            const foundShipment = data.shipments.find((s: any) => s.id === testShipmentId);
+            expect(foundShipment).toBeDefined();
+            expect(foundShipment.scheduledDate).toBe('2025-12-15T12:00:00.000Z');
+        });
+
+        it('should handle mixed date formats (date-only start, ISO end)', async () => {
+            const url = new URL('http://localhost/api/orders/schedule');
+            url.searchParams.set('start', '2025-12-15'); // Date-only
+            url.searchParams.set('end', '2025-12-15T23:59:59.999Z'); // ISO
+            
+            const req = new NextRequest(url);
+            const res = await GET(req);
+            const data = await res.json();
+
+            expect(res.status).toBe(200);
+            const foundShipment = data.shipments.find((s: any) => s.id === testShipmentId);
+            expect(foundShipment).toBeDefined();
+        });
+
+        it('should reject invalid start date format', async () => {
+            const url = new URL('http://localhost/api/orders/schedule');
+            url.searchParams.set('start', 'invalid-date');
+            url.searchParams.set('end', '2025-12-15');
+            
+            const req = new NextRequest(url);
+            const res = await GET(req);
+            const data = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(data.error).toContain('Invalid date format');
+        });
+
+        it('should reject invalid end date format', async () => {
+            const url = new URL('http://localhost/api/orders/schedule');
+            url.searchParams.set('start', '2025-12-15');
+            url.searchParams.set('end', 'not-a-date');
+            
+            const req = new NextRequest(url);
+            const res = await GET(req);
+            const data = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(data.error).toContain('Invalid date format');
+        });
+
+        it('should not include shipments outside date range', async () => {
+            const url = new URL('http://localhost/api/orders/schedule');
+            url.searchParams.set('start', '2025-12-16'); // Day after
+            url.searchParams.set('end', '2025-12-16');
+            
+            const req = new NextRequest(url);
+            const res = await GET(req);
+            const data = await res.json();
+
+            expect(res.status).toBe(200);
+            const foundShipment = data.shipments.find((s: any) => s.id === testShipmentId);
+            expect(foundShipment).toBeUndefined(); // Should NOT be found
+        });
+    });
 });

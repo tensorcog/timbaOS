@@ -634,65 +634,29 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                                 </div>
                             </div>
 
-                            {/* Item Selection */}
-                            {!editingShipment && (
+                            {/* Show what will be shipped (read-only summary) */}
+                            {!editingShipment && shipmentFormData.items.length > 0 && (
                                 <div>
-                                    <label className="text-sm font-medium mb-2 block">Select Items to Ship</label>
-                                    <div className="space-y-2 max-h-64 overflow-y-auto border rounded-lg p-3">
-                                        {items.map((item) => {
-                                            if (!item.id) return null; // Skip items without IDs
-                                            const shipped = calculateShippedQuantity(item.id);
-                                            const available = item.quantity - shipped;
-                                            if (available <= 0) return null;
-
+                                    <label className="text-sm font-medium mb-2 block">Items to Ship</label>
+                                    <div className="space-y-2 border rounded-lg p-3 bg-muted/50">
+                                        {shipmentFormData.items.map((shipItem) => {
+                                            const orderItem = items.find(i => i.id === shipItem.orderItemId);
+                                            if (!orderItem) return null;
+                                            
                                             return (
-                                                <div key={item.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={shipmentFormData.items.some(si => si.orderItemId === item.id)}
-                                                        onChange={(e) => {
-                                                            if (e.target.checked) {
-                                                                setShipmentFormData({
-                                                                    ...shipmentFormData,
-                                                                    items: [...shipmentFormData.items, { orderItemId: item.id!, quantity: available }]
-                                                                });
-                                                            } else {
-                                                                setShipmentFormData({
-                                                                    ...shipmentFormData,
-                                                                    items: shipmentFormData.items.filter(si => si.orderItemId !== item.id)
-                                                                });
-                                                            }
-                                                        }}
-                                                        className="h-4 w-4"
-                                                    />
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-medium">{item.product?.name || 'Unknown'}</div>
-                                                        <div className="text-xs text-muted-foreground">Available: {available}</div>
-                                                    </div>
-                                                    {shipmentFormData.items.some(si => si.orderItemId === item.id) && (
-                                                        <input
-                                                            type="number"
-                                                            min="1"
-                                                            max={available}
-                                                            value={shipmentFormData.items.find(si => si.orderItemId === item.id)?.quantity || available}
-                                                            onChange={(e) => {
-                                                                const qty = parseInt(e.target.value) || 1;
-                                                                setShipmentFormData({
-                                                                    ...shipmentFormData,
-                                                                    items: shipmentFormData.items.map(si =>
-                                                                        si.orderItemId === item.id ? { ...si, quantity: Math.min(qty, available) } : si
-                                                                    )
-                                                                });
-                                                            }}
-                                                            className="w-20 px-2 py-1 text-sm border rounded"
-                                                        />
-                                                    )}
+                                                <div key={shipItem.orderItemId} className="flex justify-between text-sm">
+                                                    <span>{orderItem.product?.name || 'Unknown'}</span>
+                                                    <span className="font-medium">{shipItem.quantity} units</span>
                                                 </div>
                                             );
                                         })}
                                     </div>
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        All remaining items will be shipped together (typical for local delivery)
+                                    </p>
                                 </div>
                             )}
+
 
                             {/* Error Message */}
                             {shipmentError && (

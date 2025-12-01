@@ -90,8 +90,8 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
     const [shipmentError, setShipmentError] = useState('');
     const [shipmentFormData, setShipmentFormData] = useState({
         scheduledDate: '',
-        method: 'DELIVERY',
-        carrier: '',
+        method: 'DELIVERY', // Default to delivery for local lumber yard operations
+        carrier: '', // Leave empty for local deliveries (no third-party carrier needed)
         trackingNumber: '',
         items: [] as { orderItemId: string; quantity: number }[]
     });
@@ -602,7 +602,7 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                                         type="text"
                                         value={shipmentFormData.carrier}
                                         onChange={(e) => setShipmentFormData({ ...shipmentFormData, carrier: e.target.value })}
-                                        placeholder="e.g. UPS, FedEx"
+                                        placeholder="Leave empty for yard delivery"
                                         className="w-full px-3 py-2 rounded-lg border bg-background"
                                     />
                                 </div>

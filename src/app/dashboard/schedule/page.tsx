@@ -158,8 +158,8 @@ export default function SchedulePage() {
                                                 key={shipment.id}
                                                 className={`text-xs p-1 rounded border truncate ${
                                                     shipment.method === 'DELIVERY'
-                                                        ? 'bg-blue-50 border-blue-100 text-blue-700'
-                                                        : 'bg-orange-50 border-orange-100 text-orange-700'
+                                                        ? 'bg-primary/10 border-primary/20 text-primary'
+                                                        : 'bg-secondary border-secondary-foreground/20 text-secondary-foreground'
                                                 }`}
                                                 title={`${shipment.Order.Customer.name} - ${shipment.Order.orderNumber}`}
                                             >

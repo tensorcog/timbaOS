@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { Trash2 } from 'lucide-react';
@@ -14,6 +14,7 @@ interface Product {
 }
 
 interface OrderItem {
+    id?: string;
     productId: string;
     product: Product;
     quantity: number;
@@ -59,9 +60,161 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
     const [fulfillmentType, setFulfillmentType] = useState(order.fulfillmentType || 'PICKUP');
     const [productSearch, setProductSearch] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    
+    // Shipment state
+    const [shipments, setShipments] = useState<any[]>([]);
+    const [showShipmentDialog, setShowShipmentDialog] = useState(false);
+    const [editingShipment, setEditingShipment] = useState<any>(null);
+    const [isSavingShipment, setIsSavingShipment] = useState(false);
+    const [shipmentError, setShipmentError] = useState('');
+    const [shipmentFormData, setShipmentFormData] = useState({
+        scheduledDate: '',
+        method: 'DELIVERY',
+        carrier: '',
+        trackingNumber: '',
+        items: [] as { orderItemId: string; quantity: number }[]
+    });
 
     const selectedCustomer = customers.find(c => c.id === order.customerId);
     const selectedLocation = locations.find(l => l.id === order.locationId);
+
+    // Fetch shipments on mount
+    useEffect(() => {
+        const fetchShipments = async () => {
+            try {
+                const res = await fetch(`/api/orders/${order.id}/shipments`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setShipments(data.shipments || []);
+                }
+            } catch (error) {
+                console.error('Error fetching shipments:', error);
+            }
+        };
+        fetchShipments();
+    }, [order.id]);
+
+    // Calculate shipped quantity for an order item
+    const calculateShippedQuantity = (orderItemId: string) => {
+        return shipments.reduce((total, shipment) => {
+            if (shipment.status === 'CANCELLED') return total;
+            const shipmentItem = shipment.ShipmentItem?.find((si: any) => si.orderItemId === orderItemId);
+            return total + (shipmentItem?.quantity || 0);
+        }, 0);
+    };
+
+    // Reset shipment form
+    const resetShipmentForm = () => {
+        setShipmentFormData({
+            scheduledDate: '',
+            method: 'DELIVERY',
+            carrier: '',
+            trackingNumber: '',
+            items: []
+        });
+        setShipmentError('');
+    };
+
+    // Handle edit shipment
+    const handleEditShipment = (shipment: any) => {
+        setEditingShipment(shipment);
+        setShipmentFormData({
+            scheduledDate: shipment.scheduledDate ? new Date(shipment.scheduledDate).toISOString().split('T')[0] : '',
+            method: shipment.method || 'DELIVERY',
+            carrier: shipment.carrier || '',
+            trackingNumber: shipment.trackingNumber || '',
+            items: [] // Cannot edit items, only metadata
+        });
+        setShowShipmentDialog(true);
+    };
+
+    // Handle delete shipment
+    const handleDeleteShipment = async (shipmentId: string) => {
+        if (!confirm('Are you sure you want to delete this shipment?')) return;
+        
+        try {
+            const res = await fetch(`/api/orders/${order.id}/shipments/${shipmentId}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                toast.success('Shipment deleted successfully');
+                setShipments(shipments.filter(s => s.id !== shipmentId));
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Failed to delete shipment');
+            }
+        } catch (error) {
+            toast.error('Failed to delete shipment');
+        }
+    };
+
+    // Handle save shipment
+    const handleSaveShipment = async () => {
+        setShipmentError('');
+        setIsSavingShipment(true);
+
+        try {
+            if (editingShipment) {
+                // Update existing shipment
+                const res = await fetch(`/api/orders/${order.id}/shipments/${editingShipment.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        scheduledDate: shipmentFormData.scheduledDate,
+                        method: shipmentFormData.method,
+                        carrier: shipmentFormData.carrier || null,
+                        trackingNumber: shipmentFormData.trackingNumber || null
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    setShipments(shipments.map(s => s.id === editingShipment.id ? data.shipment : s));
+                    toast.success('Shipment updated successfully');
+                    setShowShipmentDialog(false);
+                    setEditingShipment(null);
+                    resetShipmentForm();
+                } else {
+                    const data = await res.json();
+                    setShipmentError(data.error || 'Failed to update shipment');
+                }
+            } else {
+                // Create new shipment
+                if (shipmentFormData.items.length === 0) {
+                    setShipmentError('Please select at least one item to ship');
+                    return;
+                }
+
+                const res = await fetch(`/api/orders/${order.id}/shipments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        scheduledDate: shipmentFormData.scheduledDate,
+                        method: shipmentFormData.method,
+                        carrier: shipmentFormData.carrier || null,
+                        trackingNumber: shipmentFormData.trackingNumber || null,
+                        items: shipmentFormData.items
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    setShipments([data.shipment, ...shipments]);
+                    toast.success('Shipment created successfully');
+                    setShowShipmentDialog(false);
+                    resetShipmentForm();
+                } else {
+                    const data = await res.json();
+                    setShipmentError(data.error || 'Failed to create shipment');
+                }
+            }
+        } catch (error) {
+            setShipmentError('An error occurred while saving the shipment');
+        } finally {
+            setIsSavingShipment(false);
+        }
+    };
 
     const filteredProducts = products.filter(p =>
         p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
@@ -279,20 +432,251 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
             <div className="rounded-xl border bg-card p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold">Shipments</h2>
-                    {/* Add Shipment Button would go here - simplified for now */}
+                    <button
+                        type="button"
+                        onClick={() => setShowShipmentDialog(true)}
+                        className="px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+                    >
+                        + Create Shipment
+                    </button>
                 </div>
                 
-                {/* List existing shipments */}
-                <div className="space-y-4">
-                    <div className="text-sm text-muted-foreground">
-                        Shipment management is now handled via the Shipments tab.
-                    </div>
-                    {/* 
-                        TODO: Implement full shipment management UI here.
-                        For now, we just removed the legacy fields to prevent data corruption.
-                    */}
+                {/* Shipments List */}
+                <div className="space-y-3">
+                    {shipments.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">
+                            No shipments created yet. Create a shipment to schedule delivery or pickup.
+                        </div>
+                    ) : (
+                        shipments.map((shipment) => (
+                            <div key={shipment.id} className="border rounded-lg p-4 space-y-2">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded ${
+                                                shipment.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
+                                                shipment.status === 'SHIPPED' ? 'bg-blue-100 text-blue-700' :
+                                                shipment.status === 'SCHEDULED' ? 'bg-purple-100 text-purple-700' :
+                                                'bg-gray-100 text-gray-700'
+                                            }`}>
+                                                {shipment.status}
+                                            </span>
+                                            <span className="text-sm font-medium">{shipment.method}</span>
+                                        </div>
+                                        {shipment.scheduledDate && (
+                                            <div className="text-sm text-muted-foreground mt-1">
+                                                Scheduled: {new Date(shipment.scheduledDate).toLocaleDateString()}
+                                            </div>
+                                        )}
+                                        {shipment.carrier && (
+                                            <div className="text-sm text-muted-foreground">
+                                                Carrier: {shipment.carrier}
+                                                {shipment.trackingNumber && ` - Tracking: ${shipment.trackingNumber}`}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {(shipment.status === 'PENDING' || shipment.status === 'SCHEDULED') && (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleEditShipment(shipment)}
+                                                    className="px-2 py-1 text-xs border rounded hover:bg-muted"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteShipment(shipment.id)}
+                                                    className="px-2 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-50"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="text-sm">
+                                    <span className="font-medium">Items:</span>{' '}
+                                    {shipment.ShipmentItem.map((si: any) => 
+                                        `${si.OrderItem.Product.name} (${si.quantity})`
+                                    ).join(', ')}
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
+
+                {/* Unshipped Items Summary */}
+                {items.length > 0 && (
+                    <div className="mt-4 p-3 bg-muted rounded-lg">
+                        <div className="text-sm font-medium mb-2">Unshipped Quantities:</div>
+                        {items.map((item) => {
+                            if (!item.id) return null;
+                            const shipped = calculateShippedQuantity(item.id);
+                            const remaining = item.quantity - shipped;
+                            if (remaining > 0) {
+                                return (
+                                    <div key={item.id} className="text-sm text-muted-foreground">
+                                        {item.product?.name || 'Unknown'}: {remaining} of {item.quantity} remaining
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })}
+                    </div>
+                )}
             </div>
+
+            {/* Shipment Dialog */}
+            {showShipmentDialog && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowShipmentDialog(false)}>
+                    <div className="bg-white rounded-xl p-6 max-w-2xl w-full m-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-lg font-semibold mb-4">
+                            {editingShipment ? 'Edit Shipment' : 'Create Shipment'}
+                        </h3>
+                        
+                        <div className="space-y-4">
+                            {/* Scheduled Date */}
+                            <div>
+                                <label className="text-sm font-medium mb-1 block">Scheduled Date</label>
+                                <input
+                                    type="date"
+                                    value={shipmentFormData.scheduledDate}
+                                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, scheduledDate: e.target.value })}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+
+                            {/* Method */}
+                            <div>
+                                <label className="text-sm font-medium mb-1 block">Method</label>
+                                <select
+                                    value={shipmentFormData.method}
+                                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, method: e.target.value })}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                >
+                                    <option value="DELIVERY">Delivery</option>
+                                    <option value="PICKUP">Pickup</option>
+                                    <option value="WILL_CALL">Will Call</option>
+                                </select>
+                            </div>
+
+                            {/* Carrier & Tracking */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium mb-1 block">Carrier (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={shipmentFormData.carrier}
+                                        onChange={(e) => setShipmentFormData({ ...shipmentFormData, carrier: e.target.value })}
+                                        placeholder="e.g. UPS, FedEx"
+                                        className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium mb-1 block">Tracking Number (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={shipmentFormData.trackingNumber}
+                                        onChange={(e) => setShipmentFormData({ ...shipmentFormData, trackingNumber: e.target.value })}
+                                        className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Item Selection */}
+                            {!editingShipment && (
+                                <div>
+                                    <label className="text-sm font-medium mb-2 block">Select Items to Ship</label>
+                                    <div className="space-y-2 max-h-64 overflow-y-auto border rounded-lg p-3">
+                                        {items.map((item) => {
+                                            if (!item.id) return null; // Skip items without IDs
+                                            const shipped = calculateShippedQuantity(item.id);
+                                            const available = item.quantity - shipped;
+                                            if (available <= 0) return null;
+
+                                            return (
+                                                <div key={item.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={shipmentFormData.items.some(si => si.orderItemId === item.id)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setShipmentFormData({
+                                                                    ...shipmentFormData,
+                                                                    items: [...shipmentFormData.items, { orderItemId: item.id!, quantity: available }]
+                                                                });
+                                                            } else {
+                                                                setShipmentFormData({
+                                                                    ...shipmentFormData,
+                                                                    items: shipmentFormData.items.filter(si => si.orderItemId !== item.id)
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="h-4 w-4"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="text-sm font-medium">{item.product?.name || 'Unknown'}</div>
+                                                        <div className="text-xs text-muted-foreground">Available: {available}</div>
+                                                    </div>
+                                                    {shipmentFormData.items.some(si => si.orderItemId === item.id) && (
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            max={available}
+                                                            value={shipmentFormData.items.find(si => si.orderItemId === item.id)?.quantity || available}
+                                                            onChange={(e) => {
+                                                                const qty = parseInt(e.target.value) || 1;
+                                                                setShipmentFormData({
+                                                                    ...shipmentFormData,
+                                                                    items: shipmentFormData.items.map(si =>
+                                                                        si.orderItemId === item.id ? { ...si, quantity: Math.min(qty, available) } : si
+                                                                    )
+                                                                });
+                                                            }}
+                                                            className="w-20 px-2 py-1 text-sm border rounded"
+                                                        />
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Error Message */}
+                            {shipmentError && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-600">
+                                    {shipmentError}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowShipmentDialog(false);
+                                    setEditingShipment(null);
+                                    resetShipmentForm();
+                                }}
+                                className="px-4 py-2 text-sm font-medium border rounded-lg hover:bg-muted"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSaveShipment}
+                                disabled={isSavingShipment}
+                                className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                            >
+                                {isSavingShipment ? 'Saving...' : editingShipment ? 'Update Shipment' : 'Create Shipment'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Notes */}
             <div className="rounded-xl border bg-card p-6">

@@ -38,6 +38,18 @@ export async function GET(
     }
 }
 
+
+// TypeScript interfaces for proper typing
+interface ShipmentItemInput {
+    orderItemId: string;
+    quantity: number;
+}
+
+// Date validation regex patterns
+const ISO_DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATETIME_WITH_TZ_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
+const ISO_DATETIME_WITH_OFFSET_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?[+-]\d{2}:\d{2}$/;
+
 export async function POST(
     request: NextRequest,
     { params }: { params: { id: string } }
@@ -56,8 +68,10 @@ export async function POST(
             return NextResponse.json({ error: 'At least one item is required' }, { status: 400 });
         }
 
+        const typedItems = items as ShipmentItemInput[];
+
         // 1. Validate all orderItemIds belong to this order
-        const orderItemIds = items.map((item: any) => item.orderItemId);
+        const orderItemIds = typedItems.map(item => item.orderItemId);
         const orderItems = await prisma.orderItem.findMany({
             where: { 
                 id: { in: orderItemIds },
@@ -65,14 +79,33 @@ export async function POST(
             }
         });
 
-        if (orderItems.length !== items.length) {
+        if (orderItems.length !== typedItems.length) {
             return NextResponse.json({ 
                 error: 'Invalid orderItemId - some items do not belong to this order' 
             }, { status: 400 });
         }
 
-        // 2. Validate quantity constraints
-        for (const item of items) {
+        // 2. Validate quantity constraints (BATCH QUERY - NO N+1)
+        const shippedQuantities = await prisma.shipmentItem.groupBy({
+            by: ['orderItemId'],
+            where: {
+                orderItemId: { in: orderItemIds },
+                Shipment: { 
+                    status: { notIn: ['CANCELLED'] }
+                }
+            },
+            _sum: { quantity: true }
+        });
+
+        // Create lookup map for O(1) access
+        const shippedMap = new Map<string, number>(
+            shippedQuantities.map((sq: { orderItemId: string; _sum: { quantity: number | null } }) => 
+                [sq.orderItemId, sq._sum.quantity || 0]
+            )
+        );
+
+        // Validate each item's quantity
+        for (const item of typedItems) {
             const orderItem = orderItems.find(oi => oi.id === item.orderItemId);
             if (!orderItem) {
                 return NextResponse.json({
@@ -80,19 +113,8 @@ export async function POST(
                 }, { status: 400 });
             }
 
-            // Get already-shipped quantity (excluding CANCELLED shipments)
-            const shippedQty = await prisma.shipmentItem.aggregate({
-                where: {
-                    orderItemId: item.orderItemId,
-                    Shipment: { 
-                        status: { notIn: ['CANCELLED'] }
-                    }
-                },
-                _sum: { quantity: true }
-            });
-
-            const alreadyShipped = shippedQty._sum.quantity || 0;
-            const available = orderItem.quantity - alreadyShipped;
+            const alreadyShipped = shippedMap.get(item.orderItemId) || 0;
+            const available = Number(orderItem.quantity) - alreadyShipped;
 
             if (item.quantity > available) {
                 return NextResponse.json({
@@ -107,23 +129,25 @@ export async function POST(
             }
         }
 
-        // 3. Validate and parse scheduled date (enforce UTC)
+        // 3. Validate and parse scheduled date (REGEX-BASED)
         let parsedDate: Date | null = null;
         if (scheduledDate) {
-            if (!scheduledDate.includes('T')) {
+            if (ISO_DATE_ONLY_REGEX.test(scheduledDate)) {
                 // Date-only string: treat as midnight UTC
                 parsedDate = new Date(`${scheduledDate}T00:00:00.000Z`);
-            } else if (!scheduledDate.endsWith('Z') && !scheduledDate.includes('+') && !scheduledDate.includes('-', 10)) {
-                return NextResponse.json({
-                    error: 'scheduledDate must include timezone (Z or +/-HH:MM) or be a date-only string (YYYY-MM-DD)'
-                }, { status: 400 });
-            } else {
+            } else if (ISO_DATETIME_WITH_TZ_REGEX.test(scheduledDate) || ISO_DATETIME_WITH_OFFSET_REGEX.test(scheduledDate)) {
+                // Full ISO datetime with timezone
                 parsedDate = new Date(scheduledDate);
+            } else {
+                return NextResponse.json({
+                    error: 'Invalid date format. Use YYYY-MM-DD or ISO8601 with timezone (e.g., 2025-12-01T12:00:00Z)'
+                }, { status: 400 });
             }
 
+            // Verify the date is actually valid (catches things like 2025-13-45)
             if (isNaN(parsedDate.getTime())) {
                 return NextResponse.json({
-                    error: 'Invalid scheduledDate format'
+                    error: 'Invalid date value'
                 }, { status: 400 });
             }
         }
@@ -139,7 +163,7 @@ export async function POST(
                 trackingNumber,
                 status: 'SCHEDULED',
                 ShipmentItem: {
-                    create: items.map((item: any) => ({
+                    create: typedItems.map(item => ({
                         id: crypto.randomUUID(),
                         orderItemId: item.orderItemId,
                         quantity: item.quantity

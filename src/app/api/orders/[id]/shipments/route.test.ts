@@ -93,23 +93,19 @@ describe('Shipment CRUD API', () => {
     });
 
     afterAll(async () => {
-        // Cleanup
-        try {
-            if (shipmentId) {
-                await prisma.shipmentItem.deleteMany({ where: { shipmentId } });
-                await prisma.shipment.deleteMany({ where: { id: shipmentId } });
-            }
-            if (orderId) {
-                await prisma.shipmentItem.deleteMany({ where: { orderItemId } });
-                await prisma.shipment.deleteMany({ where: { orderId } });
-                await prisma.orderItem.deleteMany({ where: { orderId } });
-                await prisma.order.deleteMany({ where: { id: orderId } });
-            }            if (productId) await prisma.product.deleteMany({ where: { id: productId } });
-            if (locationId) await prisma.location.deleteMany({ where: { id: locationId } });
-            if (customerId) await prisma.customer.deleteMany({ where: { id: customerId } });
-        } catch (error) {
-            console.error('Cleanup failed:', error);
+        // Cleanup in reverse dependency order - let it fail loudly if something's wrong
+        if (orderId) {
+            await prisma.shipmentItem.deleteMany({ 
+                where: { Shipment: { orderId } } 
+            });
+            await prisma.shipment.deleteMany({ where: { orderId } });
+            await prisma.orderItem.deleteMany({ where: { orderId } });
+            await prisma.order.delete({ where: { id: orderId } });
         }
+        if (productId) await prisma.product.delete({ where: { id: productId } });
+        if (locationId) await prisma.location.delete({ where: { id: locationId } });
+        if (customerId) await prisma.customer.delete({ where: { id: customerId } });
+        
         await prisma.$disconnect();
     });
 

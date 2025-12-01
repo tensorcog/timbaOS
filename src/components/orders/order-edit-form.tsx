@@ -22,6 +22,27 @@ interface OrderItem {
     discount: number;
 }
 
+interface ShipmentItem {
+    id: string;
+    orderItemId: string;
+    quantity: number;
+    OrderItem?: {
+        id: string;
+        product?: Product;
+    };
+}
+
+interface Shipment {
+    id: string;
+    orderId: string;
+    scheduledDate: string | null;
+    status: 'PENDING' | 'SCHEDULED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+    method: 'DELIVERY' | 'PICKUP' | 'WILL_CALL';
+    carrier: string | null;
+    trackingNumber: string | null;
+    ShipmentItem?: ShipmentItem[];
+}
+
 interface Customer {
     id: string;
     name: string;
@@ -61,10 +82,10 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
     const [productSearch, setProductSearch] = useState('');
     const [submitting, setSubmitting] = useState(false);
     
-    // Shipment state
-    const [shipments, setShipments] = useState<any[]>([]);
+    // Shipment state with proper types
+    const [shipments, setShipments] = useState<Shipment[]>([]);
     const [showShipmentDialog, setShowShipmentDialog] = useState(false);
-    const [editingShipment, setEditingShipment] = useState<any>(null);
+    const [editingShipment, setEditingShipment] = useState<Shipment | null>(null);
     const [isSavingShipment, setIsSavingShipment] = useState(false);
     const [shipmentError, setShipmentError] = useState('');
     const [shipmentFormData, setShipmentFormData] = useState({
@@ -99,7 +120,7 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
         const map: Record<string, number> = {};
         shipments.forEach(shipment => {
             if (shipment.status === 'CANCELLED') return;
-            shipment.ShipmentItem?.forEach((si: any) => {
+            shipment.ShipmentItem?.forEach((si: ShipmentItem) => {
                 map[si.orderItemId] = (map[si.orderItemId] || 0) + si.quantity;
             });
         });

@@ -72,15 +72,15 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                         <div className="flex-1">
                             <nav className="grid items-start px-2 text-sm font-medium lg:px-4 gap-1">
                                 <Link
-                                    href="/dashboard"
+                                    href="/dashboard/products"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
-                                        pathname === '/dashboard'
+                                        pathname?.startsWith('/dashboard/products')
                                             ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
-                                    <Home className="h-4 w-4" />
-                                    Dashboard
+                                    <Package className="h-4 w-4" />
+                                    Products
                                 </Link>
                                 <Link
                                     href="/dashboard/orders"
@@ -114,17 +114,6 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                 >
                                     <FileText className="h-4 w-4" />
                                     Quotes
-                                </Link>
-                                <Link
-                                    href="/dashboard/products"
-                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
-                                        pathname?.startsWith('/dashboard/products')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                                >
-                                    <Package className="h-4 w-4" />
-                                    Products
                                 </Link>
                                 <Link
                                     href="/dashboard/customers"
@@ -173,6 +162,17 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                         Analytics
                                     </Link>
                                 )}
+                                <Link
+                                    href="/dashboard"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname === '/dashboard'
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                >
+                                    <Home className="h-4 w-4" />
+                                    Dashboard
+                                </Link>
 
                                 <div className="my-2 border-t border-border" />
 

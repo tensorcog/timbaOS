@@ -31,6 +31,7 @@ PostgreSQL Database
 4. **get_inventory** - Check inventory levels across locations
 5. **get_analytics** - Business metrics (sales, revenue, top products)
 6. **get_shipments** - Retrieve delivery schedules and shipment information
+7. **get_employees** - Search employees by name, email, role, or location
 
 ## Usage
 

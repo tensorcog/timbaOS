@@ -156,6 +156,40 @@ const MCP_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'get_employees',
+      description: 'Retrieve employee/user information. Can search by name, email, or filter by role and location.',
+      parameters: {
+        type: 'object',
+        properties: {
+          search: {
+            type: 'string',
+            description: 'Search term for employee name or email',
+          },
+          role: {
+            type: 'string',
+            description: 'Filter by user role (SUPER_ADMIN, LOCATION_ADMIN, MANAGER, SALES, WAREHOUSE)',
+            enum: ['SUPER_ADMIN', 'LOCATION_ADMIN', 'MANAGER', 'SALES', 'WAREHOUSE'],
+          },
+          locationId: {
+            type: 'string',
+            description: 'Filter by assigned location ID',
+          },
+          isActive: {
+            type: 'boolean',
+            description: 'Filter by active status (true = active only, false = inactive only)',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of employees to return (default: 10)',
+            default: 10,
+          },
+        },
+      },
+    },
+  },
 ];
 
 // Execute MCP tool calls
@@ -414,6 +448,57 @@ async function executeTool(toolName, args) {
         });
 
         return JSON.stringify(shipments, null, 2);
+      }
+
+      case 'get_employees': {
+        const { search, role, locationId, isActive, limit = 10 } = args;
+        
+        // Build where clause
+        const where = {
+          ...(role && { role }),
+          ...(isActive !== undefined && { isActive }),
+        };
+
+        // Handle search (name or email)
+        if (search) {
+          where.OR = [
+            { name: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ];
+        }
+
+        // Handle location filtering via UserLocation relation
+        if (locationId) {
+          where.UserLocation = {
+            some: {
+              locationId,
+            },
+          };
+        }
+
+        const employees = await prisma.user.findMany({
+          where,
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            isActive: true,
+            createdAt: true,
+            profilePicture: true,
+            UserLocation: {
+              include: {
+                Location: {
+                  select: { name: true, code: true },
+                },
+              },
+            },
+          },
+          take: limit,
+          orderBy: { name: 'asc' },
+        });
+
+        return JSON.stringify(employees, null, 2);
       }
 
       default:

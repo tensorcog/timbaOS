@@ -14,28 +14,71 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# 1. Start Ollama Docker container
-echo -e "${BLUE}[1/3]${NC} Starting Ollama container..."
+# 1. Start PostgreSQL Docker container
+echo -e "${BLUE}[1/4]${NC} Starting PostgreSQL container..."
+if docker ps | grep -q pine-postgres; then
+    echo -e "${GREEN}✓${NC} PostgreSQL container already running"
+else
+    docker start pine-postgres 2>/dev/null || docker run -d \
+      --name pine-postgres \
+      -e POSTGRES_USER=postgres \
+      -e POSTGRES_PASSWORD=password \
+      -e POSTGRES_DB=pine_db \
+      -p 5432:5432 \
+      -v pine-postgres-data:/var/lib/postgresql/data \
+      postgres:15
+    echo -e "${GREEN}✓${NC} PostgreSQL container started"
+    echo "   Waiting for PostgreSQL to be ready..."
+    sleep 5
+fi
+
+# Check if PostgreSQL is ready
+if docker exec pine-postgres pg_isready -U postgres > /dev/null 2>&1; then
+    echo -e "${GREEN}✓${NC} PostgreSQL is ready (localhost:5432)"
+else
+    echo -e "${YELLOW}⚠${NC}  PostgreSQL may need a moment to start up"
+fi
+
+echo ""
+
+# 2. Start Ollama Docker container
+echo -e "${BLUE}[2/4]${NC} Starting Ollama container..."
 if docker ps | grep -q ollama; then
     echo -e "${GREEN}✓${NC} Ollama container already running"
 else
-    docker start ollama || docker run -d --gpus all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+    docker start ollama 2>/dev/null || docker run -d --gpus all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
     echo -e "${GREEN}✓${NC} Ollama container started"
     echo "   Waiting for Ollama to be ready..."
     sleep 3
 fi
 
 # Check if Ollama is responding
-if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-    echo -e "${GREEN}✓${NC} Ollama is ready (http://localhost:11434)"
+for i in {1..10}; do
+    if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+        echo -e "${GREEN}✓${NC} Ollama is ready (http://localhost:11434)"
+        break
+    fi
+    sleep 1
+done
+
+if ! curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+    echo -e "${YELLOW}⚠${NC}  Ollama may need more time to start"
+fi
+
+# Verify required model is available
+echo "   Checking for required model (qwen2.5:3b)..."
+if curl -s http://localhost:11434/api/tags | grep -q '"name":"qwen2.5:3b"'; then
+    echo -e "${GREEN}✓${NC} Model qwen2.5:3b is available"
 else
-    echo -e "${YELLOW}⚠${NC}  Ollama may need a moment to start up"
+    echo -e "${YELLOW}⚠${NC}  Model qwen2.5:3b not found. Pulling model..."
+    docker exec ollama ollama pull qwen2.5:3b
+    echo -e "${GREEN}✓${NC} Model qwen2.5:3b installed"
 fi
 
 echo ""
 
-# 2. Start AI Bridge Server
-echo -e "${BLUE}[2/3]${NC} Starting AI Bridge Server..."
+# 3. Start AI Bridge Server
+echo -e "${BLUE}[3/4]${NC} Starting AI Bridge Server..."
 
 # Kill any existing AI bridge server processes
 pkill -f "node ai-bridge-server" 2>/dev/null || true
@@ -62,8 +105,8 @@ fi
 
 echo ""
 
-# 3. Start Next.js Application
-echo -e "${BLUE}[3/3]${NC} Starting Next.js application..."
+# 4. Start Next.js Application
+echo -e "${BLUE}[4/4]${NC} Starting Next.js application..."
 
 # Kill any existing Next.js processes
 pkill -f "next dev" 2>/dev/null || true
@@ -90,7 +133,8 @@ echo ""
 echo -e "${GREEN}✅ All components started!${NC}"
 echo ""
 echo "📊 Service Status:"
-echo "   • Ollama:          http://localhost:11434 (Docker)"
+echo "   • PostgreSQL:      localhost:5432 (Docker: pine-postgres)"
+echo "   • Ollama:          http://localhost:11434 (Docker: ollama, model: qwen2.5:3b)"
 echo "   • AI Bridge:       http://localhost:3001 [PID: $AI_BRIDGE_PID]"
 echo "   • Next.js App:     http://localhost:3000 [PID: $NEXTJS_PID]"
 echo ""

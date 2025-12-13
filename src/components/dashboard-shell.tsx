@@ -17,6 +17,7 @@ import {
     FileText,
     MapPin,
     Calendar,
+    MessageSquare,
 } from "lucide-react"
 import { LocationSelector } from "./location-selector"
 import { GlobalSearch } from "./global-search"
@@ -147,6 +148,17 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                 >
                                     <MapPin className="h-4 w-4" />
                                     Locations
+                                </Link>
+                                <Link
+                                    href="/dashboard/chat"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/chat')
+                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                >
+                                    <MessageSquare className="h-4 w-4" />
+                                    AI Chat
                                 </Link>
                                 {/* Analytics - Only for admins and managers */}
                                 {(userRole === 'SUPER_ADMIN' || userRole === 'LOCATION_ADMIN' || userRole === 'MANAGER') && (

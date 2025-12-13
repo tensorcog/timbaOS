@@ -37,3 +37,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.vscode/
+
+# MCP Server
+mcp-server/node_modules/
+mcp-server/dist/

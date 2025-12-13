@@ -35,6 +35,10 @@ PostgreSQL Database
 8. **get_invoices** - Query invoices with filters for status, customer, overdue
 9. **get_quotes** - Find quotes by status, customer, expiration date
 10. **get_appointments** - Search appointments by date, status, customer, location
+11. **get_transfers** - Track inventory transfers between locations by status
+12. **get_invoice_payments** - View payment history by customer, date, method
+13. **get_low_stock_alerts** - Find products below reorder point or out of stock
+14. **get_audit_logs** - View change history for compliance and debugging
 
 ## Usage
 

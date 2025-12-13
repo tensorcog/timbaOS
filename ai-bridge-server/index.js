@@ -296,6 +296,140 @@ const MCP_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'get_transfers',
+      description: 'Retrieve inventory transfers between locations with filtering by status, location, and date.',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            description: 'Filter by transfer status (PENDING, APPROVED, IN_TRANSIT, RECEIVED, CANCELLED)',
+            enum: ['PENDING', 'APPROVED', 'IN_TRANSIT', 'RECEIVED', 'CANCELLED'],
+          },
+          originLocationId: {
+            type: 'string',
+            description: 'Filter by origin location ID',
+          },
+          destinationLocationId: {
+            type: 'string',
+            description: 'Filter by destination location ID',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of transfers to return (default: 20)',
+            default: 20,
+          },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_invoice_payments',
+      description: 'Retrieve invoice payment records with filtering by customer, date range, and payment method.',
+      parameters: {
+        type: 'object',
+        properties: {
+          customerId: {
+            type: 'string',
+            description: 'Filter by customer ID',
+          },
+          invoiceId: {
+            type: 'string',
+            description: 'Filter by invoice ID',
+          },
+          paymentMethod: {
+            type: 'string',
+            description: 'Filter by payment method (CASH, CHECK, CREDIT_CARD, DEBIT_CARD, ACH, WIRE_TRANSFER, OTHER)',
+            enum: ['CASH', 'CHECK', 'CREDIT_CARD', 'DEBIT_CARD', 'ACH', 'WIRE_TRANSFER', 'OTHER'],
+          },
+          startDate: {
+            type: 'string',
+            description: 'Start date for payment filtering (ISO format)',
+          },
+          endDate: {
+            type: 'string',
+            description: 'End date for payment filtering (ISO format)',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of payments to return (default: 20)',
+            default: 20,
+          },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_low_stock_alerts',
+      description: 'Get products with low stock levels (below reorder point) across all locations.',
+      parameters: {
+        type: 'object',
+        properties: {
+          locationId: {
+            type: 'string',
+            description: 'Filter by specific location ID',
+          },
+          critical: {
+            type: 'boolean',
+            description: 'Show only critical items (stock level = 0)',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of items to return (default: 50)',
+            default: 50,
+          },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_audit_logs',
+      description: 'Retrieve audit logs for compliance and debugging. View change history for entities.',
+      parameters: {
+        type: 'object',
+        properties: {
+          entityType: {
+            type: 'string',
+            description: 'Filter by entity type (e.g., Order, Invoice, Product, Customer)',
+          },
+          entityId: {
+            type: 'string',
+            description: 'Filter by specific entity ID',
+          },
+          userId: {
+            type: 'string',
+            description: 'Filter by user who made the change',
+          },
+          action: {
+            type: 'string',
+            description: 'Filter by action type (e.g., CREATE, UPDATE, DELETE)',
+          },
+          startDate: {
+            type: 'string',
+            description: 'Start date for audit log filtering (ISO format)',
+          },
+          endDate: {
+            type: 'string',
+            description: 'End date for audit log filtering (ISO format)',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of logs to return (default: 50)',
+            default: 50,
+          },
+        },
+      },
+    },
+  },
 ];
 
 // Execute MCP tool calls
@@ -742,6 +876,162 @@ async function executeTool(toolName, args) {
         });
 
         return JSON.stringify(appointments, null, 2);
+      }
+
+
+      case 'get_transfers': {
+        const { status, originLocationId, destinationLocationId, limit = 20 } = args;
+        
+        const where = {
+          ...(status && { status }),
+          ...(originLocationId && { originLocationId }),
+          ...(destinationLocationId && { destinationLocationId }),
+        };
+
+        const transfers = await prisma.inventoryTransfer.findMany({
+          where,
+          include: {
+            Location_InventoryTransfer_originLocationIdToLocation: {
+              select: { name: true, code: true },
+            },
+            Location_InventoryTransfer_destinationLocationIdToLocation: {
+              select: { name: true, code: true },
+            },
+            User_InventoryTransfer_requestedByIdToUser: {
+              select: { name: true, email: true },
+            },
+            User_InventoryTransfer_approvedByIdToUser: {
+              select: { name: true, email: true },
+            },
+            TransferItem: {
+              include: {
+                Product: {
+                  select: { name: true, sku: true },
+                },
+              },
+            },
+          },
+          take: limit,
+          orderBy: { requestedAt: 'desc' },
+        });
+
+        return JSON.stringify(transfers, null, 2);
+      }
+
+      case 'get_invoice_payments': {
+        const { customerId, invoiceId, paymentMethod, startDate, endDate, limit = 20 } = args;
+        
+        const where = {
+          ...(customerId && { customerId }),
+          ...(invoiceId && { invoiceId }),
+          ...(paymentMethod && { paymentMethod }),
+        };
+
+        // Date range filtering
+        if (startDate && endDate) {
+          where.paymentDate = {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          };
+        }
+
+        const payments = await prisma.invoicePayment.findMany({
+          where,
+          include: {
+            Customer: {
+              select: { name: true, email: true },
+            },
+            Invoice: {
+              select: { invoiceNumber: true, totalAmount: true, status: true },
+            },
+            RecordedBy: {
+              select: { name: true, email: true },
+            },
+          },
+          take: limit,
+          orderBy: { paymentDate: 'desc' },
+        });
+
+        return JSON.stringify(payments, null, 2);
+      }
+
+      case 'get_low_stock_alerts': {
+        const { locationId, critical, limit = 50 } = args;
+        
+        const where = {
+          ...(locationId && { locationId }),
+        };
+
+        // Critical items (out of stock)
+        if (critical) {
+          where.stockLevel = 0;
+        } else {
+          // Low stock: below reorder point
+          where.stockLevel = {
+            lte: prisma.locationInventory.fields.reorderPoint,
+          };
+        }
+
+        const lowStockItems = await prisma.locationInventory.findMany({
+          where: {
+            ...(locationId && { locationId }),
+            OR: critical 
+              ? [{ stockLevel: 0 }]
+              : [
+                  { stockLevel: { equals: 0 } },
+                  // This is a workaround - we'll filter in JS
+                ],
+          },
+          include: {
+            Product: {
+              select: { name: true, sku: true, category: true },
+            },
+            Location: {
+              select: { name: true, code: true },
+            },
+          },
+          take: limit * 2, // Get extra and filter
+          orderBy: { stockLevel: 'asc' },
+        });
+
+        // Filter for items below reorder point
+        const filteredItems = critical 
+          ? lowStockItems.filter(item => item.stockLevel === 0)
+          : lowStockItems.filter(item => item.stockLevel <= item.reorderPoint);
+
+        return JSON.stringify(filteredItems.slice(0, limit), null, 2);
+      }
+
+      case 'get_audit_logs': {
+        const { entityType, entityId, userId, action, startDate, endDate, limit = 50 } = args;
+        
+        const where = {
+          ...(entityType && { entityType }),
+          ...(entityId && { entityId }),
+          ...(userId && { userId }),
+          ...(action && { action }),
+        };
+
+        // Date range filtering
+        if (startDate && endDate) {
+          where.timestamp = {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          };
+        }
+
+        const auditLogs = await prisma.auditLog.findMany({
+          where,
+          include: {
+            User: {
+              select: { name: true, email: true, role: true },
+            },
+          },
+          take: limit,
+          orderBy: { timestamp: 'desc' },
+        });
+
+        return JSON.stringify(auditLogs, null, 2);
       }
 
       default:

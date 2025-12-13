@@ -154,7 +154,7 @@ export function ChatClient() {
                 className={`max-w-[70%] rounded-lg p-4 ${
                   message.role === 'user'
                     ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
-                    : 'bg-muted'
+                    : 'bg-muted text-foreground'
                 }`}
               >
                 <div className="whitespace-pre-wrap break-words">
@@ -203,7 +203,7 @@ export function ChatClient() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything about your ERP system..."
-            className="w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none min-h-[52px] max-h-32"
+            className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none min-h-[52px] max-h-32 placeholder:text-gray-500 dark:placeholder:text-gray-400"
             rows={1}
             disabled={isLoading}
           />

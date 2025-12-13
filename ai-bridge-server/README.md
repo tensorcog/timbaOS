@@ -32,6 +32,9 @@ PostgreSQL Database
 5. **get_analytics** - Business metrics (sales, revenue, top products)
 6. **get_shipments** - Retrieve delivery schedules and shipment information
 7. **get_employees** - Search employees by name, email, role, or location
+8. **get_invoices** - Query invoices with filters for status, customer, overdue
+9. **get_quotes** - Find quotes by status, customer, expiration date
+10. **get_appointments** - Search appointments by date, status, customer, location
 
 ## Usage
 

@@ -190,6 +190,112 @@ const MCP_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'get_invoices',
+      description: 'Retrieve invoices with filtering by status, customer, date range, and payment status.',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            description: 'Filter by invoice status (DRAFT, SENT, PARTIALLY_PAID, PAID, OVERDUE, CANCELLED, WRITTEN_OFF)',
+            enum: ['DRAFT', 'SENT', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED', 'WRITTEN_OFF'],
+          },
+          customerId: {
+            type: 'string',
+            description: 'Filter by customer ID',
+          },
+          startDate: {
+            type: 'string',
+            description: 'Start date for invoice filtering (ISO format)',
+          },
+          endDate: {
+            type: 'string',
+            description: 'End date for invoice filtering (ISO format)',
+          },
+          overdue: {
+            type: 'boolean',
+            description: 'Show only overdue invoices (true = overdue only)',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of invoices to return (default: 20)',
+            default: 20,
+          },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_quotes',
+      description: 'Retrieve quotes with filtering by status, customer, and validity date.',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            description: 'Filter by quote status (DRAFT, PENDING, SENT, ACCEPTED, REJECTED, EXPIRED)',
+            enum: ['DRAFT', 'PENDING', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'],
+          },
+          customerId: {
+            type: 'string',
+            description: 'Filter by customer ID',
+          },
+          expiringsoon: {
+            type: 'boolean',
+            description: 'Show quotes expiring within 7 days',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of quotes to return (default: 20)',
+            default: 20,
+          },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_appointments',
+      description: 'Retrieve appointments with filtering by date, customer, status, and location.',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            description: 'Filter by appointment status (SCHEDULED, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW)',
+            enum: ['SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'],
+          },
+          customerId: {
+            type: 'string',
+            description: 'Filter by customer ID',
+          },
+          locationId: {
+            type: 'string',
+            description: 'Filter by location ID',
+          },
+          date: {
+            type: 'string',
+            description: 'Filter by specific date (ISO format YYYY-MM-DD)',
+          },
+          upcoming: {
+            type: 'boolean',
+            description: 'Show only upcoming appointments (future dates)',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of appointments to return (default: 20)',
+            default: 20,
+          },
+        },
+      },
+    },
+  },
 ];
 
 // Execute MCP tool calls
@@ -499,6 +605,143 @@ async function executeTool(toolName, args) {
         });
 
         return JSON.stringify(employees, null, 2);
+      }
+
+      case 'get_invoices': {
+        const { status, customerId, startDate, endDate, overdue, limit = 20 } = args;
+        
+        const where = {
+          ...(status && { status }),
+          ...(customerId && { customerId }),
+        };
+
+        // Date range filtering
+        if (startDate && endDate) {
+          where.invoiceDate = {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          };
+        }
+
+        // Overdue filter (due date is in the past and not fully paid)
+        if (overdue) {
+          where.status = { in: ['SENT', 'PARTIALLY_PAID', 'OVERDUE'] };
+          where.dueDate = { lt: new Date() };
+        }
+
+        const invoices = await prisma.invoice.findMany({
+          where,
+          include: {
+            Customer: {
+              select: { name: true, email: true },
+            },
+            Location: {
+              select: { name: true },
+            },
+            InvoiceItem: {
+              include: {
+                Product: {
+                  select: { name: true, sku: true },
+                },
+              },
+            },
+          },
+          take: limit,
+          orderBy: { invoiceDate: 'desc' },
+        });
+
+        return JSON.stringify(invoices, null, 2);
+      }
+
+      case 'get_quotes': {
+        const { status, customerId, expiringsoon, limit = 20 } = args;
+        
+        const where = {
+          ...(status && { status }),
+          ...(customerId && { customerId }),
+        };
+
+        // Quotes expiring within 7 days
+        if (expiringsoon) {
+          const now = new Date();
+          const sevenDaysFromNow = new Date();
+          sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+          
+          where.validUntil = {
+            gte: now,
+            lte: sevenDaysFromNow,
+          };
+          where.status = { in: ['PENDING', 'SENT'] };
+        }
+
+        const quotes = await prisma.quote.findMany({
+          where,
+          include: {
+            Customer: {
+              select: { name: true, email: true },
+            },
+            Location: {
+              select: { name: true },
+            },
+            QuoteItem: {
+              include: {
+                Product: {
+                  select: { name: true, sku: true },
+                },
+              },
+            },
+            User: {
+              select: { name: true, email: true },
+            },
+          },
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        });
+
+        return JSON.stringify(quotes, null, 2);
+      }
+
+      case 'get_appointments': {
+        const { status, customerId, locationId, date, upcoming, limit = 20 } = args;
+        
+        const where = {
+          ...(status && { status }),
+          ...(customerId && { customerId }),
+          ...(locationId && { locationId }),
+        };
+
+        // Filter by specific date
+        if (date) {
+          const targetDate = new Date(date);
+          const nextDay = new Date(targetDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+          
+          where.startTime = {
+            gte: targetDate,
+            lt: nextDay,
+          };
+        }
+
+        // Upcoming appointments (future only)
+        if (upcoming) {
+          where.startTime = { gte: new Date() };
+        }
+
+        const appointments = await prisma.appointment.findMany({
+          where,
+          include: {
+            Customer: {
+              select: { name: true, email: true, phone: true },
+            },
+            Location: {
+              select: { name: true, address: true },
+            },
+          },
+          take: limit,
+          orderBy: { startTime: 'asc' },
+        });
+
+        return JSON.stringify(appointments, null, 2);
       }
 
       default:

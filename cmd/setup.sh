@@ -31,6 +31,45 @@ npm install
 # 4. Fix Permissions (just in case)
 chmod +x node_modules/.bin/next
 
+# 5. Setup VS Code Configuration
+echo "⚙️ Setting up VS Code configuration..."
+mkdir -p .vscode
+
+# Create settings.json with MCP support
+cat > .vscode/settings.json << 'EOF'
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
+EOF
+
+# Create extensions.json with recommended extensions
+cat > .vscode/extensions.json << 'EOF'
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "charliermarsh.ruff",
+    "ms-vscode.vscode-typescript-next",
+    "ms-playwright.playwright",
+    "prisma.prisma"
+  ]
+}
+EOF
+
+echo "✅ VS Code configuration created (.vscode/settings.json, .vscode/extensions.json)"
+
 echo "-------------------------------------------"
 echo "✅ Setup Complete!"
 echo "PLEASE RESTART YOUR TERMINAL to ensure Node v20 is loaded."

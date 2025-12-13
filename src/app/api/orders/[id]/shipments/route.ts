@@ -61,7 +61,7 @@ export async function POST(
         }
 
         const body = await request.json();
-        const { scheduledDate, method, carrier, trackingNumber, items } = body;
+        const { scheduledDate, duration, method, carrier, trackingNumber, items } = body;
 
         // Validate items
         if (!items || !Array.isArray(items) || items.length === 0) {
@@ -158,6 +158,7 @@ export async function POST(
                 id: crypto.randomUUID(),
                 orderId: params.id,
                 scheduledDate: parsedDate,
+                duration: duration || 90,
                 method: method || 'DELIVERY',
                 carrier,
                 trackingNumber,

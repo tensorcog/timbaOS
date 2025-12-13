@@ -16,7 +16,7 @@ export async function PUT(
         }
 
         const body = await request.json();
-        const { scheduledDate, method, carrier, trackingNumber, status } = body;
+        const { scheduledDate, duration, method, carrier, trackingNumber, status } = body;
 
         // Get existing shipment
         const existingShipment = await prisma.shipment.findUnique({
@@ -64,10 +64,11 @@ export async function PUT(
             where: { id: params.shipmentId },
             data: {
                 ...(scheduledDate !== undefined && { scheduledDate: parsedDate }),
+                ...(duration !== undefined && { duration }),
                 ...(method && { method }),
                 ...(carrier !== undefined && { carrier }),
                 ...(trackingNumber !== undefined && { trackingNumber }),
-                ...(status && { status })
+                ...(status && { status }),
             },
             include: {
                 ShipmentItem: {

@@ -75,10 +75,20 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
 
     const addPayment = () => {
         const amount = parseFloat(paymentAmount);
-        if (amount > 0 && amount <= remainingNum) {
-            setPayments([...payments, { method: selectedMethod, amount }]);
-            setPaymentAmount('');
+        if (!paymentAmount || isNaN(amount)) {
+            alert('Please enter a valid amount');
+            return;
         }
+        if (amount <= 0) {
+            alert('Amount must be greater than zero');
+            return;
+        }
+        if (amount > remainingNum) {
+            alert(`Amount cannot exceed remaining balance of $${remainingNum.toFixed(2)}`);
+            return;
+        }
+        setPayments([...payments, { method: selectedMethod, amount }]);
+        setPaymentAmount('');
     };
 
     const removePayment = (index: number) => {
@@ -204,6 +214,12 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                                     step="0.01"
                                     value={paymentAmount}
                                     onChange={(e) => setPaymentAmount(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            addPayment();
+                                        }
+                                    }}
                                     className="flex-1 px-4 py-3 rounded-lg border bg-background"
                                     placeholder={remaining.toFixed(2)}
                                 />
@@ -215,7 +231,8 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                                 </button>
                                 <button
                                     onClick={addPayment}
-                                    className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
+                                    className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Add
                                 </button>

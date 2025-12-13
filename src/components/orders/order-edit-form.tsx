@@ -3,7 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Calendar } from 'lucide-react';
+import { DatePickerCalendar } from '@/components/date-picker-calendar';
+import { format } from 'date-fns';
 
 interface Product {
     id: string;
@@ -36,6 +38,7 @@ interface Shipment {
     id: string;
     orderId: string;
     scheduledDate: string | null;
+    duration: number;
     status: 'PENDING' | 'SCHEDULED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
     method: 'DELIVERY' | 'PICKUP' | 'WILL_CALL';
     carrier: string | null;
@@ -90,11 +93,13 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
     const [shipmentError, setShipmentError] = useState('');
     const [shipmentFormData, setShipmentFormData] = useState({
         scheduledDate: '',
+        duration: 90, // Default 90 minutes
         method: 'DELIVERY', // Default to delivery for local lumber yard operations
         carrier: '', // Leave empty for local deliveries (no third-party carrier needed)
         trackingNumber: '',
         items: [] as { orderItemId: string; quantity: number }[]
     });
+    const [showShipmentCalendar, setShowShipmentCalendar] = useState(false);
 
     const selectedCustomer = customers.find(c => c.id === order.customerId);
     const selectedLocation = locations.find(l => l.id === order.locationId);
@@ -158,6 +163,7 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
 
         setShipmentFormData({
             scheduledDate: '',
+            duration: 90,
             method: 'DELIVERY',
             carrier: '',
             trackingNumber: '',
@@ -171,6 +177,7 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
         setEditingShipment(shipment);
         setShipmentFormData({
             scheduledDate: shipment.scheduledDate ? new Date(shipment.scheduledDate).toISOString().split('T')[0] : '',
+            duration: shipment.duration || 90,
             method: shipment.method || 'DELIVERY',
             carrier: shipment.carrier || '',
             trackingNumber: shipment.trackingNumber || '',
@@ -213,6 +220,7 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         scheduledDate: shipmentFormData.scheduledDate,
+                        duration: shipmentFormData.duration,
                         method: shipmentFormData.method,
                         carrier: shipmentFormData.carrier || null,
                         trackingNumber: shipmentFormData.trackingNumber || null
@@ -242,6 +250,7 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         scheduledDate: shipmentFormData.scheduledDate,
+                        duration: shipmentFormData.duration,
                         method: shipmentFormData.method,
                         carrier: shipmentFormData.carrier || null,
                         trackingNumber: shipmentFormData.trackingNumber || null,
@@ -594,12 +603,52 @@ export function OrderEditForm({ order, customers, locations, products }: OrderEd
                             {/* Scheduled Date */}
                             <div>
                                 <label className="text-sm font-medium mb-1 block">Scheduled Date</label>
-                                <input
-                                    type="date"
-                                    value={shipmentFormData.scheduledDate}
-                                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, scheduledDate: e.target.value })}
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowShipmentCalendar(!showShipmentCalendar)}
+                                        className="w-full px-3 py-2 rounded-lg border bg-background text-left flex items-center justify-between hover:bg-muted transition-colors"
+                                    >
+                                        <span className={shipmentFormData.scheduledDate ? "" : "text-muted-foreground"}>
+                                            {shipmentFormData.scheduledDate
+                                                ? format(new Date(shipmentFormData.scheduledDate), "MMMM d, yyyy")
+                                                : "Select date"}
+                                        </span>
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    </button>
+                                    {showShipmentCalendar && (
+                                        <div className="absolute top-full left-0 mt-2 z-10">
+                                            <DatePickerCalendar
+                                                selectedDate={shipmentFormData.scheduledDate ? new Date(shipmentFormData.scheduledDate) : undefined}
+                                                onSelectDate={(date) => {
+                                                    setShipmentFormData({ 
+                                                        ...shipmentFormData, 
+                                                        scheduledDate: format(date, 'yyyy-MM-dd')
+                                                    });
+                                                    setShowShipmentCalendar(false);
+                                                }}
+                                                disablePastDates={!editingShipment}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Duration */}
+                            <div>
+                                <label className="text-sm font-medium mb-1 block">Duration (minutes)</label>
+                                <select
+                                    value={shipmentFormData.duration}
+                                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, duration: parseInt(e.target.value) })}
                                     className="w-full px-3 py-2 rounded-lg border bg-background"
-                                />
+                                >
+                                    <option value={30}>30 minutes</option>
+                                    <option value={60}>1 hour</option>
+                                    <option value={90}>1.5 hours (default)</option>
+                                    <option value={120}>2 hours</option>
+                                    <option value={180}>3 hours</option>
+                                    <option value={240}>4 hours</option>
+                                </select>
                             </div>
 
                             {/* Method */}

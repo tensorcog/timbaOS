@@ -1,25 +1,95 @@
-import prisma from "@/lib/prisma";
-import { ArrowRight, Clock, CheckCircle, XCircle } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { ArrowRight, Clock, CheckCircle, XCircle, Filter } from "lucide-react";
 import Link from "next/link";
 import { TransferActions } from "./transfer-actions";
+import { useSearchParams, useRouter } from "next/navigation";
 
-export default async function TransfersPage() {
-    const transfers = await prisma.inventoryTransfer.findMany({
-        include: {
-            Location_InventoryTransfer_originLocationIdToLocation: true,
-            Location_InventoryTransfer_destinationLocationIdToLocation: true,
-            TransferItem: {
-                include: {
-                    Product: true,
-                },
-            },
-            User_InventoryTransfer_requestedByIdToUser: true,
-            User_InventoryTransfer_approvedByIdToUser: true,
-        },
-        orderBy: {
-            requestedAt: 'desc',
-        },
+interface Transfer {
+    id: string;
+    transferNumber: string;
+    status: string;
+    requestedAt: string;
+    receivedAt: string | null;
+    notes: string | null;
+    Location_InventoryTransfer_originLocationIdToLocation: {
+        code: string;
+        name: string;
+    };
+    Location_InventoryTransfer_destinationLocationIdToLocation: {
+        code: string;
+        name: string;
+    };
+    TransferItem: Array<{
+        id: string;
+        requestedQty: number;
+        Product: {
+            sku: string;
+            name: string;
+        };
+    }>;
+    User_InventoryTransfer_requestedByIdToUser: {
+        name: string;
+    } | null;
+}
+
+const STATUSES = ['PENDING', 'APPROVED', 'IN_TRANSIT', 'RECEIVED', 'CANCELLED'] as const;
+
+export default function TransfersPage() {
+    const [transfers, setTransfers] = useState<Transfer[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    // Get selected statuses from URL params
+    const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(() => {
+        const params = searchParams.get('statuses');
+        if (params) {
+            return new Set(params.split(','));
+        }
+        return new Set(STATUSES); // All selected by default
     });
+
+    useEffect(() => {
+        fetchTransfers();
+    }, []);
+
+    const fetchTransfers = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/transfers');
+            if (res.ok) {
+                const data = await res.json();
+                setTransfers(data.transfers || []);
+            }
+        } catch (error) {
+            console.error('Error fetching transfers:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleStatusToggle = (status: string) => {
+        const newStatuses = new Set(selectedStatuses);
+        if (newStatuses.has(status)) {
+            newStatuses.delete(status);
+        } else {
+            newStatuses.add(status);
+        }
+        setSelectedStatuses(newStatuses);
+
+        // Update URL params
+        const params = new URLSearchParams();
+        if (newStatuses.size > 0 && newStatuses.size < STATUSES.length) {
+            params.set('statuses', Array.from(newStatuses).join(','));
+        }
+        router.push(`/dashboard/transfers${params.toString() ? `?${params.toString()}` : ''}`);
+    };
+
+    const filteredTransfers = transfers.filter(transfer =>
+        selectedStatuses.has(transfer.status)
+    );
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -62,16 +132,46 @@ export default async function TransfersPage() {
                 </Link>
             </div>
 
+            {/* Status Filters */}
+            <div className="rounded-xl border bg-card p-4">
+                <div className="flex items-center gap-2 mb-3">
+                    <Filter className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Filter by Status:</span>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                    {STATUSES.map((status) => (
+                        <label key={status} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={selectedStatuses.has(status)}
+                                onChange={() => handleStatusToggle(status)}
+                                className="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                            />
+                            <span className={`text-sm px-2 py-1 rounded ${getStatusColor(status)}`}>
+                                {status}
+                            </span>
+                        </label>
+                    ))}
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">
+                    Showing {filteredTransfers.length} of {transfers.length} transfers
+                </div>
+            </div>
+
             <div className="rounded-xl border bg-card text-card-foreground shadow">
                 <div className="p-6">
                     <div className="space-y-4">
-                        {transfers.length === 0 ? (
+                        {isLoading ? (
+                            <div className="text-center py-12 text-muted-foreground">
+                                Loading transfers...
+                            </div>
+                        ) : filteredTransfers.length === 0 ? (
                             <div className="text-center py-12 text-muted-foreground">
                                 <ArrowRight className="h-12 w-12 mx-auto mb-4 opacity-50" />
                                 <p>No transfers found</p>
                             </div>
                         ) : (
-                            transfers.map((transfer) => (
+                            filteredTransfers.map((transfer) => (
                                 <div
                                     key={transfer.id}
                                     className="rounded-lg border bg-muted/50 p-4 hover:bg-muted transition-colors"
@@ -96,7 +196,11 @@ export default async function TransfersPage() {
                                                 {getStatusIcon(transfer.status)}
                                                 {transfer.status}
                                             </div>
-                                            <TransferActions transferId={transfer.id} status={transfer.status} />
+                                            <TransferActions 
+                                                transferId={transfer.id} 
+                                                status={transfer.status}
+                                                onUpdate={fetchTransfers}
+                                            />
                                         </div>
                                     </div>
 

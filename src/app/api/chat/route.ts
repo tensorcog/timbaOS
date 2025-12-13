@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
-import { chatService } from '@/lib/ai/chat-service';
 import { classifyError } from '@/lib/error-handler';
 import type { ChatMessage } from '@/lib/ai/types';
+
+// Local AI Bridge Server URL
+const AI_BRIDGE_URL = process.env.AI_BRIDGE_URL || 'http://localhost:3001';
 
 // Validation schema
 const chatMessageSchema = z.object({
@@ -44,63 +46,28 @@ export async function POST(request: NextRequest) {
 
     const { message, conversationHistory } = validationResult.data;
 
-    // Check if user wants streaming response
-    const useStreaming = request.headers.get('accept') === 'text/event-stream';
-
-    if (useStreaming) {
-      // Create a streaming response
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          try {
-            const streamGenerator = chatService.sendMessageStream({
-              message,
-              conversationHistory,
-              userContext: {
-                userId: session.user.id,
-                role: session.user.role,
-                locationIds: session.user.locationIds || [],
-              },
-            });
-
-            for await (const chunk of streamGenerator) {
-              const data = `data: ${JSON.stringify({ chunk })}\n\n`;
-              controller.enqueue(encoder.encode(data));
-            }
-
-            // Send done signal
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-            controller.close();
-          } catch (error) {
-            console.error('Streaming error:', error);
-            const errorData = `data: ${JSON.stringify({ error: 'Stream error' })}\n\n`;
-            controller.enqueue(encoder.encode(errorData));
-            controller.close();
-          }
-        },
-      });
-
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          Connection: 'keep-alive',
-        },
-      });
-    } else {
-      // Regular non-streaming response
-      const response = await chatService.sendMessage({
+    // Call local AI Bridge Server (Ollama + MCP tools)
+    const response = await fetch(`${AI_BRIDGE_URL}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         message,
-        conversationHistory,
-        userContext: {
-          userId: session.user.id,
-          role: session.user.role,
-          locationIds: session.user.locationIds || [],
-        },
-      });
+        conversationHistory: conversationHistory?.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+      }),
+    });
 
-      return NextResponse.json(response);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'AI bridge server error');
     }
+
+    const data = await response.json();
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Chat API error:', error);
     const errorResponse = classifyError(error);

@@ -1,17 +1,20 @@
 "use client"
 
-import { Check, X, Truck, Package } from "lucide-react"
+import { Check, X, Truck, Package, Edit } from "lucide-react"
 import { approveTransfer, rejectTransfer, shipTransfer, receiveTransfer } from "./actions"
 import toast from "react-hot-toast"
 import { useState } from "react"
+import { TransferUpdateDialog } from "@/components/transfers/transfer-update-dialog"
 
 interface TransferActionsProps {
   transferId: string
   status: string
+  onUpdate?: () => void
 }
 
-export function TransferActions({ transferId, status }: TransferActionsProps) {
+export function TransferActions({ transferId, status, onUpdate }: TransferActionsProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
 
   const handleApprove = async () => {
     if (isLoading) return
@@ -20,6 +23,7 @@ export function TransferActions({ transferId, status }: TransferActionsProps) {
     try {
       await approveTransfer(transferId)
       toast.success("Transfer approved successfully", { id: loadingToast })
+      onUpdate?.()
     } catch (error: any) {
       toast.error(error.message || "Failed to approve transfer", { id: loadingToast })
     } finally {
@@ -37,6 +41,7 @@ export function TransferActions({ transferId, status }: TransferActionsProps) {
     try {
       await rejectTransfer(transferId)
       toast.success("Transfer rejected", { id: loadingToast })
+      onUpdate?.()
     } catch (error: any) {
       toast.error(error.message || "Failed to reject transfer", { id: loadingToast })
     } finally {
@@ -51,6 +56,7 @@ export function TransferActions({ transferId, status }: TransferActionsProps) {
     try {
       await shipTransfer(transferId)
       toast.success("Transfer shipped successfully", { id: loadingToast })
+      onUpdate?.()
     } catch (error: any) {
       toast.error(error.message || "Failed to ship transfer", { id: loadingToast })
     } finally {
@@ -68,6 +74,7 @@ export function TransferActions({ transferId, status }: TransferActionsProps) {
     try {
       await receiveTransfer(transferId)
       toast.success("Transfer received and inventory updated", { id: loadingToast })
+      onUpdate?.()
     } catch (error: any) {
       toast.error(error.message || "Failed to receive transfer", { id: loadingToast })
     } finally {
@@ -79,6 +86,13 @@ export function TransferActions({ transferId, status }: TransferActionsProps) {
   if (status === "PENDING") {
     return (
       <div className="flex gap-2">
+        <button
+          onClick={() => setShowEditDialog(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
+        >
+          <Edit className="h-4 w-4" />
+          Edit
+        </button>
         <button
           onClick={handleApprove}
           disabled={isLoading}
@@ -102,6 +116,13 @@ export function TransferActions({ transferId, status }: TransferActionsProps) {
   if (status === "APPROVED") {
     return (
       <div className="flex gap-2">
+        <button
+          onClick={() => setShowEditDialog(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
+        >
+          <Edit className="h-4 w-4" />
+          Edit
+        </button>
         <button
           onClick={handleShip}
           disabled={isLoading}
@@ -130,5 +151,17 @@ export function TransferActions({ transferId, status }: TransferActionsProps) {
   }
 
   // No actions for COMPLETED or CANCELLED
-  return null
+  return (
+    <>
+      <TransferUpdateDialog
+        transferId={transferId}
+        isOpen={showEditDialog}
+        onClose={() => setShowEditDialog(false)}
+        onSuccess={() => {
+          setShowEditDialog(false)
+          onUpdate?.()
+        }}
+      />
+    </>
+  )
 }

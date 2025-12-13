@@ -5,6 +5,7 @@ Local AI server that connects the Next.js timbaos app with Ollama (qwen3:8b) and
 ## Overview
 
 This server acts as a bridge between:
+
 - **Next.js App** (frontend chat interface)
 - **Ollama** (local LLM running qwen3:8b)
 - **MCP Tools** (database query functions)
@@ -29,21 +30,25 @@ PostgreSQL Database
 3. **get_customers** - Find customers by name or email
 4. **get_inventory** - Check inventory levels across locations
 5. **get_analytics** - Business metrics (sales, revenue, top products)
+6. **get_shipments** - Retrieve delivery schedules and shipment information
 
 ## Usage
 
 ### Manual Start
+
 ```bash
 cd /home/monty/timbaos
 node ai-bridge-server/index.js
 ```
 
 ### Using Startup Script
+
 ```bash
 ./start.sh  # Starts everything (Ollama, AI Bridge, Next.js)
 ```
 
 ### Health Check
+
 ```bash
 curl http://localhost:3001/health
 # Returns: {"status":"ok","model":"qwen3:8b"}
@@ -66,11 +71,13 @@ curl http://localhost:3001/health
 ## Development
 
 Install dependencies:
+
 ```bash
 npm install
 ```
 
 Generate Prisma client:
+
 ```bash
 npm run prisma:generate
 ```
@@ -78,19 +85,23 @@ npm run prisma:generate
 ## Environment Variables
 
 Uses parent project's `.env` file:
+
 - `DATABASE_URL` - PostgreSQL connection string
 
 ## Logs
 
 When started via `start.sh`, logs are written to:
+
 - `/home/monty/timbaos/ai-bridge-server.log`
 
 ## API Endpoints
 
 ### POST /api/chat
+
 Chat with the AI assistant using MCP tools.
 
 **Request:**
+
 ```json
 {
   "message": "Show me recent orders",
@@ -108,6 +119,7 @@ Chat with the AI assistant using MCP tools.
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Here are the recent orders...",
@@ -116,9 +128,11 @@ Chat with the AI assistant using MCP tools.
 ```
 
 ### GET /health
+
 Health check endpoint.
 
 **Response:**
+
 ```json
 {
   "status": "ok",

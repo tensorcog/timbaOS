@@ -126,6 +126,36 @@ const MCP_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'get_shipments',
+      description: 'Retrieve shipment and delivery information. Can filter by status, scheduled date, or order.',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            description: 'Filter by shipment status (PENDING, SCHEDULED, SHIPPED, DELIVERED, CANCELLED)',
+            enum: ['PENDING', 'SCHEDULED', 'SHIPPED', 'DELIVERED', 'CANCELLED'],
+          },
+          orderId: {
+            type: 'string',
+            description: 'Filter by specific order ID',
+          },
+          scheduledDate: {
+            type: 'string',
+            description: 'Filter by scheduled date (ISO format YYYY-MM-DD)',
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of shipments to return (default: 20)',
+            default: 20,
+          },
+        },
+      },
+    },
+  },
 ];
 
 // Execute MCP tool calls
@@ -165,8 +195,7 @@ async function executeTool(toolName, args) {
               }
             : {},
           include: {
-            Category: { select: { name: true } },
-            Inventory: {
+            LocationInventory: {
               include: {
                 Location: { select: { name: true } },
               },
@@ -189,7 +218,7 @@ async function executeTool(toolName, args) {
               }
             : {},
           include: {
-            Order: {
+            orders: {
               take: 5,
               orderBy: { createdAt: 'desc' },
               select: {
@@ -208,7 +237,7 @@ async function executeTool(toolName, args) {
 
       case 'get_inventory': {
         const { productId, locationId } = args;
-        const inventory = await prisma.inventory.findMany({
+        const inventory = await prisma.locationInventory.findMany({
           where: {
             ...(productId && { productId }),
             ...(locationId && { locationId }),
@@ -220,6 +249,9 @@ async function executeTool(toolName, args) {
             Location: {
               select: { name: true },
             },
+          },
+          orderBy: {
+            stockLevel: 'asc',
           },
         });
         return JSON.stringify(inventory, null, 2);
@@ -331,6 +363,59 @@ async function executeTool(toolName, args) {
         return JSON.stringify(result, null, 2);
       }
 
+      case 'get_shipments': {
+        const { status, orderId, scheduledDate, limit = 20 } = args;
+        
+        // Build where clause
+        const where = {
+          ...(status && { status }),
+          ...(orderId && { orderId }),
+        };
+
+        // Handle scheduledDate filtering (search for shipments on that day)
+        if (scheduledDate) {
+          const date = new Date(scheduledDate);
+          const nextDay = new Date(date);
+          nextDay.setDate(nextDay.getDate() + 1);
+          
+          where.scheduledDate = {
+            gte: date,
+            lt: nextDay,
+          };
+        }
+
+        const shipments = await prisma.shipment.findMany({
+          where,
+          include: {
+            Order: {
+              include: {
+                Customer: {
+                  select: { name: true, email: true, phone: true },
+                },
+                Location: {
+                  select: { name: true, address: true },
+                },
+              },
+            },
+            ShipmentItem: {
+              include: {
+                OrderItem: {
+                  include: {
+                    Product: {
+                      select: { name: true, sku: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          take: limit,
+          orderBy: { scheduledDate: 'asc' },
+        });
+
+        return JSON.stringify(shipments, null, 2);
+      }
+
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
@@ -342,12 +427,19 @@ async function executeTool(toolName, args) {
 
 // Chat endpoint
 app.post('/api/chat', async (req, res) => {
+  console.log('=== Received chat request ===');
+  console.log('Message:', req.body.message?.substring(0, 100));
+
   try {
     const { message, conversationHistory = [] } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
+
+    // Set timeout for the request (2 minutes)
+    req.setTimeout(120000);
+    res.setTimeout(120000);
 
     // Build messages array for Ollama
     const messages = [
@@ -380,11 +472,13 @@ Be concise, professional, and accurate. Format data clearly and suggest relevant
     };
 
     // Initial call to Ollama with tools
+    console.log('Calling Ollama API...');
     let response = await ollama.chat({
-      model: 'qwen3:8b',
+      model: 'qwen2.5:3b',
       messages: [systemMessage, ...messages],
       tools: MCP_TOOLS,
     });
+    console.log('Ollama response received:', response.message.tool_calls ? 'with tool calls' : 'no tool calls');
 
     // Handle tool calls in a loop
     while (response.message.tool_calls && response.message.tool_calls.length > 0) {
@@ -409,30 +503,32 @@ Be concise, professional, and accurate. Format data clearly and suggest relevant
 
       // Continue conversation with tool results
       response = await ollama.chat({
-        model: 'qwen3:8b',
+        model: 'qwen2.5:3b',
         messages: [systemMessage, ...messages],
         tools: MCP_TOOLS,
       });
     }
 
     // Return final response
+    console.log('Sending response to client');
     res.json({
       message: response.message.content,
       timestamp: new Date(),
     });
   } catch (error) {
-    console.error('Chat error:', error);
+    console.error('=== Chat error ===');
+    console.error(error);
     res.status(500).json({ error: 'Failed to process chat request', details: error.message });
   }
 });
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', model: 'qwen3:8b' });
+  res.json({ status: 'ok', model: 'qwen2.5:3b' });
 });
 
 app.listen(port, () => {
   console.log(`AI Bridge Server running on http://localhost:${port}`);
-  console.log(`Using model: qwen3:8b`);
+  console.log(`Using model: qwen2.5:3b`);
   console.log(`Connected to Ollama at: http://localhost:11434`);
 });

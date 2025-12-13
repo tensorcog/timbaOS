@@ -339,13 +339,53 @@ Current test coverage areas:
 - ✅ Audit logging (tracking, user attribution, timestamps)
 - ✅ Data export (access, RBAC, completeness, performance)
 
+### 10. AI Integration Tests (Jest)
+Tests AI functionality with Ollama and MCP tools.
+
+**Test Files:**
+- `src/app/api/chat/__tests__/route.test.ts` - Next.js Chat API tests
+- `ai-bridge-server/__tests__/server.test.js` - AI bridge server tests
+
+**Tests included:**
+- Authentication and authorization for chat API
+- Request validation (message length, format, history)
+- AI bridge server communication
+- MCP tool execution (get_orders, get_products, get_customers, get_inventory, get_analytics)
+- Ollama integration with tool calling
+- Conversation history handling
+- Error handling (network errors, invalid responses, database errors)
+
+**Usage:**
+```bash
+# Run all Jest tests (including AI tests)
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run AI bridge server tests specifically
+cd ai-bridge-server
+npm test
+
+# Run in watch mode
+npm run test:watch
+```
+
+**Coverage Thresholds:**
+- Next.js API: 80% coverage (branches, functions, lines, statements)
+- AI Bridge Server: 70% coverage (branches, functions, lines, statements)
+
+See [tests/AI_TESTS.md](AI_TESTS.md) for detailed AI test documentation.
+
 ## Future Test Additions
 
 Potential areas for expansion:
 - Transfer workflows and inventory transfers
-- AI agent execution and recommendations
 - Payment processing and refunds
 - Multi-currency support
 - Advanced analytics calculations
 - Batch operations and bulk updates
+- AI agent autonomous recommendations
+- Multi-turn conversation flows
+- Tool chaining scenarios
 ```

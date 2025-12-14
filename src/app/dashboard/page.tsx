@@ -190,35 +190,35 @@ export default async function DashboardPage() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
                 {/* Recent Orders */}
-                <div className="col-span-4 rounded-xl border bg-card/50 backdrop-blur">
+                <div className="col-span-4 rounded-organic-2 texture-paper bg-card border-2 border-walnut-medium/20 shadow-organic">
                     <div className="p-6">
-                        <h3 className="font-semibold text-lg mb-1">Recent Orders</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <h3 className="font-display font-bold text-2xl mb-1 text-mahogany-deep">Recent Orders</h3>
+                        <p className="text-sm text-walnut-medium mb-6">
                             Latest transactions from your customers
                         </p>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {orders.map((order) => (
                                 <Link
                                     key={order.id}
                                     href={`/dashboard/orders/${order.id}`}
-                                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                                    className="flex items-center justify-between p-4 rounded-organic-2 bg-white/60 hover:bg-white border border-walnut-medium/10 hover:border-brass/30 transition-all hover:shadow-organic cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                                        <div className="h-12 w-12 rounded-organic-2 bg-gradient-to-br from-mahogany-deep to-cherry-warm flex items-center justify-center text-white font-bold text-lg shadow-organic">
                                             {order.Customer.name.charAt(0)}
                                         </div>
                                         <div>
-                                            <p className="font-medium">{order.Customer.name}</p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="font-semibold text-mahogany-deep">{order.Customer.name}</p>
+                                            <p className="text-sm text-walnut-medium">
                                                 {order.OrderItem.length} items • {new Date(order.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-semibold">${order.totalAmount.toString()}</p>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'COMPLETED'
-                                            ? 'bg-green-500/20 text-green-400'
-                                            : 'bg-yellow-500/20 text-yellow-400'
+                                        <p className="font-bold text-lg text-mahogany-deep">${order.totalAmount.toString()}</p>
+                                        <span className={`text-xs px-3 py-1 rounded-organic-2 font-medium ${order.status === 'COMPLETED'
+                                            ? 'bg-maple-golden/30 text-mahogany-deep border border-maple-golden'
+                                            : 'bg-brass/20 text-walnut-deep border border-brass/40'
                                             }`}>
                                             {order.status}
                                         </span>
@@ -230,20 +230,20 @@ export default async function DashboardPage() {
                 </div>
 
                 {/* Recent Quotes */}
-                <div className="col-span-4 rounded-xl border bg-card/50 backdrop-blur">
+                <div className="col-span-4 rounded-organic-2 texture-paper bg-card border-2 border-walnut-medium/20 shadow-organic">
                     <div className="p-6">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h3 className="font-semibold text-lg mb-1">Recent Quotes</h3>
-                                <p className="text-sm text-muted-foreground">
+                                <h3 className="font-display font-bold text-2xl mb-1 text-mahogany-deep">Recent Quotes</h3>
+                                <p className="text-sm text-walnut-medium">
                                     Latest quotes generated
                                 </p>
                             </div>
-                            <Link href="/dashboard/quotes" className="text-sm text-blue-500 hover:underline">
+                            <Link href="/dashboard/quotes" className="text-sm text-brass font-semibold hover:text-brass-bright hover:underline transition-colors">
                                 View all
                             </Link>
                         </div>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {quotes.map((quote) => (
                                 <Link
                                     key={quote.id}

@@ -9,19 +9,16 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                // Custom timber/wood color palette
-                timber: {
-                    50: '#fdf8f6',   // Lightest birch
-                    100: '#f2e8e5',  // Light pine
-                    200: '#eaddd7',  // Cream
-                    300: '#e0cec7',  // Light oak
-                    400: '#d2bab0',  // Medium oak
-                    500: '#b68d82',  // Walnut
-                    600: '#a47566',  // Dark walnut
-                    700: '#8b5839',  // Cedar
-                    800: '#603813',  // Dark wood
-                    900: '#3d1f0e',  // Espresso
-                },
+                // Digital Arboretum Brand Colors
+                spruce: '#264653',
+                teal: '#2A9D8F',
+                gold: '#E9C46A',
+                clay: '#E76F51',
+                charcoal: '#1B262C',
+                canvas: '#F4F1DE',
+                'weathered-grey': '#8D99AE',
+                
+                // System colors mapped to theme
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
@@ -56,17 +53,25 @@ const config: Config = {
                     foreground: "hsl(var(--card-foreground))",
                 },
             },
+            fontFamily: {
+                sans: ['Inter', 'sans-serif'],
+                display: ['Space Grotesk', 'sans-serif'],
+                mono: ['JetBrains Mono', 'monospace'],
+            },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
+                'sanded': '12px', // The signature "sanded" corner look
             },
             boxShadow: {
-                'warm-sm': '0 1px 2px 0 rgb(139 88 57 / 0.05)',
-                'warm': '0 1px 3px 0 rgb(139 88 57 / 0.1), 0 1px 2px -1px rgb(139 88 57 / 0.1)',
-                'warm-md': '0 4px 6px -1px rgb(139 88 57 / 0.1), 0 2px 4px -2px rgb(139 88 57 / 0.1)',
-                'warm-lg': '0 10px 15px -3px rgb(139 88 57 / 0.1), 0 4px 6px -4px rgb(139 88 57 / 0.1)',
-                'warm-xl': '0 20px 25px -5px rgb(139 88 57 / 0.1), 0 8px 10px -6px rgb(139 88 57 / 0.1)',
+                'groove': '0 4px 6px -1px rgba(38, 70, 83, 0.1)',
+                'float': '0 10px 15px -3px rgba(38, 70, 83, 0.15)',
+                'warm-sm': '0 1px 2px 0 rgb(38 70 83 / 0.05)',
+                'warm': '0 1px 3px 0 rgb(38 70 83 / 0.1), 0 1px 2px -1px rgb(38 70 83 / 0.1)',
+                'warm-md': '0 4px 6px -1px rgb(38 70 83 / 0.1), 0 2px 4px -2px rgb(38 70 83 / 0.1)',
+                'warm-lg': '0 10px 15px -3px rgb(38 70 83 / 0.1), 0 4px 6px -4px rgb(38 70 83 / 0.1)',
+                'warm-xl': '0 20px 25px -5px rgb(38 70 83 / 0.1), 0 8px 10px -6px rgb(38 70 83 / 0.1)',
             },
             animation: {
                 'fade-in': 'fadeIn 0.3s ease-in-out',

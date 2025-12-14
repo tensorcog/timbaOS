@@ -53,7 +53,13 @@ export default async function DashboardPage() {
             },
             include: {
                 Customer: true,
-                OrderItem: true,
+                OrderItem: {
+                    select: {
+                        id: true,
+                        quantity: true,
+                        price: true,
+                    }
+                },
             },
             orderBy: { createdAt: 'desc' },
             take: 5,
@@ -80,7 +86,13 @@ export default async function DashboardPage() {
             },
             include: {
                 Customer: true,
-                QuoteItem: true,
+                QuoteItem: {
+                    select: {
+                        id: true,
+                        quantity: true,
+                        price: true,
+                    }
+                },
             },
             orderBy: { createdAt: 'desc' },
             take: 5,

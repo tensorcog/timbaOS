@@ -8,7 +8,7 @@ const themes = [
         id: 'DEFAULT' as const,
         name: 'Default',
         description: 'Purple & Blue gradient',
-        preview: 'from-purple-500 to-blue-600',
+        preview: 'from-amber-600 to-orange-700',
     },
     {
         id: 'OCEAN' as const,

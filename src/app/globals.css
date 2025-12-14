@@ -4,26 +4,45 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    --radius: 0.5rem;
+    /* Backgrounds - Light birch/pine tones */
+    --background: 40 20% 97%; /* Very light cream */
+    --foreground: 25 30% 15%; /* Dark brown text */
+
+    /* Cards - Slightly warmer than background */
+    --card: 35 25% 95%; /* Light wood panel */
+    --card-foreground: 25 30% 15%;
+
+    /* Popover */
+    --popover: 35 25% 95%;
+    --popover-foreground: 25 30% 15%;
+
+    /* Primary - Warm honey/amber */
+    --primary: 35 65% 55%; /* Honey amber */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Medium wood tone */
+    --secondary: 30 30% 75%; /* Light oak */
+    --secondary-foreground: 25 30% 20%;
+
+    /* Muted - Subtle wood grain feel */
+    --muted: 35 20% 90%;
+    --muted-foreground: 25 20% 40%;
+
+    /* Accent - Warm accent for highlights */
+    --accent: 25 60% 50%; /* Burnt orange/cedar */
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive - Muted red that fits wood theme */
+    --destructive: 0 50% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders - Subtle wood grain lines */
+    --border: 30 15% 85%;
+    --input: 30 15% 85%;
+    --ring: 35 65% 55%; /* Focus ring matches primary */
+
+    /* Border radius - Slightly more organic */
+    --radius: 0.75rem; /* Increased from 0.5rem for softer feel */
   }
 
   /* Ocean Theme - Teal & Cyan */
@@ -69,6 +88,36 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    /* Subtle wood grain texture */
+    background-image: 
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 3px,
+        hsl(35 10% 96%) 3px,
+        hsl(35 10% 96%) 6px
+      );
+  }
+  
+  /* Premium typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+  
+  /* Smooth transitions for all interactive elements */
+  a, button, input, select, textarea {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Focus states with warm amber ring */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 }
 
@@ -76,4 +125,42 @@
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Premium shadow utilities with warm tones */
+  .shadow-warm-sm {
+    box-shadow: 0 1px 2px 0 rgb(139 88 57 / 0.05);
+  }
+  
+  .shadow-warm {
+    box-shadow: 0 1px 3px 0 rgb(139 88 57 / 0.1), 0 1px 2px -1px rgb(139 88 57 / 0.1);
+  }
+  
+  .shadow-warm-md {
+    box-shadow: 0 4px 6px -1px rgb(139 88 57 / 0.1), 0 2px 4px -2px rgb(139 88 57 / 0.1);
+  }
+  
+  .shadow-warm-lg {
+    box-shadow: 0 10px 15px -3px rgb(139 88 57 / 0.1), 0 4px 6px -4px rgb(139 88 57 / 0.1);
+  }
+  
+  .shadow-warm-xl {
+    box-shadow: 0 20px 25px -5px rgb(139 88 57 / 0.1), 0 8px 10px -6px rgb(139 88 57 / 0.1);
+  }
+  
+  /* Smooth hover lift effect */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Glass morphism effect for cards */
+  .glass-card {
+    background: hsl(var(--card) / 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(30 15% 90%);
+  }
 }
+

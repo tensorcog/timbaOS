@@ -103,7 +103,7 @@ export function ProductList({ products }: ProductListProps) {
                                                 ? 'bg-green-600 text-white'
                                                 : totalStock === 0
                                                     ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                                                    : 'bg-gradient-to-r from-purple-500 to-blue-600 text-white hover:from-purple-600 hover:to-blue-700'
+                                                    : 'bg-gradient-to-r from-amber-600 to-orange-700 text-white hover:from-amber-700 hover:to-orange-800'
                                             }`}
                                     >
                                         {isAdded ? (

@@ -139,7 +139,7 @@ export default function CheckoutPage() {
                         <button
                             onClick={handleCheckout}
                             disabled={!customer}
-                            className="w-full mt-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold hover:from-purple-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full mt-6 py-3 rounded-lg bg-gradient-to-r from-amber-600 to-orange-700 text-white font-semibold hover:from-amber-700 hover:to-orange-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {!customer ? 'Select Customer First' : 'Proceed to Payment'}
                         </button>

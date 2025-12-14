@@ -78,7 +78,7 @@ export function CustomerLookup({ customer, onSelectCustomer }: CustomerLookupPro
             <div className="rounded-xl border bg-card p-4">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center">
                             <User className="h-5 w-5 text-white" />
                         </div>
                         <div>

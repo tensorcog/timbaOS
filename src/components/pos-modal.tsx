@@ -94,7 +94,7 @@ export function POSModal({ isOpen, onClose, locationId }: POSModalProps) {
             <div className="h-full w-full bg-background">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b bg-card px-6 py-4">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-600 bg-clip-text text-transparent">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent">
                         Point of Sale
                     </h1>
                     <button

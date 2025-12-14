@@ -89,7 +89,7 @@ export default function ImportPage() {
                             setImportType("customers");
                             setStep("upload");
                         }}
-                        className="group text-left relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent p-6 backdrop-blur hover:from-purple-500/20 hover:via-purple-500/10 transition-all"
+                        className="group text-left relative overflow-hidden rounded-xl border bg-gradient-to-br from-amber-600/10 via-purple-500/5 to-transparent p-6 backdrop-blur hover:from-amber-600/20 hover:via-purple-500/10 transition-all"
                     >
                         <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
                             <Users className="h-6 w-6 text-purple-400" />

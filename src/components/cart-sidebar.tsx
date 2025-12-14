@@ -109,7 +109,7 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         <Link
                             href="/dashboard/checkout"
                             onClick={onClose}
-                            className="block w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold text-center hover:from-purple-600 hover:to-blue-700 transition-all"
+                            className="block w-full py-3 rounded-lg bg-gradient-to-r from-amber-600 to-orange-700 text-white font-semibold text-center hover:from-amber-700 hover:to-orange-800 transition-all"
                         >
                             Proceed to Checkout
                         </Link>

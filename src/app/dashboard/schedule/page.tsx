@@ -228,7 +228,7 @@ export default function SchedulePage() {
                                             <div
                                                 key={appointment.id}
                                                 onClick={() => handleAppointmentClick(appointment)}
-                                                className="text-xs p-1 rounded border truncate bg-purple-500/10 border-purple-500/20 text-purple-700 dark:text-purple-300 cursor-pointer hover:bg-purple-500/20 transition-colors"
+                                                className="text-xs p-1 rounded border truncate bg-purple-500/10 border-amber-500/20 text-purple-700 dark:text-purple-300 cursor-pointer hover:bg-purple-500/20 transition-colors"
                                                 title={`${appointment.title}${appointment.Customer ? ` - ${appointment.Customer.name}` : ''}`}
                                             >
                                                 <div className="font-medium flex items-center gap-1">

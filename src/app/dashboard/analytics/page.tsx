@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
           onClick={handleShowAllToggle}
           className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
             locationParam === 'all'
-              ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-primary'
+              ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 border-amber-500/30 text-primary'
               : 'bg-background hover:bg-muted'
           }`}
         >

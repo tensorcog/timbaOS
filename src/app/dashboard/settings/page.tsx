@@ -48,7 +48,7 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent">
                     Preferences
                 </h1>
                 <p className="text-muted-foreground mt-2">

@@ -125,7 +125,7 @@ export default async function QuotesPage({
                         href={showAll ? "/dashboard/quotes" : "/dashboard/quotes?showAll=true"}
                         className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                             showAll
-                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-primary'
+                                ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 border-amber-500/30 text-primary'
                                 : 'bg-background hover:bg-muted'
                         }`}
                     >
@@ -133,7 +133,7 @@ export default async function QuotesPage({
                     </Link>
                     <Link
                         href="/dashboard/quotes/new"
-                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold hover:from-purple-600 hover:to-blue-700 transition-all flex items-center gap-2"
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-orange-700 text-white font-semibold hover:from-amber-700 hover:to-orange-800 transition-all flex items-center gap-2"
                     >
                         <Plus className="h-4 w-4" />
                         New Quote

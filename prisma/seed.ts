@@ -7,7 +7,8 @@ import {
     FulfillmentType,
     TransferStatus,
     OrderType,
-    QuoteStatus
+    QuoteStatus,
+    ShipmentStatus
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
@@ -32,18 +33,43 @@ function randomInt(min: number, max: number): number {
 async function main() {
     console.log('🏪 Seeding Bills Supplies - Upstate NY...');
 
-    // Clear existing data
+    // Clear existing data (in correct order to avoid FK constraints)
     await prisma.auditLog.deleteMany();
     await prisma.productRecommendation.deleteMany();
+    
+    // Quotes and items
     await prisma.quoteItem.deleteMany();
     await prisma.quote.deleteMany();
+    
+    // Transfers and items
     await prisma.transferItem.deleteMany();
     await prisma.inventoryTransfer.deleteMany();
+    
+    // Invoices and related
+    await prisma.invoicePayment.deleteMany();
+    await prisma.creditNote.deleteMany();
+    await prisma.invoiceItem.deleteMany();
+    await prisma.invoice.deleteMany();
+    
+    // Appointments
+    await prisma.appointment.deleteMany();
+    
+    // Payments
     await prisma.payment.deleteMany();
+    
+    // Shipments and items
+    await prisma.shipmentItem.deleteMany();
+    await prisma.shipment.deleteMany();
+    
+    // Orders and items
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
+    
+    // Inventory and pricing
     await prisma.locationInventory.deleteMany();
     await prisma.locationPricing.deleteMany();
+    
+    // Users and locations
     await prisma.userLocation.deleteMany();
     await prisma.customer.deleteMany();
     await prisma.product.deleteMany();
@@ -679,6 +705,77 @@ async function main() {
     });
 
     console.log('✅ Created seed quotes for RBAC testing');
+
+    // Create Shipments for delivery schedule
+    console.log('Creating delivery shipments...');
+    
+    const carriers = ['FedEx', 'UPS', 'USPS', 'DHL', 'Local Delivery'];
+    const shipmentStatuses = [ShipmentStatus.SCHEDULED, ShipmentStatus.SCHEDULED, ShipmentStatus.SCHEDULED, ShipmentStatus.PENDING, ShipmentStatus.SHIPPED];
+    
+    // Get orders that need delivery (DELIVERY fulfillment type)
+    const deliveryOrders = await prisma.order.findMany({
+        where: {
+            fulfillmentType: FulfillmentType.DELIVERY,
+        },
+        include: {
+            OrderItem: true,
+        },
+        take: 50,
+        orderBy: { createdAt: 'desc' },
+    });
+
+    const today = new Date();
+    today.setHours(8, 0, 0, 0); // Start of business day
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    for (let i = 0; i < deliveryOrders.length; i++) {
+        const order = deliveryOrders[i];
+        const status = randomItem(shipmentStatuses);
+        
+        // Create scheduled dates distributed over the next week
+        const daysOut = Math.floor(i / 7); // Spread across 7 days
+        const scheduledDate = new Date(today);
+        scheduledDate.setDate(scheduledDate.getDate() + daysOut);
+        
+        // Set specific time slots (8 AM, 10 AM, 1 PM, 3 PM)
+        const timeSlots = [8, 10, 13, 15];
+        const hour = randomItem(timeSlots);
+        scheduledDate.setHours(hour, 0, 0, 0);
+
+        const shipment = await prisma.shipment.create({
+            data: {
+                id: randomUUID(),
+                orderId: order.id,
+                status,
+                scheduledDate,
+                duration: randomItem([60, 90, 120]), // 1, 1.5, or 2 hours
+                carrier: randomItem(carriers),
+                trackingNumber: status !== ShipmentStatus.PENDING ? `TRACK-${String(1000 + i).padStart(6, '0')}` : null,
+                method: 'DELIVERY',
+                createdAt: order.createdAt,
+                updatedAt: new Date(),
+            },
+        });
+
+        // Create shipment items for all order items
+        const shipmentItems = order.OrderItem.map(item => ({
+            id: randomUUID(),
+            shipmentId: shipment.id,
+            orderItemId: item.id,
+            quantity: item.quantity,
+        }));
+
+        await prisma.shipmentItem.createMany({
+            data: shipmentItems,
+        });
+    }
+
+    console.log(`✅ Created ${deliveryOrders.length} delivery shipments`);
 
     console.log('');
     console.log('🎉 Bills Supplies seed complete!');

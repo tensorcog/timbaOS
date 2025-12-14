@@ -60,7 +60,7 @@ export function UserMenu() {
                         className="w-full h-full object-cover"
                     />
                 ) : (
-                    <div className="bg-gradient-to-br from-purple-500 to-blue-600 w-full h-full flex items-center justify-center text-white text-xs font-medium">
+                    <div className="bg-gradient-to-br from-amber-600 to-orange-700 w-full h-full flex items-center justify-center text-white text-xs font-medium">
                         {userInitials}
                     </div>
                 )}

@@ -125,7 +125,7 @@ export default function CompanySettingsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-600 bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent">
                         Company Settings
                     </h1>
                     <p className="text-muted-foreground mt-1">

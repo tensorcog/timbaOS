@@ -151,7 +151,7 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                     </div>
 
                     {/* Total Due */}
-                    <div className="mb-6 p-6 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border">
+                    <div className="mb-6 p-6 rounded-lg bg-gradient-to-r from-amber-600/20 to-orange-600/20 border">
                         <div className="text-sm text-muted-foreground mb-1">Amount Due</div>
                         <div className="text-4xl font-bold">${remaining.toFixed(2)}</div>
                         {parseFloat(paidAmount.toString()) > 0 && (
@@ -172,7 +172,7 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                                         key={method.id}
                                         onClick={() => setSelectedMethod(method.id)}
                                         className={`p-3 rounded-lg border flex flex-col items-center gap-2 transition-colors ${selectedMethod === method.id
-                                            ? 'bg-purple-500/20 border-purple-500'
+                                            ? 'bg-purple-500/20 border-amber-500'
                                             : 'hover:bg-muted'
                                             }`}
                                     >
@@ -267,7 +267,7 @@ export function PaymentPanel({ cart, customer, locationId, onComplete, onCancel 
                     <button
                         onClick={completeTransaction}
                         disabled={remainingNum > 0.01 || processing}
-                        className="w-full py-4 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-bold text-lg hover:from-purple-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-4 rounded-lg bg-gradient-to-r from-amber-600 to-orange-700 text-white font-bold text-lg hover:from-amber-700 hover:to-orange-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {processing ? 'Processing...' : remainingNum > 0.01 ? `$${remaining.toFixed(2)} Remaining` : 'Complete Transaction'}
                     </button>

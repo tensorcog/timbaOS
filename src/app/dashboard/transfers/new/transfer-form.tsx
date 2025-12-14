@@ -198,7 +198,7 @@ export function TransferForm({ locations, products }: TransferFormProps) {
                 <button
                     type="submit"
                     disabled={items.length === 0}
-                    className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-amber-600 to-orange-700 text-white font-semibold rounded-lg hover:from-amber-700 hover:to-orange-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Save className="h-4 w-4" />
                     Create Transfer

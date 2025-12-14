@@ -126,7 +126,7 @@ export default function TransfersPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold md:text-2xl">Inventory Transfers</h1>
                 <Link href="/dashboard/transfers/new">
-                    <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold hover:from-purple-600 hover:to-blue-700 transition-all">
+                    <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-orange-700 text-white font-semibold hover:from-amber-700 hover:to-orange-800 transition-all">
                         New Transfer
                     </button>
                 </Link>

@@ -95,7 +95,7 @@ export function ProductRecommendations() {
                                 </span>
                                 <button
                                     onClick={() => addItem(rec.product)}
-                                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 text-white text-sm font-medium hover:from-purple-600 hover:to-blue-700 transition-all flex items-center gap-1"
+                                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-orange-700 text-white text-sm font-medium hover:from-amber-700 hover:to-orange-800 transition-all flex items-center gap-1"
                                 >
                                     <Plus className="h-3 w-3" />
                                     Add

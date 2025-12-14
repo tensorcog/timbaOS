@@ -208,14 +208,14 @@ export default function ProfilePage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent">
                     Profile
                 </h1>
             </div>
 
             {/* Profile Card */}
             <div className="bg-card border border-border rounded-lg overflow-hidden">
-                <div className="h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20" />
+                <div className="h-24 bg-gradient-to-r from-amber-600/20 to-orange-600/20" />
                 <div className="p-6 -mt-12">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-4">
@@ -224,7 +224,7 @@ export default function ProfilePage() {
                                     <img src={profilePicturePreview} alt={profile.name} className="w-full h-full object-cover" />
                                 </div>
                             ) : (
-                                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-card">
+                                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center text-white text-3xl font-bold border-4 border-card">
                                     {profile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
                                 </div>
                             )}

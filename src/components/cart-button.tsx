@@ -17,7 +17,7 @@ export function CartButton({ onClick }: CartButtonProps) {
         >
             <ShoppingCart className="h-6 w-6" />
             {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-purple-500 to-blue-600 text-white text-xs font-bold flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-amber-600 to-orange-700 text-white text-xs font-bold flex items-center justify-center">
                     {itemCount > 99 ? '99+' : itemCount}
                 </span>
             )}

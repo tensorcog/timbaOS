@@ -35,7 +35,7 @@ export function LocationSelector() {
             <button
                 ref={buttonRef}
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 hover:from-purple-500/30 hover:to-blue-500/30 transition-all border border-purple-500/30"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-600/20 to-orange-600/20 hover:from-amber-600/30 hover:to-orange-600/30 transition-all border border-amber-500/30"
             >
                 <MapPin className="h-4 w-4 text-purple-400" />
                 <div className="flex flex-col items-start">
@@ -77,7 +77,7 @@ export function LocationSelector() {
                                         <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
                                             location.isWarehouse
                                                 ? 'bg-orange-500/20'
-                                                : 'bg-gradient-to-br from-purple-500/20 to-blue-500/20'
+                                                : 'bg-gradient-to-br from-amber-600/20 to-orange-600/20'
                                         }`}>
                                             <MapPin className={`h-5 w-5 ${
                                                 location.isWarehouse ? 'text-orange-400' : 'text-purple-400'

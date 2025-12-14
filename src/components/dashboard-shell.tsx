@@ -52,18 +52,18 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
             <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
                 <div className="hidden border-r border-border bg-card md:block">
                     <div className="flex h-full max-h-screen flex-col gap-2">
-                        <div className="flex h-14 items-center border-b border-border px-4 lg:h-[60px] lg:px-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+                        <div className="flex h-14 items-center border-b border-border px-4 lg:h-[60px] lg:px-6 bg-gradient-to-r from-amber-600/10 to-orange-600/10">
                             <Link href="/" className="flex items-center gap-2 font-semibold">
                                 {companyLogo ? (
                                     <div className="h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center bg-white">
                                         <img src={companyLogo} alt="Company logo" className="max-h-full max-w-full object-contain" />
                                     </div>
                                 ) : (
-                                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center">
                                         <Package2 className="h-5 w-5 text-white" />
                                     </div>
                                 )}
-                                <span className="bg-gradient-to-r from-purple-400 to-blue-600 bg-clip-text text-transparent font-bold">Pine ERP</span>
+                                <span className="bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent font-bold">Pine ERP</span>
                             </Link>
                             <button className="ml-auto h-8 w-8 border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors">
                                 <Bell className="h-4 w-4" />
@@ -76,7 +76,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard/products"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname?.startsWith('/dashboard/products')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -87,7 +87,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard/orders"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname?.startsWith('/dashboard/orders')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -98,7 +98,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard/schedule"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname?.startsWith('/dashboard/schedule')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -109,7 +109,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard/quotes"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname?.startsWith('/dashboard/quotes')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -120,7 +120,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard/customers"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname?.startsWith('/dashboard/customers')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -131,7 +131,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard/transfers"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname?.startsWith('/dashboard/transfers')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -142,7 +142,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard/locations"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname?.startsWith('/dashboard/locations')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -153,7 +153,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard/chat"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname?.startsWith('/dashboard/chat')
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -166,7 +166,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                         href="/dashboard/analytics"
                                         className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                             pathname?.startsWith('/dashboard/analytics')
-                                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                                ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                         }`}
                                     >
@@ -178,7 +178,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     href="/dashboard"
                                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                         pathname === '/dashboard'
-                                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                                 >
@@ -194,7 +194,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                         href="/dashboard/admin"
                                         className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                             pathname === '/dashboard/admin'
-                                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                                ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                         }`}
                                     >
@@ -207,7 +207,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                         href="/dashboard/admin/users"
                                         className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                                             pathname?.startsWith('/dashboard/admin/users')
-                                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-primary hover:from-purple-500/30 hover:to-blue-500/30'
+                                                ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
                                                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                         }`}
                                     >

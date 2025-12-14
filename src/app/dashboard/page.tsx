@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent p-6 backdrop-blur">
+                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-amber-600/10 via-purple-500/5 to-transparent p-6 backdrop-blur">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
                                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-semibold">
+                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-600 to-red-600 flex items-center justify-center text-white font-semibold">
                                             {quote.Customer.name.charAt(0)}
                                         </div>
                                         <div>

@@ -110,10 +110,10 @@ export function ChatClient() {
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] max-w-5xl mx-auto">
       {/* Header */}
-      <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-200 dark:border-purple-800">
+      <div className="mb-4 p-4 bg-gradient-to-r from-amber-600/10 to-orange-600/10 rounded-lg border border-amber-200 dark:border-amber-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+            <div className="p-2 bg-gradient-to-r from-amber-600 to-orange-600 rounded-lg">
               <Bot className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -164,14 +164,14 @@ export function ChatClient() {
               }`}
             >
               {message.role === 'assistant' && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 flex items-center justify-center">
                   <Bot className="h-5 w-5 text-white" />
                 </div>
               )}
               <div
                 className={`max-w-[70%] rounded-lg p-4 ${
                   message.role === 'user'
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                    ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white'
                     : 'bg-muted text-foreground'
                 }`}
               >
@@ -198,7 +198,7 @@ export function ChatClient() {
         )}
         {isLoading && (
           <div className="flex gap-3 justify-start">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 flex items-center justify-center">
               <Bot className="h-5 w-5 text-white" />
             </div>
             <div className="max-w-[70%] rounded-lg p-4 bg-muted">
@@ -229,7 +229,7 @@ export function ChatClient() {
         <button
           type="submit"
           disabled={!input.trim() || isLoading}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg hover:from-amber-700 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
         >
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin" />

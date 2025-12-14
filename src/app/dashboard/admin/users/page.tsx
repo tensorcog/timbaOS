@@ -97,7 +97,7 @@ export default function EmployeesPage() {
     const getRoleBadgeColor = (role: string) => {
         switch (role) {
             case "SUPER_ADMIN": return "bg-red-100 text-red-800 border-red-200";
-            case "LOCATION_ADMIN": return "bg-purple-100 text-purple-800 border-purple-200";
+            case "LOCATION_ADMIN": return "bg-purple-100 text-purple-800 border-amber-200";
             case "MANAGER": return "bg-blue-100 text-blue-800 border-blue-200";
             case "SALES": return "bg-green-100 text-green-800 border-green-200";
             case "WAREHOUSE": return "bg-orange-100 text-orange-800 border-orange-200";
@@ -133,7 +133,7 @@ export default function EmployeesPage() {
                         onClick={toggleShowAll}
                         className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                             showAll
-                                ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-primary'
+                                ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 border-amber-500/30 text-primary'
                                 : 'bg-background hover:bg-muted'
                         }`}
                     >

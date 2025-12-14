@@ -110,74 +110,83 @@ export default async function DashboardPage() {
 
     return (
         <>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-display font-bold tracking-tight bg-gradient-to-r from-mahogany-deep via-cherry-warm to-brass bg-clip-text text-transparent">
                         Dashboard
                     </h1>
-                    <p className="text-muted-foreground mt-1">Welcome back to TimbaOS</p>
+                    <p className="text-walnut-medium mt-2 text-lg">Welcome back to TimbaOS</p>
                 </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent p-6 backdrop-blur">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+                <div className="relative overflow-hidden rounded-organic-2 texture-paper bg-card p-6 border-2 border-walnut-medium/20 shadow-organic">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                            <h3 className="text-2xl font-bold mt-2">
+                            <p className="text-sm font-semibold text-walnut-medium uppercase tracking-wider">Total Revenue</p>
+                            <h3 className="text-3xl font-display font-bold mt-2 text-mahogany-deep">
                                 ${(totalRevenue._sum.totalAmount || 0).toString()}
                             </h3>
-                            <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                            <p className="text-xs text-cherry-bright mt-2 flex items-center gap-1 font-medium">
                                 <TrendingUp className="h-3 w-3" />
                                 +20.1% from last month
                             </p>
                         </div>
-                        <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <DollarSign className="h-6 w-6 text-blue-400" />
+                        <div className="h-14 w-14 rounded-organic-2 texture-brass flex items-center justify-center shadow-organic">
+                            <DollarSign className="h-7 w-7 text-char" />
                         </div>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-amber-600/10 via-purple-500/5 to-transparent p-6 backdrop-blur">
+                <div className="relative overflow-hidden rounded-organic-2 texture-paper bg-card p-6 border-2 border-walnut-medium/20 shadow-organic">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                            <h3 className="text-2xl font-bold mt-2">{totalOrders}</h3>
-                            <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                            <p className="text-sm font-semibold text-walnut-medium uppercase tracking-wider">Total Orders</p>
+                            <h3 className="text-3xl font-display font-bold mt-2 text-mahogany-deep">{totalOrders}</h3>
+                            <p className="text-xs text-cherry-bright mt-2 flex items-center gap-1 font-medium">
                                 <TrendingUp className="h-3 w-3" />
                                 +12.5% from last month
                             </p>
                         </div>
-                        <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center">
-                            <Package className="h-6 w-6 text-purple-400" />
+                        <div className="h-14 w-14 rounded-organic-2 bg-gradient-to-br from-cherry-warm to-cherry-bright flex items-center justify-center shadow-organic">
+                            <Package className="h-7 w-7 text-white" />
                         </div>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent p-6 backdrop-blur">
+                <div className="relative overflow-hidden rounded-organic-2 texture-paper bg-card p-6 border-2 border-walnut-medium/20 shadow-organic">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground">Total Customers</p>
-                            <h3 className="text-2xl font-bold mt-2">{totalCustomers}</h3>
-                            <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                            <p className="text-sm font-semibold text-walnut-medium uppercase tracking-wider">Total Customers</p>
+                            <h3 className="text-3xl font-display font-bold mt-2 text-mahogany-deep">{totalCustomers}</h3>
+                            <p className="text-xs text-cherry-bright mt-2 flex items-center gap-1 font-medium">
                                 <TrendingUp className="h-3 w-3" />
                                 +8.2% from last month
                             </p>
                         </div>
-                        <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <Users className="h-6 w-6 text-green-400" />
+                        <div className="h-14 w-14 rounded-organic-2 bg-gradient-to-br from-maple-golden to-brass-bright flex items-center justify-center shadow-organic">
+                            <Users className="h-7 w-7 text-char" />
                         </div>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-red-500/10 via-red-500/5 to-transparent p-6 backdrop-blur">
+                <div className="relative overflow-hidden rounded-organic-2 texture-paper bg-card p-6 border-2 border-cherry-warm/30 shadow-organic">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground">Low Stock Items</p>
-                            <h3 className="text-2xl font-bold mt-2">{lowStockCount}</h3>
-                            <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                            <p className="text-sm font-semibold text-walnut-medium uppercase tracking-wider">Low Stock Items</p>
+                            <h3 className="text-3xl font-display font-bold mt-2 text-cherry-bright">{lowStockCount}</h3>
+                            <p className="text-xs text-cherry-warm mt-2 flex items-center gap-1 font-medium">
                                 <AlertCircle className="h-3 w-3" />
+                                Needs attention
+                            </p>
+                        </div>
+                        <div className="h-14 w-14 rounded-organic-2 bg-cherry-warm/20 flex items-center justify-center border-2 border-cherry-warm/40">
+                            <AlertCircle className="h-7 w-7 text-cherry-bright" />
+                        </div>
+                    </div>
+                </div>
+            </div>
                                 Needs attention
                             </p>
                         </div>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Benchmark Results (Filtered)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .alert {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .alert-text {
+            opacity: 0.95;
+            font-size: 0.9rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .stat-change {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.85rem;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .chart-title {
+            color: #333;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .winner-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .winner-badge .trophy {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .charts-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .recommendation {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .recommendation h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .recommendation p {
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .recommendation ul {
+            margin-left: 1.5rem;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Model Benchmark Results</h1>
+            <p class="subtitle">Speed & Quality Comparison (First Prompt Excluded)</p>
+        </header>
+
+        <div class="alert">
+            <div class="alert-title">⚠️ Data Processing Note</div>
+            <div class="alert-text">First prompt excluded from each iteration to eliminate warmup bias. Results show longer average times as the first query was actually the simplest/fastest.</div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <h2 class="chart-title">Speed Comparison (Lower is Better)</h2>
+                <div class="chart-wrapper">
+                    <canvas id="speedChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2 class="chart-title">Quality Scores (Higher is Better)</h2>
+                <div class="chart-wrapper">
+                    <canvas id="qualityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2 class="chart-title">Speed vs Quality Matrix</h2>
+                <div class="chart-wrapper">
+                    <canvas id="scatterChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2 class="chart-title">Combined Score (Normalized)</h2>
+                <div class="chart-wrapper">
+                    <canvas id="combinedChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="winner-badge" id="winnerBadge"></div>
+
+        <div class="recommendation">
+            <h2>💡 Final Recommendation</h2>
+            <p id="recommendationText"></p>
+        </div>
+    </div>
+
+    <script>
+        // Load the benchmark data (filtered)
+        const speedData = {
+            "timestamp": "2025-12-14T07:19:55.779Z",
+            "note": "Reprocessed from original data, excluding first prompt from each iteration",
+            "iterations": 10,
+            "models": ["qwen3:8b", "qwen2.5:3b", "deepseek-r1:1.5b"],
+            "stats": {
+                "qwen2.5:3b": {
+                    "min": 12780.0,
+                    "max": 66977.0,
+                    "mean": 41013.0,
+                    "median": 53558.0,
+                    "stdDev": 17329.65
+                },
+                "qwen3:8b": {
+                    "min": 14968.0,
+                    "max": 79575.0,
+                    "mean": 40046.0,
+                    "median": 36541.0,
+                    "stdDev": 19736.49
+                },
+                "deepseek-r1:1.5b": {
+                    "min": 17951.0,
+                    "max": 81069.0,
+                    "mean": 45932.0,
+                    "median": 47371.0,
+                    "stdDev": 20830.71
+                }
+            }
+        };
+
+        const qualityData = {
+            "stats": {
+                "qwen2.5:3b": {
+                    "mean": 80.625,
+                    "min": 72.5,
+                    "max": 87.5
+                },
+                "qwen3:8b": {
+                    "mean": 73.75,
+                    "min": 60,
+                    "max": 80
+                },
+                "deepseek-r1:1.5b": {
+                    "mean": 84.6875,
+                    "min": 80,
+                    "max": 87.5
+                }
+            }
+        };
+
+        // Define colors for each model
+        const modelColors = {
+            'deepseek-r1:1.5b': {
+                primary: 'rgba(99, 102, 241, 1)',
+                light: 'rgba(99, 102, 241, 0.2)'
+            },
+            'qwen2.5:3b': {
+                primary: 'rgba(236, 72, 153, 1)',
+                light: 'rgba(236, 72, 153, 0.2)'
+            },
+            'qwen3:8b': {
+                primary: 'rgba(34, 197, 94, 1)',
+                light: 'rgba(34, 197, 94, 0.2)'
+            }
+        };
+
+        // Create stats cards
+        function createStatsCards() {
+            const grid = document.getElementById('statsGrid');
+            const models = speedData.models;
+            
+            models.forEach(model => {
+                const speed = speedData.stats[model];
+                const quality = qualityData.stats[model];
+                const card = document.createElement('div');
+                card.className = 'stat-card';
+                card.innerHTML = `
+                    <h3>${model}</h3>
+                    <div class="stat-value">${(speed.mean / 1000).toFixed(1)}s</div>
+                    <div class="stat-label">Avg Response Time</div>
+                    <div style="margin-top: 1rem; font-size: 0.85rem;">
+                        <div>Quality: ${quality.mean.toFixed(1)}/100</div>
+                        <div style="margin-top: 0.5rem; opacity: 0.8;">
+                            Rating: ${getRating(quality.mean)}
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function getRating(score) {
+            if (score >= 80) return '⭐ Excellent';
+            if (score >= 70) return '👍 Good';
+            if (score >= 60) return '👌 Fair';
+            return '⚠️ Poor';
+        }
+
+        // Create charts
+        function createSpeedChart() {
+            const ctx = document.getElementById('speedChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: speedData.models,
+                    datasets: [{
+                        label: 'Avg Response Time (ms)',
+                        data: speedData.models.map(m => speedData.stats[m].mean),
+                        backgroundColor: speedData.models.map(m => modelColors[m].primary),
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: (v) => (v/1000).toFixed(1) + 's' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createQualityChart() {
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: speedData.models,
+                    datasets: [{
+                        label: 'Quality Score',
+                        data: speedData.models.map(m => qualityData.stats[m].mean),
+                        backgroundColor: speedData.models.map(m => modelColors[m].primary),
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: (v) => v + '/100' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createScatterChart() {
+            const ctx = document.getElementById('scatterChart').getContext('2d');
+            const datasets = speedData.models.map(model => ({
+                label: model,
+                data: [{
+                    x: speedData.stats[model].mean / 1000,
+                    y: qualityData.stats[model].mean
+                }],
+                backgroundColor: modelColors[model].primary,
+                pointRadius: 12,
+                pointHoverRadius: 15
+            }));
+
+            new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    return `${context.dataset.label}: ${context.parsed.x.toFixed(1)}s, ${context.parsed.y.toFixed(1)} quality`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Speed (seconds) - Lower is Better' },
+                            ticks: { callback: (v) => v.toFixed(1) + 's' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Quality Score - Higher is Better' },
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCombinedChart() {
+            const ctx = document.getElementById('combinedChart').getContext('2d');
+            
+            // Normalize scores (0-100 scale)
+            const speedScores = {};
+            const minSpeed = Math.min(...speedData.models.map(m => speedData.stats[m].mean));
+            const maxSpeed = Math.max(...speedData.models.map(m => speedData.stats[m].mean));
+            
+            speedData.models.forEach(model => {
+                const speed = speedData.stats[model].mean;
+                // Invert speed score (faster = higher score)
+                speedScores[model] = 100 - ((speed - minSpeed) / (maxSpeed - minSpeed) * 100);
+            });
+
+            const combinedScores = speedData.models.map(model => {
+                const speedScore = speedScores[model];
+                const qualityScore = qualityData.stats[model].mean;
+                // 50% weight for each
+                return (speedScore * 0.5 + qualityScore * 0.5);
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: speedData.models,
+                    datasets: [{
+                        label: 'Combined Score (50% speed + 50% quality)',
+                        data: combinedScores,
+                        backgroundColor: speedData.models.map(m => modelColors[m].primary),
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: (v) => v.toFixed(0) }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showRecommendation() {
+            // Calculate combined scores
+            const scores = {};
+            const minSpeed = Math.min(...speedData.models.map(m => speedData.stats[m].mean));
+            const maxSpeed = Math.max(...speedData.models.map(m => speedData.stats[m].mean));
+            
+            speedData.models.forEach(model => {
+                const speed = speedData.stats[model].mean;
+                const speedScore = 100 - ((speed - minSpeed) / (maxSpeed - minSpeed) * 100);
+                const qualityScore = qualityData.stats[model].mean;
+                scores[model] = {
+                    speed: speedScore,
+                    quality: qualityScore,
+                    combined: (speedScore * 0.5 + qualityScore * 0.5)
+                };
+            });
+
+            const sortedModels = speedData.models.sort((a, b) => scores[b].combined - scores[a].combined);
+            const winner = sortedModels[0];
+            const fastestModel = speedData.models.sort((a, b) => speedData.stats[a].mean - speedData.stats[b].mean)[0];
+            const bestQualityModel = speedData.models.sort((a, b) => qualityData.stats[b].mean - qualityData.stats[a].mean)[0];
+
+            document.getElementById('winnerBadge').innerHTML = `
+                <span class="trophy">🏆</span>
+                <span>Best Overall: <strong>${winner}</strong> (Combined Score: ${scores[winner].combined.toFixed(1)})</span>
+            `;
+
+            document.getElementById('recommendationText').innerHTML = `
+                <p><strong>🥇 Best Overall: ${winner}</strong> - Best balance of speed and quality</p>
+                <ul>
+                    <li><strong>Fastest:</strong> ${fastestModel} (${(speedData.stats[fastestModel].mean/1000).toFixed(1)}s avg)</li>
+                    <li><strong>Highest Quality:</strong> ${bestQualityModel} (${qualityData.stats[bestQualityModel].mean.toFixed(1)}/100)</li>
+                    <li><strong>Recommendation:</strong> Use <strong>${winner}</strong> for the best user experience combining responsive speed with good accuracy.</li>
+                </ul>
+            `;
+        }
+
+        // Initialize
+        createStatsCards();
+        createSpeedChart();
+        createQualityChart();
+        createScatterChart();
+        createCombinedChart();
+        showRecommendation();
+    </script>
+</body>
+</html>

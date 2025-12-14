@@ -29,6 +29,20 @@ cleanup() {
         wait "$DEV_PID" 2>/dev/null || true
     fi
     
+    # Kill AI Bridge Server if it's running
+    if [ -n "${AI_BRIDGE_PID:-}" ] && kill -0 "$AI_BRIDGE_PID" 2>/dev/null; then
+        echo "Stopping AI Bridge Server (PID: $AI_BRIDGE_PID)..."
+        kill "$AI_BRIDGE_PID" 2>/dev/null || true
+    fi
+    pkill -f "node.*ai-bridge-server/index.js" 2>/dev/null || true
+    
+    # Stop Ollama container if running (optional - keeps it running for next start)
+    # Uncomment the lines below if you want to stop Ollama on exit:
+    # if command -v docker &> /dev/null && docker ps --format '{{.Names}}' | grep -q '^timbaos-ollama$'; then
+    #     echo "Stopping Ollama container..."
+    #     docker stop timbaos-ollama > /dev/null 2>&1
+    # fi
+    
     # Remove PID file
     [ -f "$PID_FILE" ] && rm -f "$PID_FILE"
     
@@ -99,6 +113,49 @@ fi
 
 echo ""
 
+# Check if Docker is installed and start Ollama container
+echo -e "${BLUE}Checking Ollama AI container...${NC}"
+if command -v docker &> /dev/null; then
+    # Check if Ollama container exists
+    if docker ps -a --format '{{.Names}}' | grep -q '^timbaos-ollama$'; then
+        # Container exists, check if it's running
+        if ! docker ps --format '{{.Names}}' | grep -q '^timbaos-ollama$'; then
+            echo -e "${YELLOW}Starting Ollama container...${NC}"
+            docker start timbaos-ollama > /dev/null 2>&1
+        fi
+    else
+        # Container doesn't exist, create it with GPU support
+        echo -e "${BLUE}Creating Ollama container with GPU support...${NC}"
+        docker run -d --gpus all --name timbaos-ollama \
+            -p 11434:11434 \
+            -v ollama_data:/root/.ollama \
+            ollama/ollama:latest > /dev/null 2>&1 || {
+            echo -e "${YELLOW}⚠ GPU not available, starting without GPU${NC}"
+            docker run -d --name timbaos-ollama \
+                -p 11434:11434 \
+                -v ollama_data:/root/.ollama \
+                ollama/ollama:latest > /dev/null 2>&1
+        }
+    fi
+    
+    # Wait for Ollama to be ready
+    echo -e "${BLUE}Waiting for Ollama to be ready...${NC}"
+    for i in {1..15}; do
+        if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+            echo -e "${GREEN}✓ Ollama AI is ready${NC}"
+            break
+        fi
+        if [ $i -eq 15 ]; then
+            echo -e "${YELLOW}⚠ Ollama may not be ready (continuing anyway)${NC}"
+        fi
+        sleep 1
+    done
+else
+    echo -e "${YELLOW}⚠ Docker not found, AI features will not be available${NC}"
+fi
+
+echo ""
+
 # Ensure PostgreSQL is running (uses proper health check with polling)
 if ! ensure_postgres_running; then
     echo -e "${RED}✗ Failed to start PostgreSQL${NC}"
@@ -118,6 +175,26 @@ if ! is_database_initialized; then
     npm run seed
 else
     echo -e "${GREEN}✓ Database schema exists${NC}"
+fi
+echo ""
+
+# Start AI Bridge Server if Ollama is available
+if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+    echo -e "${BLUE}Starting AI Bridge Server...${NC}"
+    cd "$(dirname "$SCRIPT_DIR")/ai-bridge-server"
+    # Kill any existing AI bridge server
+    pkill -f "node.*ai-bridge-server/index.js" 2>/dev/null || true
+    # Start in background
+    node index.js > ../ai-bridge-server.log 2>&1 &
+    AI_BRIDGE_PID=$!
+    sleep 2
+    # Check if it started successfully
+    if curl -s http://localhost:3001/health > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ AI Bridge Server started (PID: $AI_BRIDGE_PID)${NC}"
+    else
+        echo -e "${YELLOW}⚠ AI Bridge Server may not have started properly${NC}"
+    fi
+    cd - > /dev/null
 fi
 echo ""
 

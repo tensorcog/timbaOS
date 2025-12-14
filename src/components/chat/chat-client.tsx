@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
-import { Send, Loader2, Bot, User } from 'lucide-react';
+import { Send, Loader2, Bot, User, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Message {
@@ -101,20 +101,38 @@ export function ChatClient() {
     }
   };
 
+  const resetChat = () => {
+    setMessages([]);
+    setInput('');
+    toast.success('Chat reset - starting fresh conversation');
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-200 dark:border-purple-800">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
-            <Bot className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+              <Bot className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">AI Assistant</h2>
+              <p className="text-sm text-muted-foreground">
+                Ask me anything about your orders, inventory, customers, and more
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-semibold">AI Assistant</h2>
-            <p className="text-sm text-muted-foreground">
-              Ask me anything about your orders, inventory, customers, and more
-            </p>
-          </div>
+          {messages.length > 0 && (
+            <button
+              onClick={resetChat}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+              title="Start a new conversation"
+            >
+              <RotateCcw className="h-4 w-4" />
+              New Chat
+            </button>
+          )}
         </div>
       </div>
 

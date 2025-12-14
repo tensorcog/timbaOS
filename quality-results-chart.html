@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Model Quality Benchmark Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem;
+        color: #fff;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        font-weight: 300;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .stat-card h3 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.75rem;
+        opacity: 0.9;
+        font-weight: 600;
+      }
+
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+
+      .charts-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .chart-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .chart-title {
+        color: #333;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+
+      .chart-wrapper {
+        position: relative;
+        height: 400px;
+      }
+
+      .winner-badge {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-top: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .winner-badge .trophy {
+        font-size: 2rem;
+        margin-right: 0.5rem;
+      }
+
+      @media (min-width: 1024px) {
+        .charts-container {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        margin: 0 1rem;
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        margin-right: 0.5rem;
+      }
+
+      .legend-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎯 Model Quality Benchmark Results</h1>
+        <p class="subtitle">Comparing AI Model Response Quality</p>
+      </header>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="charts-container">
+        <div class="chart-card">
+          <h2 class="chart-title">Mean Quality Scores</h2>
+          <div class="chart-wrapper">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h2 class="chart-title">Score Distribution</h2>
+          <div class="chart-wrapper">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h2 class="chart-title">Individual Iteration Scores</h2>
+          <div class="chart-wrapper">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h2 class="chart-title">Score Range (Min-Max)</h2>
+          <div class="chart-wrapper">
+            <canvas id="rangeChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="winner-badge" id="winnerBadge"></div>
+    </div>
+
+    <script>
+      // Load the benchmark data
+      const data = {
+        timestamp: "2025-12-14T02:36:04.002Z",
+        iterations: 4,
+        models: ["deepseek-r1:1.5b", "qwen2.5:3b", "qwen3:8b"],
+        stats: {
+          "qwen2.5:3b": {
+            mean: 80.625,
+            min: 72.5,
+            max: 87.5,
+            scores: [76.25, 72.5, 86.25, 87.5],
+          },
+          "qwen3:8b": {
+            mean: 73.75,
+            min: 60,
+            max: 80,
+            scores: [60, 80, 78.75, 76.25],
+          },
+          "deepseek-r1:1.5b": {
+            mean: 84.6875,
+            min: 80,
+            max: 87.5,
+            scores: [87.5, 80, 83.75, 87.5],
+          },
+        },
+      };
+
+      // Define colors for each model
+      const modelColors = {
+        "deepseek-r1:1.5b": {
+          primary: "rgba(99, 102, 241, 1)",
+          light: "rgba(99, 102, 241, 0.2)",
+          gradient: ["rgba(99, 102, 241, 0.8)", "rgba(99, 102, 241, 0.3)"],
+        },
+        "qwen2.5:3b": {
+          primary: "rgba(236, 72, 153, 1)",
+          light: "rgba(236, 72, 153, 0.2)",
+          gradient: ["rgba(236, 72, 153, 0.8)", "rgba(236, 72, 153, 0.3)"],
+        },
+        "qwen3:8b": {
+          primary: "rgba(34, 197, 94, 1)",
+          light: "rgba(34, 197, 94, 0.2)",
+          gradient: ["rgba(34, 197, 94, 0.8)", "rgba(34, 197, 94, 0.3)"],
+        },
+      };
+
+      // Create stats cards
+      function createStatsCards() {
+        const grid = document.getElementById("statsGrid");
+        const models = data.models;
+
+        models.forEach((model) => {
+          const stats = data.stats[model];
+          const card = document.createElement("div");
+          card.className = "stat-card";
+          card.innerHTML = `
+                    <h3>${model}</h3>
+                    <div class="stat-value">${stats.mean.toFixed(1)}</div>
+                    <div class="stat-label">Mean Score</div>
+                    <div style="margin-top: 1rem; font-size: 0.85rem;">
+                        <div>Min: ${stats.min} • Max: ${stats.max}</div>
+                        <div style="margin-top: 0.5rem; opacity: 0.8;">
+                            Rating: ${getRating(stats.mean)}
+                        </div>
+                    </div>
+                `;
+          grid.appendChild(card);
+        });
+      }
+
+      function getRating(score) {
+        if (score >= 80) return "⭐ Excellent";
+        if (score >= 70) return "👍 Good";
+        if (score >= 60) return "👌 Fair";
+        return "⚠️ Poor";
+      }
+
+      // Create bar chart
+      function createBarChart() {
+        const ctx = document.getElementById("barChart").getContext("2d");
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: data.models,
+            datasets: [
+              {
+                label: "Mean Quality Score",
+                data: data.models.map((m) => data.stats[m].mean),
+                backgroundColor: data.models.map((m) => modelColors[m].primary),
+                borderRadius: 8,
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                callbacks: {
+                  label: (context) =>
+                    `Score: ${context.parsed.y.toFixed(2)}/100`,
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: {
+                  color: "rgba(0, 0, 0, 0.05)",
+                },
+                ticks: {
+                  callback: (value) => value + "/100",
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // Create radar chart
+      function createRadarChart() {
+        const ctx = document.getElementById("radarChart").getContext("2d");
+        new Chart(ctx, {
+          type: "radar",
+          data: {
+            labels: ["Mean", "Min", "Max", "Consistency"],
+            datasets: data.models.map((model) => {
+              const stats = data.stats[model];
+              const consistency =
+                100 - ((stats.max - stats.min) / stats.mean) * 100;
+              return {
+                label: model,
+                data: [stats.mean, stats.min, stats.max, consistency],
+                backgroundColor: modelColors[model].light,
+                borderColor: modelColors[model].primary,
+                borderWidth: 2,
+                pointBackgroundColor: modelColors[model].primary,
+                pointBorderColor: "#fff",
+                pointHoverBackgroundColor: "#fff",
+                pointHoverBorderColor: modelColors[model].primary,
+              };
+            }),
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                beginAtZero: true,
+                max: 100,
+                grid: {
+                  color: "rgba(0, 0, 0, 0.1)",
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+            },
+          },
+        });
+      }
+
+      // Create line chart
+      function createLineChart() {
+        const ctx = document.getElementById("lineChart").getContext("2d");
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [
+              "Iteration 1",
+              "Iteration 2",
+              "Iteration 3",
+              "Iteration 4",
+            ],
+            datasets: data.models.map((model) => ({
+              label: model,
+              data: data.stats[model].scores,
+              borderColor: modelColors[model].primary,
+              backgroundColor: modelColors[model].light,
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: modelColors[model].primary,
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+            })),
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: {
+                  color: "rgba(0, 0, 0, 0.05)",
+                },
+                ticks: {
+                  callback: (value) => value + "/100",
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // Create range chart
+      function createRangeChart() {
+        const ctx = document.getElementById("rangeChart").getContext("2d");
+
+        const ranges = data.models.map((model) => ({
+          model,
+          min: data.stats[model].min,
+          max: data.stats[model].max,
+          mean: data.stats[model].mean,
+        }));
+
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: data.models,
+            datasets: [
+              {
+                label: "Min Score",
+                data: ranges.map((r) => r.min),
+                backgroundColor: data.models.map((m) => modelColors[m].light),
+                borderColor: data.models.map((m) => modelColors[m].primary),
+                borderWidth: 2,
+                borderRadius: 6,
+              },
+              {
+                label: "Mean Score",
+                data: ranges.map((r) => r.mean),
+                backgroundColor: data.models.map((m) => modelColors[m].primary),
+                borderRadius: 6,
+                borderWidth: 0,
+              },
+              {
+                label: "Max Score",
+                data: ranges.map((r) => r.max),
+                backgroundColor: data.models.map(
+                  (m) => modelColors[m].gradient[0]
+                ),
+                borderRadius: 6,
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+              tooltip: {
+                callbacks: {
+                  label: (context) =>
+                    `${context.dataset.label}: ${context.parsed.y.toFixed(
+                      2
+                    )}/100`,
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: {
+                  color: "rgba(0, 0, 0, 0.05)",
+                },
+                ticks: {
+                  callback: (value) => value + "/100",
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // Show winner
+      function showWinner() {
+        const sortedModels = data.models.sort(
+          (a, b) => data.stats[b].mean - data.stats[a].mean
+        );
+        const winner = sortedModels[0];
+        const winnerScore = data.stats[winner].mean;
+
+        document.getElementById("winnerBadge").innerHTML = `
+                <span class="trophy">🏆</span>
+                <span>Highest Quality: <strong>${winner}</strong> (${winnerScore.toFixed(
+          2
+        )}/100)</span>
+            `;
+      }
+
+      // Initialize all charts
+      createStatsCards();
+      createBarChart();
+      createRadarChart();
+      createLineChart();
+      createRangeChart();
+      showWinner();
+    </script>
+  </body>
+</html>

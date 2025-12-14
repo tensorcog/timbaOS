@@ -63,13 +63,13 @@ const MCP_TOOLS = [
     type: 'function',
     function: {
       name: 'get_customers',
-      description: 'Retrieve customer information. Can search by name or email.',
+      description: 'Retrieve customer information including their ORDER HISTORY WITH PRODUCTS. Use this to search for customers by name or email, and to see what products they have purchased. IMPORTANT: When asked "what does customer X buy" or "what do customers named X like", use this tool with the customer name in the search parameter.',
       parameters: {
         type: 'object',
         properties: {
           search: {
             type: 'string',
-            description: 'Search term for customer name or email',
+            description: 'Search term for customer name or email (e.g., "Bill" to find all customers with Bill in their name)',
           },
           limit: {
             type: 'number',
@@ -482,6 +482,7 @@ async function executeTool(toolName, args) {
 
       case 'get_customers': {
         const { search, limit = 10 } = args;
+        console.log(`get_customers called with search="${search}", limit=${limit}`);
         const customers = await prisma.customer.findMany({
           where: search
             ? {
@@ -492,20 +493,33 @@ async function executeTool(toolName, args) {
               }
             : {},
           include: {
-            orders: {
-              take: 5,
+            Order: {
+              take: 10,
               orderBy: { createdAt: 'desc' },
               select: {
                 id: true,
                 orderNumber: true,
                 status: true,
-                total: true,
+                totalAmount: true,
                 createdAt: true,
+                OrderItem: {
+                  include: {
+                    Product: {
+                      select: {
+                        id: true,
+                        name: true,
+                        sku: true,
+                        category: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
           take: limit,
         });
+        console.log(`get_customers found ${customers.length} customers`);
         return JSON.stringify(customers, null, 2);
       }
 
@@ -1049,7 +1063,7 @@ app.post('/api/chat', async (req, res) => {
   console.log('Message:', req.body.message?.substring(0, 100));
 
   try {
-    const { message, conversationHistory = [] } = req.body;
+    const { message, conversationHistory = [], model = 'qwen3:8b' } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
@@ -1074,25 +1088,32 @@ app.post('/api/chat', async (req, res) => {
     // System message for the ERP assistant
     const systemMessage = {
       role: 'system',
-      content: `You are an AI assistant for Pine ERP, a comprehensive Enterprise Resource Planning system. You help users with:
+      content: `You are an AI assistant for Pine ERP, a comprehensive Enterprise Resource Planning system.
 
-- Managing orders, quotes, and invoices
-- Tracking inventory across multiple locations
-- Viewing customer information
-- Analyzing sales data and business metrics
-- Scheduling appointments
-- Managing product catalog
-- Handling inventory transfers
+IMPORTANT INSTRUCTIONS:
+1. When users ask about customers, products, orders, inventory, or analytics - IMMEDIATELY use the appropriate tool without asking for clarification
+2. Use get_customers tool to search for customers by name or email
+3. Use get_orders tool to get order information
+4. Use get_products tool to search for products
+5. Use get_analytics tool for sales metrics and top products
+6. Do NOT ask users for date ranges or additional parameters unless absolutely necessary - use reasonable defaults
+7. When searching for customers by name, use the search parameter with just the name (e.g., search:"Bill" to find customers named Bill)
+8. Customer orders include OrderItem with Product details - use this to answer questions about what customers buy
 
-You have access to tools to query the ERP database. When users ask questions about orders, products, customers, inventory, or analytics, use the appropriate tools to get real-time data.
+EXAMPLES OF CORRECT TOOL USAGE:
+- Query: "What do customers named Bill like to buy?" → Use get_customers with search:"Bill" (NOT get_products)
+- Query: "Show me customer John Smith" → Use get_customers with search:"John Smith"
+- Query: "Find lumber products" → Use get_products with search:"lumber"
+- Query: "What are the top selling products?" → Use get_analytics with metric:"top_products"
+- Query: "Show recent orders" → Use get_orders with limit:10
 
-Be concise, professional, and accurate. Format data clearly and suggest relevant actions when appropriate.`,
+Be concise, professional, and accurate. Format data clearly and provide actionable insights.`,
     };
 
     // Initial call to Ollama with tools
     console.log('Calling Ollama API...');
     let response = await ollama.chat({
-      model: 'qwen2.5:3b',
+      model,
       messages: [systemMessage, ...messages],
       tools: MCP_TOOLS,
     });
@@ -1121,7 +1142,7 @@ Be concise, professional, and accurate. Format data clearly and suggest relevant
 
       // Continue conversation with tool results
       response = await ollama.chat({
-        model: 'qwen2.5:3b',
+        model,
         messages: [systemMessage, ...messages],
         tools: MCP_TOOLS,
       });
@@ -1142,11 +1163,11 @@ Be concise, professional, and accurate. Format data clearly and suggest relevant
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', model: 'qwen2.5:3b' });
+  res.json({ status: 'ok', model: 'qwen3:8b' });
 });
 
 app.listen(port, () => {
   console.log(`AI Bridge Server running on http://localhost:${port}`);
-  console.log(`Using model: qwen2.5:3b`);
+  console.log(`Using model: qwen3:8b`);
   console.log(`Connected to Ollama at: http://localhost:11434`);
 });

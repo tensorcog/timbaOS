@@ -1,0 +1,720 @@
+{
+  "timestamp": "2025-12-14T02:23:46.324Z",
+  "iterations": 10,
+  "models": [
+    "qwen3:8b",
+    "qwen2.5:3b",
+    "deepseek-r1:1.5b"
+  ],
+  "stats": {
+    "qwen2.5:3b": {
+      "min": 10165.333333333334,
+      "max": 50404.333333333336,
+      "mean": 32075.833333333336,
+      "median": 39994.666666666664,
+      "stdDev": 14927.003578340087,
+      "allTimes": [
+        10165.333333333334,
+        15273,
+        11832.333333333334,
+        20348.333333333332,
+        44274.333333333336,
+        45097.333333333336,
+        50404.333333333336,
+        37643.666666666664,
+        42345.666666666664,
+        43374
+      ]
+    },
+    "qwen3:8b": {
+      "min": 11923,
+      "max": 59119,
+      "mean": 31896.8,
+      "median": 29918.5,
+      "stdDev": 15186.105869218452,
+      "allTimes": [
+        11923,
+        15278,
+        12876.666666666666,
+        27243.333333333332,
+        38919,
+        46734.333333333336,
+        47037.666666666664,
+        29785,
+        59119,
+        30052
+      ]
+    },
+    "deepseek-r1:1.5b": {
+      "min": 13703,
+      "max": 60312.333333333336,
+      "mean": 35902.066666666666,
+      "median": 37838.83333333333,
+      "stdDev": 16001.00581546881,
+      "allTimes": [
+        13703,
+        17039.333333333332,
+        14496.666666666666,
+        41987.333333333336,
+        38391.666666666664,
+        60312.333333333336,
+        41496,
+        59960.666666666664,
+        34347.666666666664,
+        37286
+      ]
+    }
+  },
+  "rawData": [
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 10165.333333333334,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 4729,
+            "responseLength": 510
+          },
+          {
+            "success": true,
+            "duration": 13676,
+            "responseLength": 2547
+          },
+          {
+            "success": true,
+            "duration": 12091,
+            "responseLength": 1496
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 11923,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 5834,
+            "responseLength": 477
+          },
+          {
+            "success": true,
+            "duration": 14166,
+            "responseLength": 2626
+          },
+          {
+            "success": true,
+            "duration": 15769,
+            "responseLength": 1672
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 13703,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 5207,
+            "responseLength": 441
+          },
+          {
+            "success": true,
+            "duration": 23758,
+            "responseLength": 3078
+          },
+          {
+            "success": true,
+            "duration": 12144,
+            "responseLength": 932
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 15273,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 7047,
+            "responseLength": 504
+          },
+          {
+            "success": true,
+            "duration": 36024,
+            "responseLength": 4425
+          },
+          {
+            "success": true,
+            "duration": 2748,
+            "responseLength": 274
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 15278,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 6474,
+            "responseLength": 544
+          },
+          {
+            "success": true,
+            "duration": 25410,
+            "responseLength": 3966
+          },
+          {
+            "success": true,
+            "duration": 13950,
+            "responseLength": 1200
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 17039.333333333332,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 7345,
+            "responseLength": 485
+          },
+          {
+            "success": true,
+            "duration": 14139,
+            "responseLength": 1551
+          },
+          {
+            "success": true,
+            "duration": 29634,
+            "responseLength": 3205
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 11832.333333333334,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 9937,
+            "responseLength": 833
+          },
+          {
+            "success": true,
+            "duration": 22560,
+            "responseLength": 3204
+          },
+          {
+            "success": true,
+            "duration": 3000,
+            "responseLength": 315
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 12876.666666666666,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 7705,
+            "responseLength": 583
+          },
+          {
+            "success": true,
+            "duration": 27458,
+            "responseLength": 2700
+          },
+          {
+            "success": true,
+            "duration": 3467,
+            "responseLength": 233
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 14496.666666666666,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 6293,
+            "responseLength": 517
+          },
+          {
+            "success": true,
+            "duration": 21725,
+            "responseLength": 2538
+          },
+          {
+            "success": true,
+            "duration": 15472,
+            "responseLength": 1247
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 20348.333333333332,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 8309,
+            "responseLength": 484
+          },
+          {
+            "success": true,
+            "duration": 34914,
+            "responseLength": 3482
+          },
+          {
+            "success": true,
+            "duration": 17822,
+            "responseLength": 1370
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 27243.333333333332,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 8648,
+            "responseLength": 498
+          },
+          {
+            "success": true,
+            "duration": 38427,
+            "responseLength": 3250
+          },
+          {
+            "success": true,
+            "duration": 34655,
+            "responseLength": 836
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 41987.333333333336,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 27628,
+            "responseLength": 609
+          },
+          {
+            "success": true,
+            "duration": 63064,
+            "responseLength": 1492
+          },
+          {
+            "success": true,
+            "duration": 35270,
+            "responseLength": 830
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 44274.333333333336,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 21717,
+            "responseLength": 465
+          },
+          {
+            "success": true,
+            "duration": 60018,
+            "responseLength": 1367
+          },
+          {
+            "success": true,
+            "duration": 51088,
+            "responseLength": 1051
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 38919,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 24455,
+            "responseLength": 551
+          },
+          {
+            "success": true,
+            "duration": 65311,
+            "responseLength": 2919
+          },
+          {
+            "success": true,
+            "duration": 26991,
+            "responseLength": 622
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 38391.666666666664,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 20433,
+            "responseLength": 520
+          },
+          {
+            "success": true,
+            "duration": 56629,
+            "responseLength": 2410
+          },
+          {
+            "success": true,
+            "duration": 38113,
+            "responseLength": 882
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 45097.333333333336,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 18046,
+            "responseLength": 445
+          },
+          {
+            "success": true,
+            "duration": 72633,
+            "responseLength": 3300
+          },
+          {
+            "success": true,
+            "duration": 44613,
+            "responseLength": 1541
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 46734.333333333336,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 24648,
+            "responseLength": 610
+          },
+          {
+            "success": true,
+            "duration": 60401,
+            "responseLength": 2261
+          },
+          {
+            "success": true,
+            "duration": 55154,
+            "responseLength": 1780
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 60312.333333333336,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 20910,
+            "responseLength": 522
+          },
+          {
+            "success": true,
+            "duration": 113249,
+            "responseLength": 4209
+          },
+          {
+            "success": true,
+            "duration": 46778,
+            "responseLength": 1508
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 50404.333333333336,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 17259,
+            "responseLength": 444
+          },
+          {
+            "success": true,
+            "duration": 76198,
+            "responseLength": 3329
+          },
+          {
+            "success": true,
+            "duration": 57756,
+            "responseLength": 1777
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 47037.666666666664,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 21537,
+            "responseLength": 572
+          },
+          {
+            "success": true,
+            "duration": 92007,
+            "responseLength": 4053
+          },
+          {
+            "success": true,
+            "duration": 27569,
+            "responseLength": 866
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 41496,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 15847,
+            "responseLength": 442
+          },
+          {
+            "success": true,
+            "duration": 65173,
+            "responseLength": 3029
+          },
+          {
+            "success": true,
+            "duration": 43468,
+            "responseLength": 1491
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 37643.666666666664,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 15240,
+            "responseLength": 452
+          },
+          {
+            "success": true,
+            "duration": 66576,
+            "responseLength": 3615
+          },
+          {
+            "success": true,
+            "duration": 31115,
+            "responseLength": 889
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 29785,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 17808,
+            "responseLength": 514
+          },
+          {
+            "success": true,
+            "duration": 64450,
+            "responseLength": 3235
+          },
+          {
+            "success": true,
+            "duration": 7097,
+            "responseLength": 352
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 59960.666666666664,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 17744,
+            "responseLength": 564
+          },
+          {
+            "success": true,
+            "duration": 96062,
+            "responseLength": 4732
+          },
+          {
+            "success": true,
+            "duration": 66076,
+            "responseLength": 3174
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 42345.666666666664,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 19921,
+            "responseLength": 534
+          },
+          {
+            "success": true,
+            "duration": 51551,
+            "responseLength": 2174
+          },
+          {
+            "success": true,
+            "duration": 55565,
+            "responseLength": 1927
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 59119,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 18208,
+            "responseLength": 540
+          },
+          {
+            "success": true,
+            "duration": 95075,
+            "responseLength": 4045
+          },
+          {
+            "success": true,
+            "duration": 64074,
+            "responseLength": 2492
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 34347.666666666664,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 17964,
+            "responseLength": 480
+          },
+          {
+            "success": true,
+            "duration": 56362,
+            "responseLength": 2923
+          },
+          {
+            "success": true,
+            "duration": 28717,
+            "responseLength": 950
+          }
+        ]
+      }
+    },
+    {
+      "qwen2.5:3b": {
+        "avgDuration": 43374,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 19804,
+            "responseLength": 593
+          },
+          {
+            "success": true,
+            "duration": 85200,
+            "responseLength": 3723
+          },
+          {
+            "success": true,
+            "duration": 25118,
+            "responseLength": 659
+          }
+        ]
+      },
+      "qwen3:8b": {
+        "avgDuration": 30052,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 20676,
+            "responseLength": 595
+          },
+          {
+            "success": true,
+            "duration": 51144,
+            "responseLength": 2256
+          },
+          {
+            "success": true,
+            "duration": 18336,
+            "responseLength": 387
+          }
+        ]
+      },
+      "deepseek-r1:1.5b": {
+        "avgDuration": 37286,
+        "successRate": 100,
+        "results": [
+          {
+            "success": true,
+            "duration": 19051,
+            "responseLength": 522
+          },
+          {
+            "success": true,
+            "duration": 85466,
+            "responseLength": 3461
+          },
+          {
+            "success": true,
+            "duration": 7341,
+            "responseLength": 370
+          }
+        ]
+      }
+    }
+  ]
+}

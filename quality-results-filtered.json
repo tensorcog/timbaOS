@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-12-14T07:20:32.937Z",
+  "note": "Quality benchmark iteration averages - first prompt exclusion not applicable to aggregated data",
+  "iterations": 4,
+  "models": [
+    "deepseek-r1:1.5b",
+    "qwen2.5:3b",
+    "qwen3:8b"
+  ],
+  "stats": {
+    "deepseek-r1:1.5b": {
+      "mean": 84.6875,
+      "min": 80,
+      "max": 87.5,
+      "scores": [
+        87.5,
+        80,
+        83.75,
+        87.5
+      ],
+      "note": "Quality scores are iteration averages - cannot exclude individual queries without raw data"
+    },
+    "qwen2.5:3b": {
+      "mean": 80.625,
+      "min": 72.5,
+      "max": 87.5,
+      "scores": [
+        76.25,
+        72.5,
+        86.25,
+        87.5
+      ],
+      "note": "Quality scores are iteration averages - cannot exclude individual queries without raw data"
+    },
+    "qwen3:8b": {
+      "mean": 73.75,
+      "min": 60,
+      "max": 80,
+      "scores": [
+        60,
+        80,
+        78.75,
+        76.25
+      ],
+      "note": "Quality scores are iteration averages - cannot exclude individual queries without raw data"
+    }
+  }
+}

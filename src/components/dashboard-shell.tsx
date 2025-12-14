@@ -220,8 +220,8 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col">
-                    <header className="flex h-14 items-center gap-4 border-b border-border bg-card/50 backdrop-blur px-4 lg:h-[60px] lg:px-6 overflow-visible">
+                <div className="flex flex-col wood-oak">
+                    <header className="flex h-14 items-center gap-4 border-b border-walnut-medium/20 bg-white/60 backdrop-blur px-4 lg:h-[60px] lg:px-6 overflow-visible shadow-organic">
                         <div className="flex-1" />
                         <LocationSelector />
                         <CartButton onClick={() => setIsCartOpen(true)} />

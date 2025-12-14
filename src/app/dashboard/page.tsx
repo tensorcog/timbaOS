@@ -57,7 +57,6 @@ export default async function DashboardPage() {
                     select: {
                         id: true,
                         quantity: true,
-                        price: true,
                     }
                 },
             },
@@ -90,7 +89,6 @@ export default async function DashboardPage() {
                     select: {
                         id: true,
                         quantity: true,
-                        price: true,
                     }
                 },
             },

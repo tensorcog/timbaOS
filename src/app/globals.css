@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    /* Sawmill Workshop Color System - Cream & Warm */
+    /* Sawmill Workshop - High Contrast, Rich Colors */
     --background: 39 43% 97%;          /* Cream #FAF4E8 */
     --foreground: 0 6% 10%;            /* Char #1A1110 */
     
-    /* Cards - Slightly darker cream */
-    --card: 0 0% 100%;                 /* Pure white */
+    /* Cards - Pure white for contrast */
+    --card: 0 0% 100%;
     --card-foreground: 0 6% 10%;
     
     /* Popover */
@@ -17,65 +17,31 @@
     --popover-foreground: 0 6% 10%;
     
     /* Primary - Deep Mahogany */
-    --primary: 0 45% 20%;              /* Mahogany Deep #4A1C1C */
-    --primary-foreground: 39 43% 97%;  /* Cream (inverse) */
+    --primary: 0 45% 20%;              /* #4A1C1C */
+    --primary-foreground: 0 0% 98%;    /* White text on dark */
     
-    /* Secondary - Cherry Warm */
-    --secondary: 0 40% 40%;            /* Cherry Warm #8B3A3A */
-    --secondary-foreground: 39 43% 97%;
+    /* Secondary - Cherry */
+    --secondary: 0 40% 40%;            /* #8B3A3A */
+    --secondary-foreground: 0 0% 98%;  /* White text */
     
-    /* Muted - Walnut Medium */
-    --muted: 11 18% 29%;               /* Walnut Medium #5D4037 */
+    /* Muted - Walnut */
+    --muted: 11 18% 29%;
     --muted-foreground: 39 43% 80%;
     
-    /* Accent - Brass Vintage */
-    --accent: 45 91% 38%;              /* Brass Vintage #B8860B */
-    --accent-foreground: 0 6% 10%;
+    /* Accent - Brass (light bg, dark text) */
+    --accent: 45 91% 38%;
+    --accent-foreground: 0 6% 10%;     /* Dark text on brass */
     
     /* Destructive - Cherry Bright */
-    --destructive: 0 38% 50%;          /* Cherry Bright #A64D4D */
+    --destructive: 0 38% 50%;
     --destructive-foreground: 0 0% 100%;
     
     /* Borders */
     --border: 11 18% 70%;
     --input: 11 18% 70%;
-    --ring: 45 91% 38%;                /* Brass for focus ring */
+    --ring: 45 91% 38%;
     
-    /* Border radius - organic */
     --radius: 0.75rem;
-  }
-
-  /* Ocean Theme - Keep for backward compatibility */
-  [data-theme="ocean"] {
-    --primary: 173 80% 40%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 189 40% 25%;
-    --accent: 189 40% 25%;
-    --muted: 189 30% 20%;
-    --border: 189 30% 20%;
-    --ring: 173 80% 40%;
-  }
-
-  /* Forest Theme */
-  [data-theme="forest"] {
-    --primary: 142 76% 36%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 152 35% 22%;
-    --accent: 152 35% 22%;
-    --muted: 152 30% 18%;
-    --border: 152 30% 18%;
-    --ring: 142 76% 36%;
-  }
-
-  /* Sunset Theme */
-  [data-theme="sunset"] {
-    --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 345 40% 25%;
-    --accent: 345 40% 25%;
-    --muted: 345 30% 20%;
-    --border: 345 30% 20%;
-    --ring: 25 95% 53%;
   }
 }
 
@@ -91,24 +57,29 @@
     font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    
+    /* Real paper texture background */
+    background-image: 
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3Cc olorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+      linear-gradient(135deg, #FAF4E8 0%, #F5EDD8 100%);
   }
   
-  /* Premium typography - Playfair Display for headings */
+  /* Premium typography */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display), Georgia, serif;
     font-weight: 700;
     letter-spacing: -0.025em;
   }
   
-  /* Smooth transitions for all interactive elements */
+  /* Smooth organic transitions */
   a, button, input, select, textarea {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
-  /* Focus states with brass ring */
+  /* High contrast focus states */
   *:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 3px;
   }
 }
 
@@ -117,82 +88,89 @@
     text-wrap: balance;
   }
   
-  /* Wood Grain Texture Utilities */
+  /* REAL Wood Grain Texture with SVG */
   .wood-grain {
     background-image: 
-      repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 2px,
-        rgba(74, 28, 28, 0.03) 2px,
-        rgba(74, 28, 28, 0.03) 4px
-      ),
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 4px,
-        rgba(74, 28, 28, 0.02) 4px,
-        rgba(74, 28, 28, 0.02) 8px
-      );
-    background-size: 100% 100%, 100% 100%;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cdefs%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' seed='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cfilter id='wood'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02,0.8' numOctaves='5' seed='1'/%3E%3CfeColorMatrix values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.06 0'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='200' height='200' fill='%236B2929' filter='url(%23wood)'/%3E%3Crect width='200' height='200' filter='url(%23grain)' opacity='0.15' mix-blend-mode='multiply'/%3E%3C/svg%3E"),
+      linear-gradient(135deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04));
+    background-size: 200px 200px, 100% 100%;
   }
   
-  .wood-grain-dark {
+  /* Rich mahogany wood with visible grain */
+  .wood-mahogany {
+    background: 
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='wood'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01,1.2' numOctaves='8' seed='5'/%3E%3CfeColorMatrix values='0.3 0 0 0 0.2  0.15 0 0 0 0.1  0.1 0 0 0 0.05  0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='400' height='400' fill='%234A1C1C' /%3E%3Crect width='400' height='400' filter='url(%23wood)' opacity='0.6'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #4A1C1C 0%, #6B2929 100%);
+    background-size: 400px 400px, 100% 100%;
+  }
+  
+  /* Textured paper for cards */
+  .texture-paper {
     background-image: 
-      repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 3px,
-        rgba(0, 0, 0, 0.06) 3px,
-        rgba(0, 0, 0, 0.06) 6px
-      ),
-      linear-gradient(135deg, rgba(74, 28, 28, 0.02), rgba(107, 41, 41, 0.04));
-    background-size: 200% 200%;
-    animation: grain-shift 20s ease-in-out infinite;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='4' seed='10'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100' height='100' fill='white' filter='url(%23paper)' opacity='0.025'/%3E%3C/svg%3E");
+    background-size: 100px 100px;
   }
   
-  .wood-grain-light {
-    background-image: 
-     repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 2px,
-        rgba(139, 58, 58, 0.02) 2px,
-        rgba(139, 58, 58, 0.02) 4px
-      );
+  /* Brass metallic texture */
+  .texture-brass {
+    background: 
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='metal'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' /%3E%3CfeColorMatrix type='saturate' values='0.2'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23metal)' opacity='0.15'/%3E%3C/svg%3E"),
+      linear-gradient(135deg, #DAA520 0%, #B8860B 50%, #DAA520 100%);
+    background-size: 150px 150px, 100% 100%;
   }
   
-  /* Brass Glow Effect */
+  /* Deep organic shadows - much more dramatic */
+  .shadow-organic {
+    box-shadow: 
+      0 2px 4px -1px rgba(74, 28, 28, 0.08),
+      0 8px 16px -4px rgba(74, 28, 28, 0.12),
+      0 16px 32px -8px rgba(74, 28, 28, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  
+  .shadow-organic-lg {
+    box-shadow: 
+      0 4px 8px -2px rgba(74, 28, 28, 0.12),
+      0 12px 24px -6px rgba(74, 28, 28, 0.16),
+      0 24px 48px -12px rgba(74, 28, 28, 0.24),
+      inset 0 2px 4px rgba(255, 255, 255, 0.15);
+  }
+  
+  /* Brass shine effect - proper contrast */
   .glow-brass {
-    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: box-shadow 0.2s ease;
+    box-shadow: 
+      0 0 0 1px rgba(218, 165, 32, 0.2),
+      0 4px 12px rgba(218, 165, 32, 0.3),
+      0 8px 24px rgba(218, 165, 32, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.4),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.2);
   }
   
   .glow-brass:hover {
-    box-shadow: 0 6px 20px rgba(184, 134, 11, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    box-shadow: 
+      0 0 0 1px rgba(218, 165, 32, 0.4),
+      0 6px 16px rgba(218, 165, 32, 0.4),
+      0 12px 32px rgba(218, 165, 32, 0.3),
+      inset 0 2px 4px rgba(255, 255, 255, 0.5),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px) scale(1.02);
   }
   
-  /* Smooth hover lift effect */
+  /* Smooth lift with fluid motion */
   .hover-lift {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
   .hover-lift:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px) scale(1.01);
   }
   
-  /* Glass morphism effect for cards */
-  .glass-card {
-    background: hsl(var(--card) / 0.98);
-    backdrop-filter: blur(10px);
-    border: 1px solid hsl(var(--border));
-  }
-  
-  /* Gradient mesh backgrounds */
-  .mesh-gradient {
+  /* Organic flowing gradient */
+  .gradient-organic {
     background: 
-      radial-gradient(at 20% 30%, rgba(107, 41, 41, 0.15) 0%, transparent 50%),
-      radial-gradient(at 80% 70%, rgba(139, 58, 58, 0.15) 0%, transparent 50%),
-      linear-gradient(135deg, hsl(var(--background)), rgba(212, 165, 116, 0.1));
+      radial-gradient(ellipse at top left, rgba(218, 165, 32, 0.15), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(139, 58, 58, 0.12), transparent 50%),
+      radial-gradient(ellipse at top right, rgba(107, 41, 41, 0.08), transparent 60%),
+      linear-gradient(135deg, #FAF4E8 0%, #F5EDD8 50%, #F0E6C8 100%);
   }
 }

@@ -9,7 +9,7 @@ export const anthropic = new Anthropic({
 export const CLAUDE_MODEL = 'claude-3-5-sonnet-20241022';
 
 // System prompt for the ERP assistant
-export const SYSTEM_PROMPT = `You are an AI assistant for Pine ERP, a comprehensive Enterprise Resource Planning system. You help users with:
+export const SYSTEM_PROMPT = `You are an AI assistant for TimbaOS, a comprehensive Enterprise Resource Planning system. You help users with:
 
 - Managing orders, quotes, and invoices
 - Tracking inventory across multiple locations

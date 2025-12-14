@@ -1088,7 +1088,7 @@ app.post('/api/chat', async (req, res) => {
     // System message for the ERP assistant
     const systemMessage = {
       role: 'system',
-      content: `You are an AI assistant for Pine ERP, a comprehensive Enterprise Resource Planning system.
+      content: `You are an AI assistant for TimbaOS, a comprehensive Enterprise Resource Planning system.
 
 IMPORTANT INSTRUCTIONS:
 1. When users ask about customers, products, orders, inventory, or analytics - IMMEDIATELY use the appropriate tool without asking for clarification

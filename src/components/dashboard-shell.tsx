@@ -63,7 +63,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                         <Package2 className="h-5 w-5 text-white" />
                                     </div>
                                 )}
-                                <span className="bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent font-bold">Pine ERP</span>
+                                <span className="bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent font-bold">TimbaOS</span>
                             </Link>
                             <button className="ml-auto h-8 w-8 border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors">
                                 <Bell className="h-4 w-4" />
@@ -149,17 +149,7 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                     <MapPin className="h-4 w-4" />
                                     Locations
                                 </Link>
-                                <Link
-                                    href="/dashboard/chat"
-                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
-                                        pathname?.startsWith('/dashboard/chat')
-                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                                >
-                                    <MessageSquare className="h-4 w-4" />
-                                    AI Chat
-                                </Link>
+
                                 {/* Analytics - Only for admins and managers */}
                                 {(userRole === 'SUPER_ADMIN' || userRole === 'LOCATION_ADMIN' || userRole === 'MANAGER') && (
                                     <Link
@@ -215,6 +205,17 @@ function DashboardContent({ children, session }: { children: React.ReactNode; se
                                         Employees
                                     </Link>
                                 )}
+                                <Link
+                                    href="/dashboard/chat"
+                                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                                        pathname?.startsWith('/dashboard/chat')
+                                            ? 'bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-primary hover:from-amber-600/30 hover:to-orange-600/30'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                >
+                                    <MessageSquare className="h-4 w-4" />
+                                    AI Chat
+                                </Link>
                             </nav>
                         </div>
                     </div>

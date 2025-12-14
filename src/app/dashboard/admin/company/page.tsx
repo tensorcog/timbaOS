@@ -206,7 +206,7 @@ export default function CompanySettingsPage() {
                             value={settings.companyName}
                             onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
                             className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                            placeholder="Pine ERP"
+                            placeholder="TimbaOS"
                         />
                     </div>
 

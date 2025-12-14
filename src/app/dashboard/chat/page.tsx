@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { ChatClient } from '@/components/chat/chat-client';
 
 export const metadata = {
-  title: 'AI Chat - Pine ERP',
+  title: 'AI Chat - TimbaOS',
   description: 'Chat with AI assistant about your ERP system',
 };
 

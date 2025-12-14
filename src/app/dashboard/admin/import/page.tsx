@@ -175,7 +175,7 @@ export default function ImportPage() {
                                 <h4 className="font-semibold text-yellow-400">ECI Spruce Export Format</h4>
                                 <p className="text-sm text-muted-foreground mt-1">
                                     Export your data from ECI Spruce to Excel format. The importer will automatically
-                                    detect and map ECI Spruce column names to Pine ERP fields.
+                                    detect and map ECI Spruce column names to TimbaOS fields.
                                 </p>
                             </div>
                         </div>
@@ -188,7 +188,7 @@ export default function ImportPage() {
                 <div className="rounded-xl border bg-card p-6">
                     <h2 className="text-xl font-semibold mb-4">Map Columns</h2>
                     <p className="text-muted-foreground mb-6">
-                        Map your file columns to Pine ERP fields. Automatic mapping has been applied based on column names.
+                        Map your file columns to TimbaOS fields. Automatic mapping has been applied based on column names.
                     </p>
 
                     <div className="space-y-3">
@@ -334,7 +334,7 @@ function ColumnMapping({ source, target, auto }: { source: string; target: strin
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
             <div className="flex-1">
                 <p className="text-sm font-medium">{target}</p>
-                <p className="text-xs text-muted-foreground">Pine ERP Field</p>
+                <p className="text-xs text-muted-foreground">TimbaOS Field</p>
             </div>
             {auto && (
                 <div className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">

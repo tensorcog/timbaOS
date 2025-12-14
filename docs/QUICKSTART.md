@@ -1,6 +1,6 @@
-# Pine ERP - Quick Start Guide
+# TimbaOS - Quick Start Guide
 
-Get Pine ERP up and running in 5 minutes!
+Get TimbaOS up and running in 5 minutes!
 
 ---
 
@@ -19,11 +19,13 @@ bash setup.sh
 ```
 
 This will:
+
 - Install NVM if needed
 - Install Node.js v20
 - Install npm dependencies
 
 **After setup completes, restart your terminal or run:**
+
 ```bash
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
@@ -58,6 +60,7 @@ npm run seed
 ```
 
 You should see:
+
 ```
 🌲 Seeding Pine Lumber Yard (Multi-Location)...
 ✅ Created 4 users
@@ -88,27 +91,31 @@ Visit: `http://localhost:3000`
 ## What You Get
 
 ### 3 Locations
+
 - **Main Yard** - Main Street retail location
 - **Westside Branch** - West Avenue retail location
 - **Distribution Warehouse** - Industrial Parkway warehouse
 
 ### 4 Test Users
-| Email | Role | Access |
-|-------|------|--------|
-| admin@pine.com | SUPER_ADMIN | All locations |
-| main.manager@pine.com | LOCATION_ADMIN | Main Yard |
-| west.manager@pine.com | LOCATION_ADMIN | Westside Branch |
-| sales@pine.com | SALES | Main + Westside |
 
-*All passwords: `hashed_password_here` (change in production!)*
+| Email                 | Role           | Access          |
+| --------------------- | -------------- | --------------- |
+| admin@pine.com        | SUPER_ADMIN    | All locations   |
+| main.manager@pine.com | LOCATION_ADMIN | Main Yard       |
+| west.manager@pine.com | LOCATION_ADMIN | Westside Branch |
+| sales@pine.com        | SALES          | Main + Westside |
+
+_All passwords: `hashed_password_here` (change in production!)_
 
 ### 10 Products
+
 - Lumber (2x4s, 2x6s, cedar posts, pine boards)
 - Plywood (CDX, oak)
 - Hardware (screws, nails)
 - Concrete (mix, rebar)
 
 ### Sample Data
+
 - 30 inventory records (10 products × 3 locations)
 - 4 orders
 - 2 inventory transfers
@@ -119,19 +126,25 @@ Visit: `http://localhost:3000`
 ## Quick Tour
 
 ### 1. Location Selector
+
 Click the location dropdown in the top-right header to switch between locations.
 
 ### 2. Dashboard
+
 View overview metrics, recent orders, and the AI StockWatcher agent.
 
 ### 3. Products
+
 See all products in the master catalog.
 
 ### 4. Orders
+
 View orders filtered by selected location.
 
 ### 5. Admin Panel
+
 Navigate to **Admin** in the sidebar to access:
+
 - Data import wizard
 - Location management
 - Database tools (coming soon)
@@ -144,6 +157,7 @@ Navigate to **Admin** in the sidebar to access:
 2. Select "Main Yard" from location selector
 3. Click **"Run Agent Now"** on the StockWatcher card
 4. Agent will show 4 low-stock items at Main Yard:
+
    - Cedar Post (8 left, needs 12 more)
    - CDX Plywood (3 left, needs 7 more)
    - Oak Plywood (6 left, at threshold)
@@ -157,6 +171,7 @@ Navigate to **Admin** in the sidebar to access:
 ## Next Steps
 
 ### Import Your Data
+
 1. Export products from ECI Spruce to Excel
 2. Go to `/dashboard/admin/import`
 3. Select "Products"
@@ -165,19 +180,22 @@ Navigate to **Admin** in the sidebar to access:
 6. Preview and import
 
 ### Add Users
+
 Currently no auth is implemented. To add users:
+
 ```typescript
 await prisma.user.create({
   data: {
-    email: 'user@example.com',
-    name: 'John Doe',
-    password: await bcrypt.hash('password', 10),
-    role: 'SALES',
-  }
+    email: "user@example.com",
+    name: "John Doe",
+    password: await bcrypt.hash("password", 10),
+    role: "SALES",
+  },
 });
 ```
 
 ### Customize Locations
+
 1. Go to Admin → Locations (coming soon)
 2. Or add via Prisma Studio: `npx prisma studio`
 3. Edit locations table
@@ -187,6 +205,7 @@ await prisma.user.create({
 ## Troubleshooting
 
 ### "command not found: npx"
+
 ```bash
 # Restart terminal or run:
 export NVM_DIR="$HOME/.nvm"
@@ -195,14 +214,18 @@ nvm use 20
 ```
 
 ### "Cannot connect to database"
+
 Check your `DATABASE_URL` in `.env` file. Ensure PostgreSQL is running:
+
 ```bash
 # Check if PostgreSQL is running
 psql -U postgres -c "SELECT version();"
 ```
 
 ### "Migration failed"
+
 Reset and try again:
+
 ```bash
 npx prisma migrate reset --force
 npx prisma generate
@@ -210,12 +233,14 @@ npm run seed
 ```
 
 ### "Location selector not showing"
+
 1. Check browser console for errors
 2. Verify `/api/locations` returns data
 3. Clear browser localStorage
 4. Hard refresh (Ctrl+Shift+R)
 
 ### "Port 3000 already in use"
+
 ```bash
 # Kill process on port 3000
 lsof -ti:3000 | xargs kill -9
@@ -263,6 +288,7 @@ npx prisma format              # Format schema file
 ## Getting Help
 
 1. **Documentation**:
+
    - [README.md](./README.md) - Full project docs
    - [MIGRATION.md](./MIGRATION.md) - Database migration guide
    - [IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md) - Technical details
@@ -278,16 +304,19 @@ npx prisma format              # Format schema file
 After getting familiar with the system:
 
 1. **Implement Authentication**
+
    - Install NextAuth.js
    - Add login page
    - Protect routes
 
 2. **Add Your Data**
+
    - Import products from ECI Spruce
    - Import customers
    - Import historical orders
 
 3. **Customize**
+
    - Add your locations
    - Configure reorder points
    - Set location pricing

@@ -4,45 +4,45 @@
 
 @layer base {
   :root {
-    /* Digital Arboretum Color System */
-    --background: 39 25% 94%;          /* Canvas #F4F1DE */
-    --foreground: 0 0% 11%;            /* Charcoal #1D1D1F */
+    /* Sawmill Workshop Color System - Cream & Warm */
+    --background: 39 43% 97%;          /* Cream #FAF4E8 */
+    --foreground: 0 6% 10%;            /* Char #1A1110 */
     
-    /* Cards - Clean white */
-    --card: 0 0% 100%;                 /* White #FFFFFF */
-    --card-foreground: 0 0% 11%;
+    /* Cards - Slightly darker cream */
+    --card: 0 0% 100%;                 /* Pure white */
+    --card-foreground: 0 6% 10%;
     
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 11%;
+    --popover-foreground: 0 6% 10%;
     
-    /* Primary - Spruce */
-    --primary: 193 44% 23%;            /* Spruce #264653 */
-    --primary-foreground: 39 25% 94%;  /* Canvas (inverse) */
+    /* Primary - Deep Mahogany */
+    --primary: 0 45% 20%;              /* Mahogany Deep #4A1C1C */
+    --primary-foreground: 39 43% 97%;  /* Cream (inverse) */
     
-    /* Secondary - Teal */
-    --secondary: 172 57% 39%;          /* Teal #2A9D8F */
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - Cherry Warm */
+    --secondary: 0 40% 40%;            /* Cherry Warm #8B3A3A */
+    --secondary-foreground: 39 43% 97%;
     
-    /* Muted - Weathered Grey */
-    --muted: 214 15% 59%;              /* Weathered Grey #8D99AE */
-    --muted-foreground: 0 0% 40%;
+    /* Muted - Walnut Medium */
+    --muted: 11 18% 29%;               /* Walnut Medium #5D4037 */
+    --muted-foreground: 39 43% 80%;
     
-    /* Accent - Gold */
-    --accent: 42 77% 66%;              /* Gold #E9C46A */
-    --accent-foreground: 0 0% 11%;
+    /* Accent - Brass Vintage */
+    --accent: 45 91% 38%;              /* Brass Vintage #B8860B */
+    --accent-foreground: 0 6% 10%;
     
-    /* Destructive - Clay */
-    --destructive: 10 70% 61%;         /* Clay #E76F51 */
+    /* Destructive - Cherry Bright */
+    --destructive: 0 38% 50%;          /* Cherry Bright #A64D4D */
     --destructive-foreground: 0 0% 100%;
     
     /* Borders */
-    --border: 214 15% 85%;
-    --input: 214 15% 85%;
-    --ring: 193 44% 23%;               /* Spruce for focus ring */
+    --border: 11 18% 70%;
+    --input: 11 18% 70%;
+    --ring: 45 91% 38%;                /* Brass for focus ring */
     
-    /* Border radius - sanded */
-    --radius: 0.75rem;                 /* 12px sanded corners */
+    /* Border radius - organic */
+    --radius: 0.75rem;
   }
 
   /* Ocean Theme - Keep for backward compatibility */
@@ -93,10 +93,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
   
-  /* Premium typography */
+  /* Premium typography - Playfair Display for headings */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display), sans-serif;
-    font-weight: 600;
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 700;
     letter-spacing: -0.025em;
   }
   
@@ -105,7 +105,7 @@
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-  /* Focus states with spruce ring */
+  /* Focus states with brass ring */
   *:focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
@@ -117,25 +117,59 @@
     text-wrap: balance;
   }
   
-  /* Premium shadow utilities with spruce tones */
-  .shadow-warm-sm {
-    box-shadow: 0 1px 2px 0 rgb(38 70 83 / 0.05);
+  /* Wood Grain Texture Utilities */
+  .wood-grain {
+    background-image: 
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(74, 28, 28, 0.03) 2px,
+        rgba(74, 28, 28, 0.03) 4px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 4px,
+        rgba(74, 28, 28, 0.02) 4px,
+        rgba(74, 28, 28, 0.02) 8px
+      );
+    background-size: 100% 100%, 100% 100%;
   }
   
-  .shadow-warm {
-    box-shadow: 0 1px 3px 0 rgb(38 70 83 / 0.1), 0 1px 2px -1px rgb(38 70 83 / 0.1);
+  .wood-grain-dark {
+    background-image: 
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 3px,
+        rgba(0, 0, 0, 0.06) 3px,
+        rgba(0, 0, 0, 0.06) 6px
+      ),
+      linear-gradient(135deg, rgba(74, 28, 28, 0.02), rgba(107, 41, 41, 0.04));
+    background-size: 200% 200%;
+    animation: grain-shift 20s ease-in-out infinite;
   }
   
-  .shadow-warm-md {
-    box-shadow: 0 4px 6px -1px rgb(38 70 83 / 0.1), 0 2px 4px -2px rgb(38 70 83 / 0.1);
+  .wood-grain-light {
+    background-image: 
+     repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(139, 58, 58, 0.02) 2px,
+        rgba(139, 58, 58, 0.02) 4px
+      );
   }
   
-  .shadow-warm-lg {
-    box-shadow: 0 10px 15px -3px rgb(38 70 83 / 0.1), 0 4px 6px -4px rgb(38 70 83 / 0.1);
+  /* Brass Glow Effect */
+  .glow-brass {
+    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: box-shadow 0.2s ease;
   }
   
-  .shadow-warm-xl {
-    box-shadow: 0 20px 25px -5px rgb(38 70 83 / 0.1), 0 8px 10px -6px rgb(38 70 83 / 0.1);
+  .glow-brass:hover {
+    box-shadow: 0 6px 20px rgba(184, 134, 11, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   
   /* Smooth hover lift effect */
@@ -152,5 +186,13 @@
     background: hsl(var(--card) / 0.98);
     backdrop-filter: blur(10px);
     border: 1px solid hsl(var(--border));
+  }
+  
+  /* Gradient mesh backgrounds */
+  .mesh-gradient {
+    background: 
+      radial-gradient(at 20% 30%, rgba(107, 41, 41, 0.15) 0%, transparent 50%),
+      radial-gradient(at 80% 70%, rgba(139, 58, 58, 0.15) 0%, transparent 50%),
+      linear-gradient(135deg, hsl(var(--background)), rgba(212, 165, 116, 0.1));
   }
 }

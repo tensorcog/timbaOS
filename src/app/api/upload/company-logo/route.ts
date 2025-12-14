@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             companySettings = await prisma.companySettings.create({
                 data: {
                     id: randomBytes(16).toString('hex'),
-                    companyName: 'Pine ERP',
+                    companyName: 'TimbaOS',
                     logo: logoPath,
                 },
             });

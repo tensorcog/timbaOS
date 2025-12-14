@@ -50,7 +50,7 @@ export async function PATCH(request: NextRequest) {
             companySettings = await prisma.companySettings.create({
                 data: {
                     id: randomBytes(16).toString('hex'),
-                    companyName: companyName || 'Pine ERP',
+                    companyName: companyName || 'TimbaOS',
                     address,
                     phone,
                     email,

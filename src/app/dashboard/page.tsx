@@ -105,7 +105,7 @@ export default async function DashboardPage() {
                     <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
                         Dashboard
                     </h1>
-                    <p className="text-muted-foreground mt-1">Welcome back to Pine ERP</p>
+                    <p className="text-muted-foreground mt-1">Welcome back to TimbaOS</p>
                 </div>
             </div>
 

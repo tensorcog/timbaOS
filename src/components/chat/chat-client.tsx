@@ -142,7 +142,7 @@ export function ChatClient() {
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <Bot className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">
-              Welcome to Pine ERP AI Assistant
+              Welcome to TimbaOS AI Assistant
             </h3>
             <p className="text-muted-foreground max-w-md">
               I can help you with orders, inventory, customers, analytics, and more.

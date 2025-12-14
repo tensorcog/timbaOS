@@ -1,7 +1,7 @@
 {
   "name": "pine-erp-mcp-server",
   "version": "1.0.0",
-  "description": "MCP server for Pine ERP system",
+  "description": "MCP server for TimbaOS system",
   "type": "module",
   "main": "index.ts",
   "scripts": {

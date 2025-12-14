@@ -92,7 +92,7 @@ export default function AdminPage() {
                         <h3 className="font-semibold text-blue-400">ECI Spruce Migration</h3>
                         <p className="text-sm text-muted-foreground mt-1">
                             Migrating from ECI Spruce? Use the Import Data tool to upload your exported customer,
-                            product, and order data. The system will automatically map ECI Spruce fields to Pine ERP.
+                            product, and order data. The system will automatically map ECI Spruce fields to TimbaOS.
                         </p>
                         <div className="mt-3 flex gap-2">
                             <Link

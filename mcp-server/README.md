@@ -1,6 +1,6 @@
-# Pine ERP MCP Server
+# TimbaOS MCP Server
 
-This is a Model Context Protocol (MCP) server that provides Claude with tools to interact with your Pine ERP system.
+This is a Model Context Protocol (MCP) server that provides Claude with tools to interact with your TimbaOS system.
 
 ## Available Tools
 
@@ -16,12 +16,14 @@ The MCP server exposes the following tools to Claude:
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 cd mcp-server
 npm install
 ```
 
 2. Build the server:
+
 ```bash
 npm run build
 ```
@@ -29,6 +31,7 @@ npm run build
 3. Configure Claude Desktop to use this MCP server:
 
 Edit your Claude Desktop config file:
+
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **Linux**: `~/.config/Claude/claude_desktop_config.json`
@@ -40,9 +43,7 @@ Add this configuration:
   "mcpServers": {
     "pine-erp": {
       "command": "node",
-      "args": [
-        "/absolute/path/to/timbaos/mcp-server/dist/index.js"
-      ],
+      "args": ["/absolute/path/to/timbaos/mcp-server/dist/index.js"],
       "env": {
         "DATABASE_URL": "your-database-url-here"
       }
@@ -56,6 +57,7 @@ Add this configuration:
 ## Development
 
 Run in development mode with auto-reload:
+
 ```bash
 npm run dev
 ```
@@ -69,4 +71,4 @@ Once configured, Claude will automatically have access to these tools when chatt
 - "Create a quote for customer X"
 - "What are our top selling products this month?"
 
-The MCP server will handle these requests by querying your Pine ERP database directly.
+The MCP server will handle these requests by querying your TimbaOS database directly.

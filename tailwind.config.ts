@@ -9,16 +9,36 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                // Digital Arboretum Brand Colors
-                spruce: '#264653',
-                teal: '#2A9D8F',
-                gold: '#E9C46A',
-                clay: '#E76F51',
-                charcoal: '#1B262C',
-                canvas: '#F4F1DE',
-                'weathered-grey': '#8D99AE',
+                // Sawmill Workshop Palette - Rich & Dramatic
+                mahogany: {
+                    deep: '#4A1C1C',
+                    rich: '#6B2929',
+                    DEFAULT: '#4A1C1C',
+                },
+                cherry: {
+                    warm: '#8B3A3A',
+                    bright: '#A64D4D',
+                    DEFAULT: '#8B3A3A',
+                },
+                maple: {
+                    golden: '#D4A574',
+                    light: '#E8C592',
+                    DEFAULT: '#D4A574',
+                },
+                walnut: {
+                    deep: '#3E2723',
+                    medium: '#5D4037',
+                    DEFAULT: '#3E2723',
+                },
+                brass: {
+                    vintage: '#B8860B',
+                    bright: '#DAA520',
+                    DEFAULT: '#B8860B',
+                },
+                cream: '#FAF4E8',
+                char: '#1A1110',
                 
-                // System colors mapped to theme
+                // System colors mapped to new palette
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
@@ -55,28 +75,31 @@ const config: Config = {
             },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
-                display: ['Space Grotesk', 'sans-serif'],
+                display: ['Playfair Display', 'Georgia', 'serif'],
                 mono: ['JetBrains Mono', 'monospace'],
             },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
-                'sanded': '12px', // The signature "sanded" corner look
+                // Organic asymmetric patterns
+                'organic-1': '24px 8px 24px 8px',
+                'organic-2': '16px 4px 16px 4px',
+                'organic-3': '32px 12px 32px 12px',
             },
             boxShadow: {
-                'groove': '0 4px 6px -1px rgba(38, 70, 83, 0.1)',
-                'float': '0 10px 15px -3px rgba(38, 70, 83, 0.15)',
-                'warm-sm': '0 1px 2px 0 rgb(38 70 83 / 0.05)',
-                'warm': '0 1px 3px 0 rgb(38 70 83 / 0.1), 0 1px 2px -1px rgb(38 70 83 / 0.1)',
-                'warm-md': '0 4px 6px -1px rgb(38 70 83 / 0.1), 0 2px 4px -2px rgb(38 70 83 / 0.1)',
-                'warm-lg': '0 10px 15px -3px rgb(38 70 83 / 0.1), 0 4px 6px -4px rgb(38 70 83 / 0.1)',
-                'warm-xl': '0 20px 25px -5px rgb(38 70 83 / 0.1), 0 8px 10px -6px rgb(38 70 83 / 0.1)',
+                // Layered 3D shadow system
+                'layered': '0 1px 3px rgba(74, 28, 28, 0.12), 0 8px 24px rgba(74, 28, 28, 0.18)',
+                'elevated': '0 4px 6px rgba(74, 28, 28, 0.12), 0 12px 32px rgba(74, 28, 28, 0.24), inset 0 1px 0 rgba(250, 244, 232, 0.1)',
+                'floating': '0 8px 16px rgba(74, 28, 28, 0.16), 0 16px 48px rgba(74, 28, 28, 0.32)',
+                'brass-glow': '0 4px 12px rgba(184, 134, 11, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                'brass-glow-hover': '0 6px 20px rgba(184, 134, 11, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
             },
             animation: {
                 'fade-in': 'fadeIn 0.3s ease-in-out',
                 'slide-up': 'slideUp 0.3s ease-out',
                 'scale-in': 'scaleIn 0.2s ease-out',
+                'grain-shift': 'grainShift 20s ease-in-out infinite',
             },
             keyframes: {
                 fadeIn: {
@@ -90,6 +113,10 @@ const config: Config = {
                 scaleIn: {
                     '0%': { transform: 'scale(0.95)', opacity: '0' },
                     '100%': { transform: 'scale(1)', opacity: '1' },
+                },
+                grainShift: {
+                    '0%, 100%': { backgroundPosition: '0% 0%' },
+                    '50%': { backgroundPosition: '100% 100%' },
                 },
             },
         },

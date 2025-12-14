@@ -325,7 +325,7 @@ Transfer statuses: PENDING → IN_TRANSIT → RECEIVED
 3. **Orders**: Reports → Order History → Export to Excel
 4. **Inventory**: Include location codes in export
 
-### Import to Pine ERP
+### Import to TimbaOS
 
 1. Navigate to `/dashboard/admin/import`
 2. Select import type (Products, Customers, Orders)

@@ -248,26 +248,26 @@ export default async function DashboardPage() {
                                 <Link
                                     key={quote.id}
                                     href={`/dashboard/quotes/${quote.id}`}
-                                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                                    className="flex items-center justify-between p-4 rounded-organic-2 bg-white/60 hover:bg-white border border-walnut-medium/10 hover:border-brass/30 transition-all hover:shadow-organic cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-600 to-red-600 flex items-center justify-center text-white font-semibold">
+                                        <div className="h-12 w-12 rounded-organic-2 texture-brass flex items-center justify-center text-char font-bold text-lg shadow-organic">
                                             {quote.Customer.name.charAt(0)}
                                         </div>
                                         <div>
-                                            <p className="font-medium">{quote.Customer.name}</p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="font-semibold text-mahogany-deep">{quote.Customer.name}</p>
+                                            <p className="text-sm text-walnut-medium">
                                                 {quote.quoteNumber} • {quote.QuoteItem.length} items
                                             </p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-semibold">${Number(quote.totalAmount).toFixed(2)}</p>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${quote.status === 'ACCEPTED'
-                                            ? 'bg-green-500/20 text-green-400'
+                                        <p className="font-bold text-lg text-mahogany-deep">${Number(quote.totalAmount).toFixed(2)}</p>
+                                        <span className={`text-xs px-3 py-1 rounded-organic-2 font-medium ${quote.status === 'ACCEPTED'
+                                            ? 'bg-maple-golden/30 text-mahogany-deep border border-maple-golden'
                                             : quote.status === 'REJECTED' || quote.status === 'EXPIRED'
-                                                ? 'bg-red-500/20 text-red-400'
-                                                : 'bg-yellow-500/20 text-yellow-400'
+                                                ? 'bg-cherry-warm/20 text-cherry-bright border border-cherry-warm/60'
+                                                : 'bg-brass/20 text-walnut-deep border border-brass/40'
                                             }`}>
                                             {quote.status}
                                         </span>
@@ -275,7 +275,7 @@ export default async function DashboardPage() {
                                 </Link>
                             ))}
                             {quotes.length === 0 && (
-                                <p className="text-sm text-muted-foreground text-center py-4">
+                                <p className="text-sm text-walnut-medium text-center py-6">
                                     No quotes generated yet.
                                 </p>
                             )}
@@ -286,22 +286,24 @@ export default async function DashboardPage() {
 
             {/* Low Stock Alert */}
             {lowStockCount > 0 && (
-                <div className="rounded-xl border border-red-500/50 bg-red-500/10 p-6">
-                    <div className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
+                <div className="rounded-organic-2 texture-paper bg-card border-2 border-cherry-warm/40 shadow-organic p-6">
+                    <div className="flex items-start gap-4">
+                        <div className="h-12 w-12 rounded-organic-2 bg-cherry-warm/20 flex items-center justify-center border-2 border-cherry-warm/50 flex-shrink-0">
+                            <AlertCircle className="h-6 w-6 text-cherry-bright" />
+                        </div>
                         <div className="flex-1">
-                            <h3 className="font-semibold text-red-400">Low Stock Alert</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <h3 className="font-display font-bold text-xl text-cherry-bright">Low Stock Alert</h3>
+                            <p className="text-sm text-walnut-medium mt-1">
                                 {lowStockCount} item{lowStockCount > 1 ? 's' : ''} running low on inventory across all locations
                             </p>
-                            <div className="mt-3 space-y-2">
+                            <div className="mt-4 space-y-3">
                                 {lowStockItems.slice(0, 3).map((item) => (
-                                    <div key={item.id} className="flex items-center justify-between text-sm">
+                                    <div key={item.id} className="flex items-center justify-between p-3 rounded-organic-2 bg-white/60 border border-cherry-warm/20">
                                         <div className="flex-1">
-                                            <span className="font-medium">{item.Product.name}</span>
-                                            <span className="text-xs text-muted-foreground ml-2">@ {item.Location.name}</span>
+                                            <span className="font-semibold text-mahogany-deep">{item.Product.name}</span>
+                                            <span className="text-xs text-walnut-medium ml-2">@ {item.Location.name}</span>
                                         </div>
-                                        <span className="font-semibold text-red-400">{item.stockLevel} left</span>
+                                        <span className="font-bold text-cherry-bright">{item.stockLevel} left</span>
                                     </div>
                                 ))}
                             </div>

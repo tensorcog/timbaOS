@@ -187,17 +187,8 @@ export default async function DashboardPage() {
                     </div>
                 </div>
             </div>
-                                Needs attention
-                            </p>
-                        </div>
-                        <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                            <AlertCircle className="h-6 w-6 text-red-400" />
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
                 {/* Recent Orders */}
                 <div className="col-span-4 rounded-xl border bg-card/50 backdrop-blur">
                     <div className="p-6">
